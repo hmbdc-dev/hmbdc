@@ -1,0 +1,538 @@
+* Mon Jul 12 2021 - 12.38
+- turn on concept support and tested with gcc-10
+
+* Sun Jul 11 2021 - 12.37
+- fixed  the gcc10+ compiling using offset_of bug
+
+* Sun Jun 20 2021 - 12.36
+- allowed empty 0cpy buffer case
+- improved share mem initialization
+- fixed zero copy shm transfer in Domain with multiple pumps
+- removed using namespace in headers
+
+* Sun May 16 2021 - 12.32
+- made it all header-only lib/framework!
+
+* Sun May 09 2021 - 12.30
+- Type Inferred Pub/Sub (TIPS) is released with zero copy IPC support
+
+* Thu Dec 17 2020 - 12.7
+- made poll less frequent
+
+* Sun Dec 06 2020 - 12.6
+- shortcut Context hasMemoryAttachment when no IPC is involved
+- fixed topic reentrant issue for net portal
+
+* Sun Nov 22 2020 - 12.4
+- messageDispatchingStartedCb's signaure changed to allow inter-Client startup coordination
+
+* Mon Nov 09 2020 - 11.2
+- Allow attachment sent through Context (including IPC)
+
+* Thu Oct 22 2020 - 11.1
+- CentOs and Redhat platform gcc version supported moved to 7.3.1 (or later)
+- invokedCb(uint16_t) changed to invokedCb(size_t) to report dispatch count
+
+* Thu Oct 15 2020 - 10.24
+- QNX does not like SCHED_OTHER with 0 priority - fixed that
+
+* Fri Oct 09 2020 - 10.23
+- improved ExecutionIo to handle EOF and Configure
+
+* Mon Oct 05 2020 - 10.22
+- fixed wildcard subscription
+
+* Tue Sep 29 2020 - 10.21
+- QNX priority setting fixed
+- portal improvement
+
+* Tue Sep 22 2020 - 10.20
+- fixed tcpcast dropping initial messages and hanging issue related to src dropped out
+- fixed portal deadlock when buffer is small
+
+* Fri Jul 17 2020 - 10.17
+- removed dependency on boost regex
+- added NetPortal and moved BlockingContext from licensed to free package
+- supports QNX (both aarch64 and x86-64)
+- supports PCIe IPC - beta
+- support flexible message reordering processing
+
+* Thu Dec 12 2019 - 10.5
+- added sync request/reply messaging, it supports multiple replies per request, the request sender 
+  can decide when the right replies are received, and resumes async message handling, - with the 
+  timeout feature
+
+* Tue Jun 25 2019 - 9.4.1
+- build platform on Ubuntu goes back to 16.04
+
+* Tue Jun 25 2019 - 9.4
+- fixed tcp port not reused bug
+
+* Mon Jun 24 2019 - 9.3
+- replaced mcast module with udpcast module which support both multicast and unicast UDP communication
+- added security fereature in tcpcast and it is ready for the WAN environment that does not have multicast enabled
+- added tcpcast-secure-proxy application in the licensed version that allows thousands of tcpcast applications 
+  on the Internet to pub/sub in a peer-to-peer, secured and manageable way
+
+* Thu May 16 2019 - 8.8
+- more improvements on the BlockingContext in the licensed version
+
+* Mon Apr 08 2019 - 8.7
+- fixed linking issue for newer compilers (added -fPIC)
+
+* Sun Apr 07 2019 - 8.6
+- added blocking context in the licensed version
+- adjusted latency performance tool
+
+* Sat Mar 23 2019 - 8.4
+- supported arm64 (aarch64) processors
+- made code big-endian CPU ready
+- improved IPC performance
+
+* Tue Feb 12 2019 - 7.19
+- fixed tcpcast attachment messaging session retiring bug
+- tuned up for large mtu interfaces - for example, the loopback interface
+
+* Mon Jan 28 2019 - 7.17
+- fixed tcpcast reconnect bug
+- Improved the Context starting mechanism for pools, and fixed a bug in IPC pool support
+- test tools improvements.
+- improved mcast throughput.
+
+* Fri Jan 18 2019 - 7.11
+- bug fixes in tcpcast, rmcast and rnetmap for virtual machines
+
+* Tue Jan 15 2019 - 7.10
+- performance improvements based on 10G link tests
+- improved performance tests
+
+* Tue Jan 08 2019 - 7.8
+- Fixed netmap rnemtap packet rate sensivtive to maxSendBatch bug
+- improved performance measurement tools
+
+* Mon Dec 31 2018 - 7.6
+- Improved partition disruptor performance
+- Improved ping pong tests
+
+* Fri Dec 21 2018 - 7.4
+- removed dependency on boost asio to improve performance particularly when running network engines in pool
+- pool performance improvements
+- fixed rmcast / rnetmap's handling of the UDP packets out of order
+
+* Fri Nov 30 2018 - 6.30
+- fixed lib to work with boost 1-68
+
+* Tue Nov 27 2018 - 6.29
+- fixed examples and their doc
+
+* Mon Nov 26 2018 - 6.27
+- provided shortcut NetContext constructor for initial tx/rx capabilities
+
+* Fri Nov 23 2018 - 6.26
+- tcpcast now could be configured not relying multicast - see additionalTopicSources config param
+
+* Thu Nov 15 2018 - 6.25
+- added clang support for CentOs
+
+* Sun Nov 04 2018 - 6.23
+- documenatation fixes
+
+* Mon Oct 29 2018 - 6.22
+- added message replay capabilities for rmcast and rnetmap, now sender side can be configured to replay most recent N messages for new recipients
+
+* Sun Oct 14 2018 - 6.20
+- Fixed unnecessary "using namespace"
+
+* Tue Oct 09 2018 - 6.19 
+- fixed perf-tcpcast
+
+* Mon Oct 08 2018 - 6.18
+- fixed rmcast and rnetmap latency test tool pingpong-rmcast pingpong-rnetmap
+
+* Sat Oct 06 2018 - 6.17
+- rmcast and rnetmap support unlimited sized messages using zero copy attachment
+- rmcast and rnetmap rate control improvement
+
+* Mon Sep 24 2018 - 6.15
+- improved rnemtap and netmap throughput
+- disabled default rate control for all transport types
+
+* Sat Sep 22 2018 - 6.12
+- renamed packages (combining hmbdc-base, hmbdc-net and hmbdc-netmap into hmbdc-free, kept version numbers)
+- fixed netmap rnetmap parameters settings and bugs
+- provided default sync logger
+- performance parameters and tool improvements
+
+* Fri Sep 14 2018 - 6.11
+- fixed documentation
+
+* Mon Sep 03 2018 - 6.7
+- released reliable netmap(rnetmap)
+- fixed hmbdc-netmap module buffer size bug
+
+* Tue Aug 28 2018 - 6.5
+- improved net messaging performance
+- fixed hmbdc-netmap rate control
+
+* Wed Aug 22 2018 - 6.3
+- added reliable multicast rmcast support
+- fixed documentation
+
+* Wed Jun 06 2018 - 5.9
+- added missing header files (.h)
+- support prefix topic subscription
+- added mtu config support to mcast and tcpcast
+- optimized mcast and tcpcast resource allocation
+
+* Thu May 24 2018 - 5.6
+- ping pong tests now can change msg size and rate
+- fixed a tcpcast compiling bug related to check first base
+
+* Sun May 13 2018 - 5.5
+- added latency mearuement tools (ping-pong-*) and minor performance tuning up and data
+
+* Thu May 10 2018 - 5.4
+- added ipc Context to facilitate high performance inter-process messaging
+
+* Fri Apr 27 2018 - 4.17
+- added arbitration capabilities to network receiving transport engines
+
+* Sat Apr 14 2018 - 4.16
+- fixed the example chat runtime error by making Context more tolerating
+
+* Thu Mar 29 2018 - 4.15
+- made time nansec precision
+
+* Tue Mar 20 2018 - 4.13
+- improved timer and arbitrator performance
+- context specialized thru properties now
+- provided performance tests for broadcast Context
+
+* Wed Feb 21 2018 - 4.11
+- added non-block batch sending capability
+- added sending the first bytes of a message (variable length messages)
+- made thread pool fair to clients who don't process messages
+
+* Tue Feb 06 2018 - 4.10
+- fixed packaging duplicate files
+- improved console performance
+- made network message batching as default to improve default configured network thruput
+
+* Wed Nov 08 2017 - 4.6
+- changed the default mcastAddr setting used in tcpcast to avoid conflict
+- fixed fd not close problem when tcpcast file attachment feature is used
+
+* Mon Aug 28 2017 - 4.5
+- moved net messaging api out of Context
+- fixed nagling setting for tcpcast
+- allowed setting network transport engine thread properties
+- added memory and file attachemnt messaging in tcpcast
+- fixed message loopback to the same host behavior
+
+* Thu Jul 27 2017 - 3.8
+- added waitForSlowReceivers configure for tcpcast
+
+* Thu Jul 13 2017 - 3.7
+- supported runtime typed message sending 
+- added console utilities for network communication modules
+- provided straightforward integration mechanism to other programming languages (python example provided)
+
+* Wed Jun 14 2017 - 3.4
+- Supported Ubuntu (16.02)
+
+* Fri Jun 02 2017 - 3.1
+- Added netmap-net package in the release to support udp multicast and tcp multicast topic based messaging for network communication
+
+* Mon Jan 30 2017 - 2.7
+- allowed different buffer in Context
+
+* Mon Jan 23 2017 - 2.6
+- fixed packaging
+
+* Mon Jan 23 2017 - 2.5
+- adjusted test volume
+
+* Mon Jan 23 2017 - 2.4
+- dropped openpgm support - due to performance and reliability issues
+- fixed an ungraceful exiting problem
+
+* Fri Jan 20 2017 - 2.3
+- fixed rpm packaging
+
+* Fri Jan 20 2017 - 2.2
+- Added netmap support to take advantage of kernel bypassed UDB
+- support batch network sending better by modifying the netSend interface
+- More accurate rate control
+
+* Fri Jul 22 2016 - 1.7
+- Initial release
+
+* Mon Jul 12 2021 - 12.38
+- turn on concept support and tested with gcc-10
+
+* Sun Jul 11 2021 - 12.37
+- fixed  the gcc10+ compiling using offset_of bug
+
+* Sun Jun 20 2021 - 12.36
+- allowed empty 0cpy buffer case
+- improved share mem initialization
+- fixed zero copy shm transfer in Domain with multiple pumps
+- removed using namespace in headers
+
+* Sun May 16 2021 - 12.32
+- made it all header-only lib/framework!
+
+* Sun May 09 2021 - 12.30
+- Type Inferred Pub/Sub (TIPS) is released with zero copy IPC support
+
+* Thu Dec 17 2020 - 12.7
+- made poll less frequent
+
+* Sun Dec 06 2020 - 12.6
+- shortcut Context hasMemoryAttachment when no IPC is involved
+- fixed topic reentrant issue for net portal
+
+* Sun Nov 22 2020 - 12.4
+- messageDispatchingStartedCb's signaure changed to allow inter-Client startup coordination
+
+* Mon Nov 09 2020 - 11.2
+- Allow attachment sent through Context (including IPC)
+
+* Thu Oct 22 2020 - 11.1
+- CentOs and Redhat platform gcc version supported moved to 7.3.1 (or later)
+- invokedCb(uint16_t) changed to invokedCb(size_t) to report dispatch count
+
+* Thu Oct 15 2020 - 10.24
+- QNX does not like SCHED_OTHER with 0 priority - fixed that
+
+* Fri Oct 09 2020 - 10.23
+- improved ExecutionIo to handle EOF and Configure
+
+* Mon Oct 05 2020 - 10.22
+- fixed wildcard subscription
+
+* Tue Sep 29 2020 - 10.21
+- QNX priority setting fixed
+- portal improvement
+
+* Tue Sep 22 2020 - 10.20
+- fixed tcpcast dropping initial messages and hanging issue related to src dropped out
+- fixed portal deadlock when buffer is small
+
+* Fri Jul 17 2020 - 10.17
+- removed dependency on boost regex
+- added NetPortal and moved BlockingContext from licensed to free package
+- supports QNX (both aarch64 and x86-64)
+- supports PCIe IPC - beta
+- support flexible message reordering processing
+
+* Thu Dec 12 2019 - 10.5
+- added sync request/reply messaging, it supports multiple replies per request, the request sender 
+  can decide when the right replies are received, and resumes async message handling, - with the 
+  timeout feature
+
+* Tue Jun 25 2019 - 9.4.1
+- build platform on Ubuntu goes back to 16.04
+
+* Tue Jun 25 2019 - 9.4
+- fixed tcp port not reused bug
+
+* Mon Jun 24 2019 - 9.3
+- replaced mcast module with udpcast module which support both multicast and unicast UDP communication
+- added security fereature in tcpcast and it is ready for the WAN environment that does not have multicast enabled
+- added tcpcast-secure-proxy application in the licensed version that allows thousands of tcpcast applications 
+  on the Internet to pub/sub in a peer-to-peer, secured and manageable way
+
+* Thu May 16 2019 - 8.8
+- more improvements on the BlockingContext in the licensed version
+
+* Mon Apr 08 2019 - 8.7
+- fixed linking issue for newer compilers (added -fPIC)
+
+* Sun Apr 07 2019 - 8.6
+- added blocking context in the licensed version
+- adjusted latency performance tool
+
+* Sat Mar 23 2019 - 8.4
+- supported arm64 (aarch64) processors
+- made code big-endian CPU ready
+- improved IPC performance
+
+* Tue Feb 12 2019 - 7.19
+- fixed tcpcast attachment messaging session retiring bug
+- tuned up for large mtu interfaces - for example, the loopback interface
+
+* Mon Jan 28 2019 - 7.17
+- fixed tcpcast reconnect bug
+- Improved the Context starting mechanism for pools, and fixed a bug in IPC pool support
+- test tools improvements.
+- improved mcast throughput.
+
+* Fri Jan 18 2019 - 7.11
+- bug fixes in tcpcast, rmcast and rnetmap for virtual machines
+
+* Tue Jan 15 2019 - 7.10
+- performance improvements based on 10G link tests
+- improved performance tests
+
+* Tue Jan 08 2019 - 7.8
+- Fixed netmap rnemtap packet rate sensivtive to maxSendBatch bug
+- improved performance measurement tools
+
+* Mon Dec 31 2018 - 7.6
+- Improved partition disruptor performance
+- Improved ping pong tests
+
+* Fri Dec 21 2018 - 7.4
+- removed dependency on boost asio to improve performance particularly when running network engines in pool
+- pool performance improvements
+- fixed rmcast / rnetmap's handling of the UDP packets out of order
+
+* Fri Nov 30 2018 - 6.30
+- fixed lib to work with boost 1-68
+
+* Tue Nov 27 2018 - 6.29
+- fixed examples and their doc
+
+* Mon Nov 26 2018 - 6.27
+- provided shortcut NetContext constructor for initial tx/rx capabilities
+
+* Fri Nov 23 2018 - 6.26
+- tcpcast now could be configured not relying multicast - see additionalTopicSources config param
+
+* Thu Nov 15 2018 - 6.25
+- added clang support for CentOs
+
+* Sun Nov 04 2018 - 6.23
+- documenatation fixes
+
+* Mon Oct 29 2018 - 6.22
+- added message replay capabilities for rmcast and rnetmap, now sender side can be configured to replay most recent N messages for new recipients
+
+* Sun Oct 14 2018 - 6.20
+- Fixed unnecessary "using namespace"
+
+* Tue Oct 09 2018 - 6.19 
+- fixed perf-tcpcast
+
+* Mon Oct 08 2018 - 6.18
+- fixed rmcast and rnetmap latency test tool pingpong-rmcast pingpong-rnetmap
+
+* Sat Oct 06 2018 - 6.17
+- rmcast and rnetmap support unlimited sized messages using zero copy attachment
+- rmcast and rnetmap rate control improvement
+
+* Mon Sep 24 2018 - 6.15
+- improved rnemtap and netmap throughput
+- disabled default rate control for all transport types
+
+* Sat Sep 22 2018 - 6.12
+- renamed packages (combining hmbdc-base, hmbdc-net and hmbdc-netmap into hmbdc-free, kept version numbers)
+- fixed netmap rnetmap parameters settings and bugs
+- provided default sync logger
+- performance parameters and tool improvements
+
+* Fri Sep 14 2018 - 6.11
+- fixed documentation
+
+* Mon Sep 03 2018 - 6.7
+- released reliable netmap(rnetmap)
+- fixed hmbdc-netmap module buffer size bug
+
+* Tue Aug 28 2018 - 6.5
+- improved net messaging performance
+- fixed hmbdc-netmap rate control
+
+* Wed Aug 22 2018 - 6.3
+- added reliable multicast rmcast support
+- fixed documentation
+
+* Wed Jun 06 2018 - 5.9
+- added missing header files (.h)
+- support prefix topic subscription
+- added mtu config support to mcast and tcpcast
+- optimized mcast and tcpcast resource allocation
+
+* Thu May 24 2018 - 5.6
+- ping pong tests now can change msg size and rate
+- fixed a tcpcast compiling bug related to check first base
+
+* Sun May 13 2018 - 5.5
+- added latency mearuement tools (ping-pong-*) and minor performance tuning up and data
+
+* Thu May 10 2018 - 5.4
+- added ipc Context to facilitate high performance inter-process messaging
+
+* Fri Apr 27 2018 - 4.17
+- added arbitration capabilities to network receiving transport engines
+
+* Sat Apr 14 2018 - 4.16
+- fixed the example chat runtime error by making Context more tolerating
+
+* Thu Mar 29 2018 - 4.15
+- made time nansec precision
+
+* Tue Mar 20 2018 - 4.13
+- improved timer and arbitrator performance
+- context specialized thru properties now
+- provided performance tests for broadcast Context
+
+* Wed Feb 21 2018 - 4.11
+- added non-block batch sending capability
+- added sending the first bytes of a message (variable length messages)
+- made thread pool fair to clients who don't process messages
+
+* Tue Feb 06 2018 - 4.10
+- fixed packaging duplicate files
+- improved console performance
+- made network message batching as default to improve default configured network thruput
+
+* Wed Nov 08 2017 - 4.6
+- changed the default mcastAddr setting used in tcpcast to avoid conflict
+- fixed fd not close problem when tcpcast file attachment feature is used
+
+* Mon Aug 28 2017 - 4.5
+- moved net messaging api out of Context
+- fixed nagling setting for tcpcast
+- allowed setting network transport engine thread properties
+- added memory and file attachemnt messaging in tcpcast
+- fixed message loopback to the same host behavior
+
+* Thu Jul 27 2017 - 3.8
+- added waitForSlowReceivers configure for tcpcast
+
+* Thu Jul 13 2017 - 3.7
+- supported runtime typed message sending 
+- added console utilities for network communication modules
+- provided straightforward integration mechanism to other programming languages (python example provided)
+
+* Wed Jun 14 2017 - 3.4
+- Supported Ubuntu (16.02)
+
+* Fri Jun 02 2017 - 3.1
+- Added netmap-net package in the release to support udp multicast and tcp multicast topic based messaging for network communication
+
+* Mon Jan 30 2017 - 2.7
+- allowed different buffer in Context
+
+* Mon Jan 23 2017 - 2.6
+- fixed packaging
+
+* Mon Jan 23 2017 - 2.5
+- adjusted test volume
+
+* Mon Jan 23 2017 - 2.4
+- dropped openpgm support - due to performance and reliability issues
+- fixed an ungraceful exiting problem
+
+* Fri Jan 20 2017 - 2.3
+- fixed rpm packaging
+
+* Fri Jan 20 2017 - 2.2
+- Added netmap support to take advantage of kernel bypassed UDB
+- support batch network sending better by modifying the netSend interface
+- More accurate rate control
+
+* Fri Jul 22 2016 - 1.7
+- Initial release
+

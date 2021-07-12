@@ -1,0 +1,258 @@
+//this is an additon to chat.cpp exampel to introduce:
+//serialization, thread pool and timer usage of HMBDC TIPS
+//
+//the additional assumption here is that a single Admin (thread) cannot monitor all the conversations
+//we need a pool of Admins to collectively monitor all the Chatters
+//Also periodically print out the ChatMessage count from each Admin - you might see message on the screen
+//show interleaving indicating they are printed from different Admins (threads)
+//search for <====== mark in the code where the key additions related to timer and thread pool
+//from chat.cpp shows
+//the app join a chat group and start to have group chat
+//to run:
+//./chat2 <local-ip> admin admin                  # start the groups by admin, and keep it running
+//./chat2 <local-ip> <chat-group-name> <my-name>  # join the group
+//to build:
+//g++ chat2.cpp -std=c++1z -Wall -Werror -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/chat2
+//
+#include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
+#include "hmbdc/tips/Tips.hpp"
+#include "hmbdc/time/Timers.hpp"                                                        // <=====
+
+
+#include <iostream>
+#include <string>
+#include <memory>
+#include <unistd.h>
+
+using namespace std;
+using namespace hmbdc::app;
+using namespace hmbdc::time;                                                            // <=====
+using namespace hmbdc::tips;
+
+//
+//this is the message the administrator "annouces", each Chatter subscribes to it
+//to hear what the admin has to say regardless of chatting group
+//
+struct Announcement
+: hasTag<1001> {
+    std::string msg;        /// this needs serialization to go out of process,          // <=====
+                            /// if not provided, the pub/sub only happens within 
+                            /// local process
+    /// provide serialization logic here
+    /// toHmbdcSerialized and toHmbdcUnserialized are the entrances
+    /// for TIPS to call
+
+    struct Serialized
+    : hasMemoryAttachment  /// make the message contains an attachment to hold std::string's content
+    , hasTag<1001> {       /// the serialized message must have the same tag number as original
+        Serialized(Announcement const& announcement) {  /// construct the serialized message
+            hasMemoryAttachment& att = *this;
+            att.len = announcement.msg.size();
+            att.attachment = malloc(att.len);
+            memcpy(att.attachment, announcement.msg.c_str(), att.len);
+            att.afterConsumedCleanupFunc = [](hasMemoryAttachment* h) {
+                ::free(h->attachment);                  /// how to release the attachment
+            };
+        }
+
+        /// how to convert it back to Announcement - unserialize
+        Announcement toHmbdcUnserialized() {
+            auto& att = (hasMemoryAttachment&)(*this);
+            Announcement res;
+            res.msg = std::string((char*)att.attachment, att.len);
+            return res;
+        };
+    };
+
+    /// entrance to serilize Announcement
+    auto toHmbdcSerialized() const {
+        return Serialized{*this};
+    }
+};
+
+//
+//this is the message going back and forth carrying text conversations - unlimited in size
+//
+//we make all the chat groups use the same ChatMessage type, but each group will
+//be assigned a unique tag number ranging from 1002 - (1002 + 100)
+//
+struct ChatMessage 
+: hasSharedPtrAttachment<ChatMessage, char[]>    //message text is saved in a shared_ptr<char[]>
+, inTagRange<1002, 100> {           //up to 100 chat groups; only configured 3 in the example
+    ChatMessage(char const* myId, uint16_t grouId, char const* msg)
+    : hasSharedPtrAttachment(std::shared_ptr<char[]>(new char[strlen(msg) + 1]), strlen(msg) + 1)
+    , inTagRange(grouId) {
+        snprintf(id, sizeof(id), "%s", myId);
+        snprintf(hasSharedPtrAttachment::attachmentSp.get(), hasSharedPtrAttachment::len
+            , "%s", msg);
+    }
+
+    char id[16];            //chatter
+
+    // ChatMessage is a Message type whose tag is runtime determined (vs hasTag type of message that is 
+    // statically tagged Message type - see Announcement), this method is used in the tag determination
+    static uint16_t getGroupId(std::string const& group) {
+        static const std::string groupNames[] = {{"tennis"}, {"volleyball"}, {"basketball"}};
+        auto it = std::find(std::begin(groupNames), std::end(groupNames), group);
+        //returns group id which is used as the tag offset (against th base tag 1002)
+        if (it == std::end(groupNames)) throw std::out_of_range("non-existing group");
+        return it - std::begin(groupNames);
+    }
+};
+
+/// Admin node that runs in a thread and gets message callbacks
+template <typename ChatDomain>
+struct Admin 
+: Node<Admin<ChatDomain>, std::tuple<ChatMessage>> //only subscribe ChatMessage
+, TimerManager {                                                                        //<=======
+    Admin(ChatDomain& domain)
+    : domain_(domain)
+    , reportTimer_(Duration::seconds(10), [this](TimerManager&, SysTime const&) {       // <======
+        cout << "chatMessageCount = " << chatMessageCount_ << std::endl;
+    }) { //start the timer
+        schedule(SysTime::now(), reportTimer_);                                         // <======
+    }
+
+    /// specify what types to publish
+    using SendMessageTuple = std::tuple<Announcement>;
+
+    /// message callback - won't compile if missing
+    void handleMessageCb(ChatMessage const& m) {
+        chatMessageCount_++;                                                            
+        cout << m.id << ": " << m.attachmentSp.get() << endl;
+    }
+
+    void annouce(std::string&& text) {
+        Announcement m;
+        m.msg = std::move(text);
+        domain_.publish(m);
+    }
+
+    private:
+    ChatDomain& domain_;
+    ReoccuringTimer reportTimer_;                                                  
+    size_t chatMessageCount_ = 0;
+};
+
+/// Chatter node
+struct Chatter 
+: Node<Chatter, std::tuple<Announcement, ChatMessage>> { //subscribe both Announcement and ChatMessage
+    /// specify what types to publish
+    using SendMessageTuple = std::tuple<ChatMessage>;
+
+    Chatter(std::string id, std::string group)
+    : id(id)
+    , groupId(ChatMessage::getGroupId(group)) {
+    }
+
+    /// unlike Admin who subscribes all ChatMessage
+    /// for ChatMessage Chatter only subscribes to one tag offset number (groupId: 0 - 99)
+    /// tennis uses the tag offset = 0, valleyball = 1, ...
+    /// here we tell the framework what the tag offset is for ChatMessage
+    /// Note Admin does not implemet this function and all ChatMessage
+    /// are delivered to Admin regardles of the tag offset of each message
+    void addTypeTagRangeSubsFor(ChatMessage*, std::function<void(uint16_t)> addOffsetInRange) const {
+        addOffsetInRange(groupId);
+    }
+
+    void handleMessageCb(Announcement const& m) {
+        cout << "ADMIN ANNOUCEMENT: " << m.msg << endl;
+        if (m.msg == "TERM") {
+            cout << "Press Enter to exit" << endl;
+            stopFlag = true;
+            throw 0; //any exception in callback signal end of messaging
+        }
+    }
+
+    void handleMessageCb(ChatMessage const& m) {
+        if (id != m.id) { //do not reprint myself
+            cout << m.id << ": " << m.attachmentSp.get() << endl;
+        }
+    }
+
+    string const id;
+    uint16_t const groupId;
+    std::atomic<bool> stopFlag{false};
+};
+
+int main(int argc, char** argv) {
+    using namespace std;
+    if (argc != 4) {
+        cerr << argv[0] << " local-ip chat-group-name my-name" << endl;
+        cerr << "multicast should be enabled on local-ip network" << endl;
+        return -1;
+    }
+    std::string ifaceAddr = argv[1];
+    std::string chatGroup = argv[2];
+    std::string myId = argv[3];
+
+    Config config; //other config values are default
+    config.put("ifaceAddr", ifaceAddr);//which interface to use for communication
+    
+    SingletonGuardian<tcpcast::Protocol> g; //RAII for tcpcast::Protocol resources
+    
+    /// hmbdc uses shared memory with very efficient algorithm for inter process commnunication on the same host
+    /// to avoid unnecessary copying
+    /// here we declare some properties for the shared memory config
+    using IpcProp = ipc_property<4  /// up to 4 chatters on the SAME host to do IPC, largest number is 256
+        , 1000                      /// largest message size to send to IPC - ok to set a big enough value
+                                    /// all IPC parties needs to match on this
+    >;  
+
+    if (myId == "admin") { //as admin
+        using SubMessages = typename Admin<void*>::RecvMessageTuple;
+        using NetProp = net_property<tcpcast::Protocol
+            , 1400
+        >;
+
+        using ChatDomain = Domain<SubMessages, IpcProp, NetProp>;
+        auto domain = ChatDomain{config};           /// admin should create the chat group and own it
+                                                    /// so run it first
+
+        /// a thread pool of 3 Admins - they collectively handle its messages           // <======
+        vector<unique_ptr<Admin<ChatDomain>>> admins;                                   // <======
+        for (auto i = 0; i < 3; ++i) {                                                  // <======
+            admins.emplace_back(new Admin<ChatDomain>{domain});                         // <======
+        }                                                                               // <======
+        domain.startPool(admins.data(), admins.data() + 3); // start pool of 3 threads  // <======
+
+        //we can read the admin's input and send messages out now
+        string line;
+        cout << "start type a message" << endl;
+        cout << "ctrl-d to terminate" << endl;
+
+        while(getline(cin, line)) {
+            admins[0]->annouce(std::move(line));
+        }
+        admins[0]->annouce("TERM");
+        sleep(1); //so the message does go out to the network
+        domain.stop();
+        domain.join();
+    } else {  //as a chatter
+        using SubMessages = typename Chatter::RecvMessageTuple;
+        using NetProp = net_property<tcpcast::Protocol
+            , 128
+        >;
+
+        using ChatDomain = Domain<SubMessages, IpcProp, NetProp>;
+        auto domain = ChatDomain{config};
+        if (domain.ownIpcTransport()) {
+            cout << "You own the IPC transport now!" << endl;
+        }
+        Chatter chatter(myId, chatGroup);
+        domain.start(chatter);
+
+        //we can read the user's input and send messages out now
+        string line;
+        cout << "start type a message" << endl;
+        cout << "ctrl-d to terminate" << endl;
+
+        while(!chatter.stopFlag && getline(cin, line)) {
+            ChatMessage m(myId.c_str(), chatter.groupId, line.c_str());
+            domain.publish(m); //now publish
+        }
+
+        domain.stop();
+        domain.join();
+    }
+}
