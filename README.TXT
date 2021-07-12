@@ -47,7 +47,7 @@ Keywords and features:
   tools are runnable without any license requirement.
 - 100% open source for licensed users
 
-The C++(14) flavor API are designed to be powerful and 
+The C++(17) flavor API are designed to be powerful and 
 yet intuitive to use. The extensive template usage 
 gives the compiler all the opportunities to optimize. 
 The best way to get a taste of the lib is thru its 
@@ -78,7 +78,7 @@ More examples are packaged in the release.
   Ubuntu 18.04 (or later)
   clang 5.0.1 (or later) on the above CentOs and RHEL
   platforms
-  QNX SDP7.0 for x86_64 or aarch64
+  QNX SDP7.1 for x86_64 or aarch64
 * go to the download page, and install the rpms (
   deb on Ubuntu, prebuilt tar for QNX and aarch64 platforms) 
   and the dependency will be checked automatically. 
@@ -92,16 +92,9 @@ More examples are packaged in the release.
       mcast, tcpcast, netmap) 
     hmbdc-licensed (rmcast and rnetmap)
 
-### How do I build from src tar ball? - for licensed users only ###
-0. make sure you have the required lib in place: boost(1-62 or later)
-  and $(BOOST_ROOT)/include $(BOOST_ROOT)/lib present;
-  make sure you have the QNX or aarch64 cross compiling tools ready 
-  if you are building for them
-  for QNX, source the qnx set env script now
-1. mkdir <build dir>; cd <build dir>; tar axvf <hmbdc src tar.gz file>
-3. make BOOST_ROOT=<boost root dir> #add aarch64=1 flag if that is the target (Linux or QNX)
-4. sudo make install #add aarch64=1 flag if that is the target (Linux or QNX) 
-5. done - check /opt/hmbdc{arch} dir for installed files
+### How do I build? ###
+* hmbdc is now head only lib, check example code 
+  for recommended compiling flags
 
 ### Contribution guidelines ###
 * all suggestions and issue reports are welcome
