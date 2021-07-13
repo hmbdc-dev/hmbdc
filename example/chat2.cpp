@@ -12,7 +12,12 @@
 //./chat2 <local-ip> admin admin                  # start the groups by admin, and keep it running
 //./chat2 <local-ip> <chat-group-name> <my-name>  # join the group
 //to build:
-//g++ chat2.cpp -std=c++1z -Wall -Werror -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/chat2
+//g++ chat2.cpp -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/chat2
+//
+//to debug:
+//somtimes you need to reset shared memory by "rm /dev/shm/*" 
+//on each host, the shared memory is owned (create and delete) by the first chat process started
+//- see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
 //
 #include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
 #include "hmbdc/tips/Tips.hpp"

@@ -1,7 +1,7 @@
 // hello-world for hmbdc TIPS 
 // - see concept of doamin and Node https://www.hummingbirdcode.net/p/concept-model.html
 // to build:
-// g++ hello-world.cpp -O3 -std=c++1z -Wall -Werror -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw
+// g++ hello-world.cpp -O3 -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw
 //
 // example screenshot on localhost - start receiver first on term 1, then sender on term 2:
 // [term1] /tmp/hw 127.0.0.1 recv
@@ -12,7 +12,11 @@
 // [term2] /tmp/hw 127.0.0.1 # now send a hello - see it appear on term1
 //
 // WHEN RUNNING ON DIFFERENT HOSTS, MAKE SURE FIREWALLS ARE OFF ON THEM SO UDP MULTICAST WORK AMONG THEM
-
+//
+// to debug:
+// somtimes you need to reset shared memory by "rm /dev/shm/*" 
+// - see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
+//
 #include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
 #include "hmbdc/tips/Tips.hpp"
 #include "hmbdc/os/Signals.hpp"
