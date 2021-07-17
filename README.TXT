@@ -20,7 +20,7 @@ Keywords and features:
 - lockfree / disruptor pattern
 - low latency / high throughput / kernel bypassing
 - support multiple types of transport mechanisms with
-  the consistent look and feel C++14 API:
+  the consistent look and feel C++7 API:
     interthread(~200ns delay, free),
     interprocess(ipc, ~200ns delay, free),
     UDP multicast(mcast, ~30us delay, free),
@@ -47,7 +47,7 @@ Keywords and features:
   tools are runnable without any license requirement.
 - 100% open source for licensed users
 
-The C++(14) flavor API are designed to be powerful and 
+The C++(17) flavor API are designed to be powerful and 
 yet intuitive to use. The extensive template usage 
 gives the compiler all the opportunities to optimize. 
 The best way to get a taste of the lib is thru its 
