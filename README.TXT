@@ -94,7 +94,6 @@ More examples are packaged in the release.
 
 ### How do I build code in example and tools dir ###
 0. make sure you have the required lib in place: boost(1-62 or later)
-  and $(BOOST_ROOT)/include $(BOOST_ROOT)/lib present;
   make sure you have the QNX or aarch64 cross compiling tools ready 
   if you are building for them
   for QNX, source the qnx set env script now
