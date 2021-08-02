@@ -44,7 +44,9 @@ struct Announcement
 //
 
 struct TextInShm {                      ///                                     <======
-    size_t hmbdc0cpyShmRefCount;        /// as the first field inidicating this is allocated in shared memory
+    size_t hmbdc0cpyShmRefCount = 0;    /// as the first field inidicating 
+                                        /// this is potentially allocated and/or transferred
+                                        /// via 0cpy shared memory - avoid changing its value
                                         /// the above is compile time checked if not true
     char text[1];                       /// openended - do not know the length
 };
@@ -81,16 +83,8 @@ struct ChatMessage
 };
 
 /// Admin node that runs in a thread and gets message callbacks
-template <typename ChatDomain>
 struct Admin 
-: Node<Admin<ChatDomain>, std::tuple<ChatMessage>> { //only subscribe ChatMessage
-    Admin(ChatDomain& domain)
-    : domain_(domain)
-    {}
-
-    /// specify what types to publish
-    using SendMessageTuple = std::tuple<Announcement>;
-
+: Node<Admin, std::tuple<ChatMessage>, std::tuple<Announcement>> {
     /// message callback - won't compile if missing
     void handleMessageCb(ChatMessage const& m) {
         cout << m.id << ": " << m.attachmentSp->text << endl;
@@ -99,19 +93,13 @@ struct Admin
     void annouce(char const* text) {
         Announcement m;
         snprintf(m.msg, sizeof(m.msg), "%s", text);
-        domain_.publish(m);
+        publish(m);
     }
-
-    private:
-    ChatDomain& domain_;
 };
 
 /// Chatter node
 struct Chatter 
-: Node<Chatter, std::tuple<Announcement, ChatMessage>> { //subscribe both Announcement and ChatMessage
-    /// specify what types to publish
-    using SendMessageTuple = std::tuple<ChatMessage>;
-
+: Node<Chatter, std::tuple<Announcement, ChatMessage>, std::tuple<ChatMessage>> {
     Chatter(std::string id, std::string group)
     : id(id)
     , groupId(ChatMessage::getGroupId(group)) {
@@ -172,7 +160,7 @@ int main(int argc, char** argv) {
     >;  
 
     if (myId == "admin") { //as admin
-        using SubMessages = typename Admin<void*>::RecvMessageTuple;
+        using SubMessages = typename Admin::RecvMessageTuple;
         using NetProp = net_property<tcpcast::Protocol
             , 1400  /// big enough to hold largest message (excluding attachment - which isn't compile time 
                     /// determined anyway) to send to net
@@ -182,7 +170,7 @@ int main(int argc, char** argv) {
         using ChatDomain = Domain<SubMessages, IpcProp, NetProp>;
         auto domain = ChatDomain{config};           /// admin should create the chat group and own it
                                                     /// so run it first
-        Admin<ChatDomain> admin{domain};
+        Admin admin;
         domain.start(admin);
         //we can read the admin's input and send messages out now
         string line;

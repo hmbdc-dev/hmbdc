@@ -82,7 +82,7 @@ struct hasSharedPtrAttachment {
         enum {
             is_att_0cpyshm = has_hmbdc0cpyShmRefCount<T>::value,
         };
-        uint64_t hmbdcShmRefCount = 0;
+        bool hmbdcIsAttInShm = false;
         hmbdcSerialized(Message const& message)
         : tagBase::type(message) {
             afterConsumedCleanupFunc = [](app::hasMemoryAttachment* h) {
@@ -94,6 +94,11 @@ struct hasSharedPtrAttachment {
             len = message.hasSharedPtrAttachment::len;
             new (this->clientData) SP(message.hasSharedPtrAttachment::attachmentSp);
             memcpy(meat, (char*)&message + meatOffsetInMessage, sizeof(meat));
+            if constexpr (is_att_0cpyshm) {
+                if (len) {
+                    hmbdcIsAttInShm = message.attachmentSp->hmbdc0cpyShmRefCount;
+                }
+            }
         }
 
         Message toHmbdcUnserialized() {

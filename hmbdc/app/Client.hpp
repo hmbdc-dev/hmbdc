@@ -39,28 +39,6 @@ struct InBandMemoryAttachmentProcessor {
             att->afterConsumedCleanupFunc = nullptr;
             accSize = 0;
             return true;
-        } else if (att->holdShmHandle<Message>()) {
-            if constexpr (has_hmbdcShmRefCount<Message>::value) {
-                // auto addr = malloc(att->len);
-                auto shmAddr = hmbdcShmHandleToAddr(att->shmHandle);
-                // memcpy(addr, shmAddr, att->len);
-                att->attachment = shmAddr;
-                att->clientData[0] = (uint64_t)&hmbdcShmDeallocator;
-                static_assert(sizeof(ibma.underlyingMessage.hmbdcShmRefCount) == sizeof(size_t));
-                att->clientData[1] = (uint64_t)&ibma.underlyingMessage.hmbdcShmRefCount;
-                if constexpr (has_hmbdcShmRefCount<Message>::value) {
-                    att->afterConsumedCleanupFunc = [](hasMemoryAttachment* h) {
-                        auto hmbdcShmRefCount = (size_t*)h->clientData[1];
-                        if (0 == __atomic_sub_fetch(hmbdcShmRefCount, 1, __ATOMIC_RELAXED)) {
-                            auto& hmbdcShmDeallocator
-                                = *(std::function<void (uint8_t*)>*)h->clientData[0];
-                            hmbdcShmDeallocator((uint8_t*)h->attachment);
-                        }
-                    };
-                }
-                accSize = att->len;
-            } /// no else
-            return true;
         } else {
             att->attachment = malloc(att->len);
             att->afterConsumedCleanupFunc = hasMemoryAttachment::free;

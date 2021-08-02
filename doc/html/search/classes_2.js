@@ -13,6 +13,8 @@ var searchData=
   ['client_3c_20stuckclientpurger_3c_20buffer_20_3e_20_3e',['Client&lt; StuckClientPurger&lt; Buffer &gt; &gt;',['../structhmbdc_1_1app_1_1Client.html',1,'hmbdc::app']]],
   ['client_5fusing_5ftuple',['client_using_tuple',['../structhmbdc_1_1app_1_1client__using__tuple.html',1,'hmbdc::app']]],
   ['client_5fusing_5ftuple_3c_20ccclient_2c_20std_3a_3atuple_3c_20messages_2e_2e_2e_20_3e_20_3e',['client_using_tuple&lt; CcClient, std::tuple&lt; Messages... &gt; &gt;',['../structhmbdc_1_1app_1_1client__using__tuple_3_01CcClient_00_01std_1_1tuple_3_01Messages_8_8_8_01_4_01_4.html',1,'hmbdc::app']]],
+  ['client_5fwith_5fstash_5fusing_5ftuple',['client_with_stash_using_tuple',['../structhmbdc_1_1app_1_1client__with__stash__using__tuple.html',1,'hmbdc::app']]],
+  ['client_5fwith_5fstash_5fusing_5ftuple_3c_20ccclient_2c_20maxstashedmessagesizein_2c_20std_3a_3atuple_3c_20messages_2e_2e_2e_20_3e_20_3e',['client_with_stash_using_tuple&lt; CcClient, MaxStashedMessageSizeIn, std::tuple&lt; Messages... &gt; &gt;',['../structhmbdc_1_1app_1_1client__with__stash__using__tuple_3_01CcClient_00_01MaxStashedMessageSizeI1d5489140b368573f7d86956bc2744f7.html',1,'hmbdc::app']]],
   ['clientwithstash',['ClientWithStash',['../structhmbdc_1_1app_1_1ClientWithStash.html',1,'hmbdc::app']]],
   ['concat_5ftuple',['concat_tuple',['../structhmbdc_1_1concat__tuple.html',1,'hmbdc']]],
   ['concat_5ftuple_3c_20std_3a_3atuple_3c_20t_2e_2e_2e_20_3e_2c_20std_3a_3atuple_3c_20u_2e_2e_2e_20_3e_20_3e',['concat_tuple&lt; std::tuple&lt; T... &gt;, std::tuple&lt; U... &gt; &gt;',['../structhmbdc_1_1concat__tuple_3_01std_1_1tuple_3_01T_8_8_8_01_4_00_01std_1_1tuple_3_01U_8_8_8_01_4_01_4.html',1,'hmbdc']]],
@@ -26,5 +28,7 @@ var searchData=
   ['context_5fproperty_5faggregator_3c_20context_5fproperty_3a_3apci_5fipc_2c_20contextproperties_2e_2e_2e_20_3e',['context_property_aggregator&lt; context_property::pci_ipc, ContextProperties... &gt;',['../structhmbdc_1_1app_1_1context__detail_1_1context__property__aggregator_3_01context__property_1_1bd4306e3376bc6a34ef0e8388ca819c4.html',1,'hmbdc::app::context_detail']]],
   ['context_5fproperty_5faggregator_3c_20contextproperties_2e_2e_2e_20_3e',['context_property_aggregator&lt; ContextProperties... &gt;',['../structhmbdc_1_1app_1_1context__detail_1_1context__property__aggregator.html',1,'hmbdc::app::context_detail']]],
   ['context_5fproperty_5faggregator_3c_20messagetuple_2c_20messagetuples_20_2e_2e_2e_20_3e',['context_property_aggregator&lt; MessageTuple, MessageTuples ... &gt;',['../structhmbdc_1_1app_1_1blocking__context__detail_1_1context__property__aggregator_3_01MessageTuplc15b6ff3af282eb9bc69933cab299052.html',1,'hmbdc::app::blocking_context_detail']]],
+  ['contextcallforwarder',['ContextCallForwarder',['../structhmbdc_1_1tips_1_1detail_1_1ContextCallForwarder.html',1,'hmbdc::tips::detail']]],
+  ['contextcallforwarder_3c_20ccnode_2c_20recvmessagetuplein_20_3e',['ContextCallForwarder&lt; CcNode, RecvMessageTupleIn &gt;',['../structhmbdc_1_1tips_1_1detail_1_1ContextCallForwarder.html',1,'hmbdc::tips::detail']]],
   ['createentry',['createEntry',['../structhmbdc_1_1app_1_1BlockingContext_1_1createEntry.html',1,'hmbdc::app::BlockingContext']]]
 ];

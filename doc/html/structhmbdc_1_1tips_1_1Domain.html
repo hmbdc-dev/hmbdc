@@ -93,9 +93,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aabfc2d0e5f6d6c4a6172994ee908d706"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aabfc2d0e5f6d6c4a6172994ee908d706">Domain</a> (<a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> const &amp;cfg)</td></tr>
-<tr class="memdesc:aabfc2d0e5f6d6c4a6172994ee908d706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object.  <a href="#aabfc2d0e5f6d6c4a6172994ee908d706">More...</a><br /></td></tr>
-<tr class="separator:aabfc2d0e5f6d6c4a6172994ee908d706"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memTemplParams" colspan="2">template&lt;typename ... NodeContextCtorArgs&gt; </td></tr>
+<tr class="memitem:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a06d2f5c3f9d83688b1b45a0052ac4cb8">Domain</a> (<a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> const &amp;cfg, NodeContextCtorArgs &amp;&amp;...nodeCtxArgs)</td></tr>
+<tr class="memdesc:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object.  <a href="#a06d2f5c3f9d83688b1b45a0052ac4cb8">More...</a><br /></td></tr>
+<tr class="separator:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07a812f0b6c906e91cca600276bfe8c9"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
 <tr class="memitem:a07a812f0b6c906e91cca600276bfe8c9"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a07a812f0b6c906e91cca600276bfe8c9">runOnce</a> (size_t pumpIndex, Args &amp;&amp;...args)</td></tr>
 <tr class="memdesc:a07a812f0b6c906e91cca600276bfe8c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">manually drive the domain's pumps  <a href="#a07a812f0b6c906e91cca600276bfe8c9">More...</a><br /></td></tr>
@@ -104,14 +105,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af901a275f7c033e93c9602d4f3f72fc0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#af901a275f7c033e93c9602d4f3f72fc0">addPubSubFor</a> (CcNode const &amp;node)</td></tr>
 <tr class="memdesc:af901a275f7c033e93c9602d4f3f72fc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">configure the subscriptions and advertisement for a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#af901a275f7c033e93c9602d4f3f72fc0">More...</a><br /></td></tr>
 <tr class="separator:af901a275f7c033e93c9602d4f3f72fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe951a0ea0ef1f82849abda07b7bdd9e"><td class="memTemplParams" colspan="2">template&lt;typename SendMessageTuple &gt; </td></tr>
-<tr class="memitem:abe951a0ea0ef1f82849abda07b7bdd9e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#abe951a0ea0ef1f82849abda07b7bdd9e">addPub</a> ()</td></tr>
-<tr class="memdesc:abe951a0ea0ef1f82849abda07b7bdd9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">configure the advertisement with message types directly This is when you do not want to involve a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> for publish, otherwise use addPubSubFor  <a href="#abe951a0ea0ef1f82849abda07b7bdd9e">More...</a><br /></td></tr>
-<tr class="separator:abe951a0ea0ef1f82849abda07b7bdd9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a546000d024f6ee3f60fcaab55b23f837"><td class="memTemplParams" colspan="2">template&lt;typename Node &gt; </td></tr>
-<tr class="memitem:a546000d024f6ee3f60fcaab55b23f837"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a546000d024f6ee3f60fcaab55b23f837">start</a> (<a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;node, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
-<tr class="memdesc:a546000d024f6ee3f60fcaab55b23f837"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too  <a href="#a546000d024f6ee3f60fcaab55b23f837">More...</a><br /></td></tr>
-<tr class="separator:a546000d024f6ee3f60fcaab55b23f837"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40aae8dea02565dadfa9b7b32937f931"><td class="memTemplParams" colspan="2">template&lt;typename Node &gt; </td></tr>
+<tr class="memitem:a40aae8dea02565dadfa9b7b32937f931"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a40aae8dea02565dadfa9b7b32937f931">start</a> (<a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;nodeIn, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
+<tr class="memdesc:a40aae8dea02565dadfa9b7b32937f931"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too  <a href="#a40aae8dea02565dadfa9b7b32937f931">More...</a><br /></td></tr>
+<tr class="separator:a40aae8dea02565dadfa9b7b32937f931"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9acacc6e02c0936285974b30e7fe3cce"><td class="memItemLeft" align="right" valign="top"><a id="a9acacc6e02c0936285974b30e7fe3cce"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a9acacc6e02c0936285974b30e7fe3cce">startDelayedPumping</a> ()</td></tr>
 <tr class="memdesc:a9acacc6e02c0936285974b30e7fe3cce"><td class="mdescLeft">&#160;</td><td class="mdescRight">if pumpRunMode is set to be delayed this function start all the pumps <br /></td></tr>
@@ -148,7 +145,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <tr class="separator:ac6d8fb734dd8f360dca95ad730dc73b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb67a2cae828f52c8fb07b67788ff510"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message, typename T , typename ... Args&gt; </td></tr>
 <tr class="memitem:aeb67a2cae828f52c8fb07b67788ff510"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aeb67a2cae828f52c8fb07b67788ff510">allocateInShmFor0cpy</a> (<a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a>&lt; Message, T &gt; &amp;att, size_t actualSize, Args &amp;&amp;...args)</td></tr>
-<tr class="memdesc:aeb67a2cae828f52c8fb07b67788ff510"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> to be publioshed later The release of it is auto handled in TIPS  <a href="#aeb67a2cae828f52c8fb07b67788ff510">More...</a><br /></td></tr>
+<tr class="memdesc:aeb67a2cae828f52c8fb07b67788ff510"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS  <a href="#aeb67a2cae828f52c8fb07b67788ff510">More...</a><br /></td></tr>
 <tr class="separator:aeb67a2cae828f52c8fb07b67788ff510"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2f430d091559dbe5af3e4b7510c0966"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aa2f430d091559dbe5af3e4b7510c0966">ownIpcTransport</a> () const</td></tr>
 <tr class="memdesc:aa2f430d091559dbe5af3e4b7510c0966"><td class="mdescLeft">&#160;</td><td class="mdescRight">if the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object owns the IPC transport  <a href="#aa2f430d091559dbe5af3e4b7510c0966">More...</a><br /></td></tr>
@@ -162,7 +159,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <tr class="separator:a30ebab7de6054452c727d3401e120f55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt;<br />
+<div class="textblock"><h3>template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt;<br />
 struct hmbdc::tips::Domain&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;</h3>
 
 <p>Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their subscriptions. This class represents a TIPS domain's handle / interface / fascade in its process. Typically - by recommendation - there is just a single <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object for a specific TIPS domain within a process. </p>
@@ -173,20 +170,22 @@ struct hmbdc::tips::Domain&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext
     <tr><td class="paramname">RecvMessageTupleIn</td><td>a std tuple that lists all the receiving message types Any inbound messages (to the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>) that are not within this list are dropped without being deliverred to the Nodes in this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> </td></tr>
     <tr><td class="paramname">IpcProp</td><td>IPC preoperty - see <a class="el" href="structhmbdc_1_1tips_1_1ipc__property.html" title="template that Domain uses for the IPC communication properties ">ipc_property</a> template </td></tr>
     <tr><td class="paramname">NetProp</td><td>Network communication properties - see <a class="el" href="structhmbdc_1_1tips_1_1net__property.html" title="template that Domain uses for the network communication properties ">net_property</a> template </td></tr>
-    <tr><td class="paramname">NodeContext</td><td>the template that manages the nodes and accepts the inter thread messages </td></tr>
+    <tr><td class="paramname">NodeContext</td><td>the type that manages the nodes and accepts the inter thread messages </td></tr>
     <tr><td class="paramname">AttachmentAllocator</td><td>the memory allocation policy for attachment - see <a class="el" href="structhmbdc_1_1tips_1_1DefaultAttachmentAllocator.html" title="when Domain (it&#39;s pumps) receives a hasMemoryAttachment, there is a need to allocate desired memory t...">DefaultAttachmentAllocator</a> </td></tr>
   </table>
   </dd>
 </dl>
 <dl><dt><b>Examples: </b></dt><dd><a class="el" href="hello-world_8cpp-example.html#_a5">hello-world.cpp</a>.</dd>
 </dl></div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aabfc2d0e5f6d6c4a6172994ee908d706"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aabfc2d0e5f6d6c4a6172994ee908d706">&#9670;&nbsp;</a></span>Domain()</h2>
+<a id="a06d2f5c3f9d83688b1b45a0052ac4cb8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a06d2f5c3f9d83688b1b45a0052ac4cb8">&#9670;&nbsp;</a></span>Domain()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<div class="memtemplate">
+template&lt;typename ... NodeContextCtorArgs&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -195,8 +194,18 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
           <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::<a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a> </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> const &amp;&#160;</td>
-          <td class="paramname"><em>cfg</em></td><td>)</td>
+          <td class="paramname"><em>cfg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">NodeContextCtorArgs &amp;&amp;...&#160;</td>
+          <td class="paramname"><em>nodeCtxArgs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -217,50 +226,13 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="abe951a0ea0ef1f82849abda07b7bdd9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe951a0ea0ef1f82849abda07b7bdd9e">&#9670;&nbsp;</a></span>addPub()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
-<div class="memtemplate">
-template&lt;typename SendMessageTuple &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::addPub </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>configure the advertisement with message types directly This is when you do not want to involve a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> for publish, otherwise use addPubSubFor </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">SendMessageTuple</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="af901a275f7c033e93c9602d4f3f72fc0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af901a275f7c033e93c9602d4f3f72fc0">&#9670;&nbsp;</a></span>addPubSubFor()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;typename CcNode &gt; </div>
 <table class="mlabels">
@@ -305,7 +277,7 @@ template&lt;typename CcNode &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
 <table class="mlabels">
@@ -343,7 +315,7 @@ template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> to be publioshed later The release of it is auto handled in TIPS </p>
+<p>allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Message</td><td><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> tparam </td></tr>
@@ -370,7 +342,7 @@ template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -400,7 +372,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -437,7 +409,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -467,7 +439,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -497,7 +469,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -534,7 +506,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -566,7 +538,7 @@ false if no </dd></dl>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;app::MessageC Message&gt; </div>
 <table class="mlabels">
@@ -611,7 +583,7 @@ template&lt;app::MessageC Message&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;app::MessageForwardIterC ForwardIt&gt; </div>
 <table class="mlabels">
@@ -666,7 +638,7 @@ template&lt;app::MessageForwardIterC ForwardIt&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -730,7 +702,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;typename... Args&gt; </div>
 <table class="mlabels">
@@ -786,13 +758,13 @@ false either <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Mess
 
 </div>
 </div>
-<a id="a546000d024f6ee3f60fcaab55b23f837"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a546000d024f6ee3f60fcaab55b23f837">&#9670;&nbsp;</a></span>start()</h2>
+<a id="a40aae8dea02565dadfa9b7b32937f931"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40aae8dea02565dadfa9b7b32937f931">&#9670;&nbsp;</a></span>start()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;typename Node &gt; </div>
 <table class="mlabels">
@@ -803,7 +775,7 @@ template&lt;typename Node &gt; </div>
           <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::start </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;&#160;</td>
-          <td class="paramname"><em>node</em>, </td>
+          <td class="paramname"><em>nodeIn</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -861,7 +833,7 @@ template&lt;typename Node &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;typename LoadSharingNodePtrIt &gt; </div>
 <table class="mlabels">
@@ -937,7 +909,7 @@ template&lt;typename LoadSharingNodePtrIt &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

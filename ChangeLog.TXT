@@ -1,3 +1,9 @@
+* Sat Jul 31 2021 - 12.40
+- provided publish support directly in Node
+- provided ping pong performance test
+- merged 0cpy with single copy shm comm
+- fixed clang building issues
+
 * Mon Jul 12 2021 - 12.38
 - turn on concept support and tested with gcc-10
 
@@ -266,6 +272,12 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sat Jul 31 2021 - 12.40
+- provided publish support directly in Node
+- provided ping pong performance test
+- merged 0cpy with single copy shm comm
+- fixed clang building issues
 
 * Mon Jul 12 2021 - 12.38
 - turn on concept support and tested with gcc-10

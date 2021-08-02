@@ -65,9 +65,8 @@ struct BagMessageHead {
  */
 template <typename Domain>
 struct ConsoleNode 
-: Node<ConsoleNode<Domain>, std::tuple<JustBytes>>
+: Node<ConsoleNode<Domain>, std::tuple<JustBytes>, std::tuple<JustBytes>>
 , time::TimerManager {
-    using SendMessageTuple = std::tuple<JustBytes>;
     /**
      * @brief constructor
      * @details just construct the Node - need to be run in the Context later

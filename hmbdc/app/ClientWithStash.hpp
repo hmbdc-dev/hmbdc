@@ -85,4 +85,13 @@ public:
     }
 };
 
+/**
+ * if you do not have Message paramter pack, just have tuple
+ */
+template <typename CcClient, size_t MaxStashedMessageSizeIn, typename MessageTuple>
+struct client_with_stash_using_tuple;
+template <typename CcClient, size_t MaxStashedMessageSizeIn, MessageC ... Messages>
+struct client_with_stash_using_tuple<CcClient, MaxStashedMessageSizeIn, std::tuple<Messages...>> {
+    using type = ClientWithStash<CcClient, MaxStashedMessageSizeIn, Messages...>;
+};
 }} //hmbdc::app

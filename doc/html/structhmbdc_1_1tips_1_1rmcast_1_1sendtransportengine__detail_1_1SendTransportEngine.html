@@ -89,9 +89,6 @@ Inheritance diagram for hmbdc::tips::rmcast::sendtransportengine_detail::SendTra
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa1af03cb39e3a013431b2fbd3f56f210"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1rmcast_1_1sendtransportengine__detail_1_1SendTransportEngine.html#aa1af03cb39e3a013431b2fbd3f56f210">messageDispatchingStartedCb</a> (size_t const *) override</td></tr>
-<tr class="memdesc:aa1af03cb39e3a013431b2fbd3f56f210"><td class="mdescLeft">&#160;</td><td class="mdescRight">called before any messages got dispatched - only once  <a href="#aa1af03cb39e3a013431b2fbd3f56f210">More...</a><br /></td></tr>
-<tr class="separator:aa1af03cb39e3a013431b2fbd3f56f210"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af13801de54fe8620b8ce70112c76a8b6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1rmcast_1_1sendtransportengine__detail_1_1SendTransportEngine.html#af13801de54fe8620b8ce70112c76a8b6">invokedCb</a> (size_t) HMBDC_RESTRICT override</td></tr>
 <tr class="memdesc:af13801de54fe8620b8ce70112c76a8b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">this callback is called all the time (frequently) - the exact timing is after a batch of messages are dispatched. After this call returns, the previously dispatched message's addresses are no longer valid, which means if you cache the event addresses in the previous handleMessageCb()s, you cannot use those after the return of the next invokeCb function.  <a href="#af13801de54fe8620b8ce70112c76a8b6">More...</a><br /></td></tr>
 <tr class="separator:af13801de54fe8620b8ce70112c76a8b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -122,6 +119,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad12b8f43afb684949bec0ac3949724c8 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1Client.html#ad12b8f43afb684949bec0ac3949724c8">maxBatchMessageCount</a> () const</td></tr>
 <tr class="memdesc:ad12b8f43afb684949bec0ac3949724c8 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="mdescLeft">&#160;</td><td class="mdescRight">an overridable method. client receives events in batches and the max batch size is controllable when running in direct mode Context. Here is to specify the max size.  <a href="structhmbdc_1_1app_1_1Client.html#ad12b8f43afb684949bec0ac3949724c8">More...</a><br /></td></tr>
 <tr class="separator:ad12b8f43afb684949bec0ac3949724c8 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab11a96a305f27f829a87c8961ada7829 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1Client.html#ab11a96a305f27f829a87c8961ada7829">messageDispatchingStartedCb</a> (size_t const *pClientDispatchingStarted)</td></tr>
+<tr class="memdesc:ab11a96a305f27f829a87c8961ada7829 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="mdescLeft">&#160;</td><td class="mdescRight">called before any messages got dispatched - only once  <a href="structhmbdc_1_1app_1_1Client.html#ab11a96a305f27f829a87c8961ada7829">More...</a><br /></td></tr>
+<tr class="separator:ab11a96a305f27f829a87c8961ada7829 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78385b2e94320057dce7b695f720d703 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1Client.html#a78385b2e94320057dce7b695f720d703">stoppedCb</a> (std::exception const &amp;e)</td></tr>
 <tr class="memdesc:a78385b2e94320057dce7b695f720d703 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="mdescLeft">&#160;</td><td class="mdescRight">callback called when this Client is taken out of message dispatching  <a href="structhmbdc_1_1app_1_1Client.html#a78385b2e94320057dce7b695f720d703">More...</a><br /></td></tr>
 <tr class="separator:a78385b2e94320057dce7b695f720d703 inherit pub_methods_structhmbdc_1_1app_1_1Client"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -206,43 +206,6 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 
 <p>Reimplemented from <a class="el" href="structhmbdc_1_1app_1_1Client.html#a7ccfe91867a470c8159cf6b5f67c4821">hmbdc::app::Client&lt; SendTransportEngine &gt;</a>.</p>
-
-</div>
-</div>
-<a id="aa1af03cb39e3a013431b2fbd3f56f210"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa1af03cb39e3a013431b2fbd3f56f210">&#9670;&nbsp;</a></span>messageDispatchingStartedCb()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void hmbdc::tips::rmcast::sendtransportengine_detail::SendTransportEngine::messageDispatchingStartedCb </td>
-          <td>(</td>
-          <td class="paramtype">size_t const *&#160;</td>
-          <td class="paramname"><em>pClientDispatchingStarted</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>called before any messages got dispatched - only once </p>
-<p>this is the place some preparation code goes to</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">pClientDispatchingStarted</td><td>pointer to the Client count that has started displatching within its Context; its value could change if you repeatedly check - might be used to sync with other Clients within the same Context (particularly IPC Context) at starting up stage of the system. When doing the sync, just be aware the Client might be running in a pool - do not hog the pool thread if possible. Note: Since ipc_creator Context has an implicitly purger Client, this value would be 1 greater than the user Clients count </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Reimplemented from <a class="el" href="structhmbdc_1_1app_1_1Client.html#ab11a96a305f27f829a87c8961ada7829">hmbdc::app::Client&lt; SendTransportEngine &gt;</a>.</p>
 
 </div>
 </div>

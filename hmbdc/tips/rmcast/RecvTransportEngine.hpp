@@ -189,17 +189,9 @@ public:
     }
 
     void rotate() {
-        if (runLock_.try_lock()) {
-            this->checkTimers(hmbdc::time::SysTime::now());
-            RecvTransportEngine::invokedCb(0);
-            runLock_.unlock();
-        }
+        this->checkTimers(hmbdc::time::SysTime::now());
+        RecvTransportEngine::invokedCb(0);
     }
-
-    /*virtual*/ 
-    void messageDispatchingStartedCb(size_t const*) override {
-        runLock_.lock();
-    };
 
     /*virtual*/ 
     void invokedCb(size_t) HMBDC_RESTRICT override  {
@@ -221,12 +213,6 @@ public:
     std::tuple<char const*, int> schedSpec() const {
         return std::make_tuple(this->schedPolicy_.c_str(), this->schedPriority_);
     }
-
-    ~RecvTransportEngine() {
-        this->runLock_.unlock();
-    }
-private:
-    std::mutex runLock_;  
 };
 
 } //recvtransportengine_detail

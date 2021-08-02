@@ -287,11 +287,8 @@ struct ThreadCommBase
         	    buffer_.put(MessageWrap<M>(std::forward<Message>(m)));
             }
         } else {
-            if constexpr (cpa::ipc && has_hmbdcShmRefCount<M>::value) {
+            if constexpr (cpa::ipc && M::is_att_0cpyshm) {
                 if (m.template holdShmHandle<M>()) {
-                    if (0 >= m.hmbdcShmRefCount) {
-                        return;     // no process is interested
-                    }
                     auto it = buffer_.claim(1);
                     auto wrap = (new (*it) MessageWrap<InBandHasMemoryAttachment<M>>(m)); (void)wrap;
                     wrap->payload.shmConvert(*shmAttAllocator_);
@@ -301,8 +298,8 @@ struct ThreadCommBase
                     buffer_.commit(it, 1);
                     m.hasMemoryAttachment::release();
                     return;
-                }
-            }
+                } // else handle as regular att
+            } // else handle as regular att
             if (hmbdc_unlikely(MAX_MESSAGE_SIZE == 0 
                 && sizeof(MessageWrap<InBandHasMemoryAttachment<M>>) > buffer_.maxItemSize())) {
                 HMBDC_THROW(std::out_of_range, "message too big, typeTag=" << m.getTypeTag());
@@ -559,7 +556,7 @@ struct ThreadCommBase
                 if (0 == __atomic_sub_fetch(&t->hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
                     shmAttAllocator_->deallocate((uint8_t*)t);
                 }
-            });
+        });
     }
 
 protected:

@@ -3,8 +3,9 @@
 #include "hmbdc/tips/DefaultUserConfig.hpp"
 #include "hmbdc/tips/Messages.hpp"
 #include "hmbdc/tips/TypeTagSet.hpp"
-#include "hmbdc/tips/Node.hpp"
 #include "hmbdc/app/BlockingContext.hpp"
+#include "hmbdc/app/Client.hpp"
+#include "hmbdc/app/ClientWithStash.hpp"
 #include "hmbdc/app/Context.hpp"
 #include "hmbdc/app/Config.hpp"
 #include "hmbdc/Exception.hpp"
@@ -94,7 +95,66 @@ struct ipc_property {
 using NoIpc = ipc_property<0, 0>;
 
 namespace domain_detail {
-// HMBDC_CLASS_HAS_DECLARE(upgradeToHasSharedPtrAttachment);
+
+template <typename CcNode>
+struct NodeProxy
+: std::conditional<CcNode::HasMessageStash
+    , typename app::client_with_stash_using_tuple<NodeProxy<CcNode>, 0, typename CcNode::RecvMessageTuple>::type
+    , typename app::client_using_tuple<NodeProxy<CcNode>, typename CcNode::RecvMessageTuple>::type
+>::type {
+    using SendMessageTuple = typename CcNode::SendMessageTuple;
+    using RecvMessageTuple = typename CcNode::RecvMessageTuple;
+
+    enum {
+        manual_subscribe = CcNode::manual_subscribe
+    };
+
+    NodeProxy(CcNode& ccNode): ccNode_(ccNode){}
+
+    /// forward on behalf of Node
+    auto maxMessageSize() const {return ccNode_.maxMessageSize();}
+    void addJustBytesSubsFor(std::function<void(uint16_t)> addTag) const {ccNode_.addJustBytesSubsFor(addTag);}
+    void addJustBytesPubsFor(std::function<void(uint16_t)> addTag) const {ccNode_.addJustBytesPubsFor(addTag);}
+    template <app::MessageC Message>
+    void addTypeTagRangeSubsFor(Message* pm, std::function<void(uint16_t)> addOffsetInRange) const {
+        ccNode_.addTypeTagRangeSubsFor(pm, addOffsetInRange);
+    }
+    template <app::MessageC Message>
+    void addTypeTagRangePubsFor(Message* pm, std::function<void(uint16_t)> addOffsetInRange) const {
+        ccNode_.addTypeTagRangePubsFor(pm, addOffsetInRange);
+    }
+    void updateSubscription() {ccNode_.updateSubscription();}
+    template<app::MessageC Message>
+    auto ifDeliver(Message const& message) const {return ccNode_.ifDeliver(message);}
+    auto ifDeliver(uint16_t tag, uint8_t const* bytes) const {return ccNode_.ifDeliver(tag, bytes);}
+
+    /// forward on behalf of Client
+    auto hmbdcName() const {return ccNode_.hmbdcName();}
+    auto schedSpec() const {return ccNode_.schedSpec();}
+    template<typename Message> auto handleMessageCb(Message&& m) {ccNode_.handleMessageCb(std::forward<Message>(m));}
+    void handleJustBytesCb(uint16_t tag, uint8_t* bytes, app::hasMemoryAttachment* att) {
+        ccNode_.handleJustBytesCb(tag, bytes, att);
+    }
+    void messageDispatchingStartedCb(size_t const*p) override {ccNode_.messageDispatchingStartedCb(p);}
+    void invokedCb(size_t n) override {ccNode_.invokedCb(n);}
+    void stoppedCb(std::exception const& e) override {ccNode_.stoppedCb(e);}
+    bool droppedCb() override {
+        auto res = ccNode_.droppedCb();
+        if (res) {
+            delete this;
+        }
+        return res;
+    }
+
+private:
+    CcNode& ccNode_;
+};
+
+HMBDC_CLASS_HAS_DECLARE(droppedCb);
+HMBDC_CLASS_HAS_DECLARE(stoppedCb);
+HMBDC_CLASS_HAS_DECLARE(invokedCb);
+HMBDC_CLASS_HAS_DECLARE(messageDispatchingStartedCb);
+
 template <app::MessageC Message, bool canSerialize = has_toHmbdcSerialized<Message>::value>
 struct matching_ipcable {
     using type = std::result_of_t<decltype(&Message::toHmbdcSerialized)(Message)>;
@@ -187,24 +247,25 @@ struct DefaultAttachmentAllocator {
  * being deliverred to the Nodes in this Domain
  * @tparam IpcProp IPC preoperty - see ipc_property template
  * @tparam NetProp Network communication properties - see net_property template
- * @tparam NodeContext the template that manages the nodes and accepts the inter thread
+ * @tparam NodeContext the type that manages the nodes and accepts the inter thread
  * messages
  * @tparam AttachmentAllocator the memory allocation policy for attachment - see DefaultAttachmentAllocator
  */
 template <app::MessageTupleC RecvMessageTupleIn
     , typename IpcProp = NoIpc
     , typename NetProp = NoNet
-    , template <class...> class NodeContext = app::BlockingContext
+    , typename NodeContext = app::BlockingContext<RecvMessageTupleIn>
     , typename AttachmentAllocator = DefaultAttachmentAllocator >
 struct Domain {
     using IpcProperty = IpcProp;
     using NetProperty = NetProp;
     using NetProtocol = typename NetProperty::protocol;
+protected:
+    using ThreadCtx = NodeContext;
+    ThreadCtx threadCtx_;
+
 private:
     using RecvMessageTuple = typename hmbdc::remove_duplicate<RecvMessageTupleIn>::type;
-    using ThreadCtx = NodeContext<RecvMessageTuple>;
-
-    ThreadCtx threadCtx_;
 
     using IpcableRecvMessages = typename domain_detail::recv_ipc_converted<RecvMessageTuple>::type;
     using NetableRecvMessages = IpcableRecvMessages;
@@ -212,10 +273,10 @@ private:
     enum {
         run_pump_in_ipc_portal = IpcProperty::capacity != 0,
         run_pump_in_thread_ctx = run_pump_in_ipc_portal
-            ? 0 : !std::is_same<NoNet, NetProperty>::value,
+            ? 0 : !std::is_same<NoProtocol, typename NetProperty::protocol>::value,
         has_a_pump = run_pump_in_ipc_portal || run_pump_in_thread_ctx,
-        has_net_send_eng = !std::is_same<NoNet, NetProperty>::value,
-        has_net_recv_eng = !std::is_same<NoNet, NetProperty>::value
+        has_net_send_eng = !std::is_same<NoProtocol, typename NetProperty::protocol>::value,
+        has_net_recv_eng = !std::is_same<NoProtocol, typename NetProperty::protocol>::value
             && std::tuple_size<NetableRecvMessages>::value,
     };
     
@@ -473,33 +534,19 @@ private:
                 accSize = 0;
                 return true;
             } else if (att->holdShmHandle<Message>()) {
-                if constexpr (app::has_hmbdcShmRefCount<Message>::value) {
+                if constexpr (app::has_hmbdcIsAttInShm<Message>::value) {
                     auto shmAddr = hmbdcShmHandleToAddr(att->shmHandle);
                     att->attachment = shmAddr;
                     att->clientData[0] = (uint64_t)&hmbdcShmDeallocator;
-                    static_assert(sizeof(ibma.underlyingMessage.hmbdcShmRefCount) == sizeof(size_t));
-                    att->clientData[1] = (uint64_t)&ibma.underlyingMessage.hmbdcShmRefCount;
-                    if constexpr (Message::is_att_0cpyshm) {
-                        att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* h) {
-                            auto hmbdcShmRefCount = (size_t*)h->attachment;
-                            if (h->attachment 
-                                && 0 == __atomic_sub_fetch(hmbdcShmRefCount, 1, __ATOMIC_RELEASE)) {
-                                auto& hmbdcShmDeallocator
-                                    = *(std::function<void (uint8_t*)>*)h->clientData[0];
-                                hmbdcShmDeallocator((uint8_t*)h->attachment);
-                            }
-                        };
-                    } else if constexpr (app::has_hmbdcShmRefCount<Message>::value) {
-                        att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* h) {
-                            auto hmbdcShmRefCount = (size_t*)h->clientData[1];
-                            if (h->attachment 
-                                && 0 == __atomic_sub_fetch(hmbdcShmRefCount, 1, __ATOMIC_RELEASE)) {
-                                auto& hmbdcShmDeallocator
-                                    = *(std::function<void (uint8_t*)>*)h->clientData[0];
-                                hmbdcShmDeallocator((uint8_t*)h->attachment);
-                            }
-                        };
-                    }
+                    att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* h) {
+                        auto hmbdc0cpyShmRefCount = (size_t*)h->attachment;
+                        if (h->attachment 
+                            && 0 == __atomic_sub_fetch(hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
+                            auto& hmbdcShmDeallocator
+                                = *(std::function<void (uint8_t*)>*)h->clientData[0];
+                            hmbdcShmDeallocator((uint8_t*)h->attachment);
+                        }
+                    };
                     accSize = att->len;
                 } /// no else
                 return true;
@@ -667,9 +714,10 @@ private:
                             }
                             auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
 
-                            if constexpr (app::has_hmbdcShmRefCount<ToSendType>::value) {
-                                toSend.hmbdcShmRefCount = intDiff;
-                                if (ToSendType::is_att_0cpyshm && toSend.app::hasMemoryAttachment::attachment) {
+                            // if (ToSendType::is_att_0cpyshm && toSend.app::hasMemoryAttachment::attachment) {
+                            if constexpr (ToSendType::is_att_0cpyshm) {
+                                if (toSend.template holdShmHandle<ToSendType>()) {
+                                    toSend.hmbdcIsAttInShm = true;
                                     auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
                                     __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
                                 }
@@ -677,9 +725,10 @@ private:
                             ipcTransport_.send(std::move(toSend));
                         } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
                             auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
-                            if constexpr (app::has_hmbdcShmRefCount<ToSendType>::value) {
-                                toSend.hmbdcShmRefCount = intDiff;
-                                if (ToSendType::is_att_0cpyshm && toSend.app::hasMemoryAttachment::attachment) {
+                            if constexpr (ToSendType::is_att_0cpyshm) {
+                                // if (ToSendType::is_att_0cpyshm && toSend.app::hasMemoryAttachment::attachment) {
+                                if (toSend.template holdShmHandle<ToSendType>()) {
+                                    toSend.hmbdcIsAttInShm = true;
                                     auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
                                     __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
                                 }
@@ -728,7 +777,9 @@ private:
                     //keep the att around
                     att->afterConsumedCleanupFunc = nullptr;
                 }
-                ipcTransport_.template sendJustBytesInPlace<ipc_from<app::JustBytes>>(
+
+                using ToAvoidClangCrash = domain_detail::ipc_from<app::JustBytes>;
+                ipcTransport_.template sendJustBytesInPlace<ToAvoidClangCrash>(
                     tag, bytes, len, att, hmbdcAvoidIpcFrom);
             }
 
@@ -767,12 +818,21 @@ private:
             return hmbdcName_.c_str();
         }
 
+        void messageDispatchingStartedCb(size_t const*p) override {
+            if constexpr (domain_detail::has_messageDispatchingStartedCb<ThreadCtx>::value) {
+                outCtx_.messageDispatchingStartedCb(p);
+            }
+        };
+
         void invokedCb(size_t previousBatch) override {
             bool layback = !previousBatch;
             if constexpr (has_net_send_eng) {
                 layback = layback && !sendEng_->bufferedMessageCount();
             }
             if (layback) {
+                if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
+                    outCtx_.invokedCb(previousBatch);
+                }
                 if (pumpMaxBlockingTimeSec_) {
                     usleep(pumpMaxBlockingTimeSec_);
                 } else {
@@ -813,7 +873,16 @@ private:
             }
         }
 
+        void stoppedCb(std::exception const& e) override {
+            if constexpr (domain_detail::has_stoppedCb<ThreadCtx>::value) {
+                outCtx_.stoppedCb(e);
+            }
+        }
+
         bool droppedCb() override {
+            if constexpr (domain_detail::has_droppedCb<ThreadCtx>::value) {
+                return outCtx_.droppedCb();
+            }
             inboundSubscriptions_.exportTo([this](uint16_t tag, uint8_t) {
                 pOutboundSubscriptions_->sub(tag);
             });
@@ -848,8 +917,10 @@ public:
      * @param cfg The Jason configuration to specify the IPC and network transport details
      * See the DefaultUserConfiguration.hpp files for each transport type
      */
-    Domain(app::Config const& cfg)
-    : config_(cfg) {
+    template <typename ...NodeContextCtorArgs>
+    Domain(app::Config const& cfg, NodeContextCtorArgs&& ...nodeCtxArgs)
+    : threadCtx_{std::forward<NodeContextCtorArgs>(nodeCtxArgs)...}
+    , config_(cfg) {
         config_.setAdditionalFallbackConfig(app::Config(DefaultUserConfig));
         auto pumpRunMode = config_.getExt<std::string>("pumpRunMode");
         if constexpr (run_pump_in_ipc_portal) {
@@ -976,17 +1047,6 @@ public:
     }
 
     /**
-     * @brief configure the advertisement with message types directly
-     * This is when you do not want to involve a Node for publish, otherwise
-     * use addPubSubFor
-     * @tparam SendMessageTuple 
-     */
-    template <typename SendMessageTuple>
-    void addPub() {
-        addPubSubFor(RegistrationNode<SendMessageTuple, std::tuple<>>{});
-    }
-
-    /**
      * @brief start a Node within this Domain as a thread - handles its subscribing here too
      * 
      * @tparam Node a concrete Node type that send and/or recv Messages
@@ -998,11 +1058,12 @@ public:
      * @param cpuAffinity The CPU mask that he Node thread assigned to
      */
     template <typename Node>
-    void start(Node& node
+    void start(Node& nodeIn
         , size_t capacity = 1024
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , uint64_t cpuAffinity = 0
     ) {
+        auto& node = * new domain_detail::NodeProxy(nodeIn);
         if (std::tuple_size<typename Node::Interests>::value
             && capacity == 0) {
                 HMBDC_THROW(std::out_of_range, "capacity cannot be 0 when receiving messages");
@@ -1011,7 +1072,7 @@ public:
         if constexpr (Node::manual_subscribe == false) {
             addPubSubFor(node);
         }
-
+        nodeIn.setDomain(*this);
         threadCtx_.start(node, capacity, node.maxMessageSize()
             , cpuAffinity, maxBlockingTime
              , [&node](auto && ...args) {
@@ -1063,6 +1124,7 @@ public:
         , size_t capacity = 1024
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , uint64_t cpuAffinity = 0) {
+        if (begin == end) return;
         using Node = typename std::decay<decltype(**LoadSharingNodePtrIt())>::type;
         auto maxItemSize = (*begin)->maxMessageSize();
         
@@ -1070,18 +1132,24 @@ public:
             && capacity == 0) {
                 HMBDC_THROW(std::out_of_range, "capacity cannot be 0 when receiving messages");
         }
+
+        std::vector<domain_detail::NodeProxy<Node>*> proxies;
+
         for (auto it = begin; it != end; it++) {
-            auto& node = **it;
-            node.updateSubscription();
+            auto& nodeIn = **it;
+            auto& node = *new domain_detail::NodeProxy<Node>(nodeIn);
+            nodeIn.updateSubscription();
+            nodeIn.setDomain(*this);
             if constexpr (Node::manual_subscribe == false) {
                 addPubSubFor(node);
             }
+            proxies.push_back(&node);
         }
 
-        threadCtx_.start(begin, end, capacity, maxItemSize, cpuAffinity, maxBlockingTime
-             , [&node = **begin](auto && ...args) {
+        threadCtx_.start(proxies.begin(), proxies.end(), capacity, maxItemSize, cpuAffinity, maxBlockingTime
+            , [&node = **proxies.begin()](auto && ...args) {
                 return node.ifDeliver(std::forward<decltype(args)>(args)...);
-            });
+        });
     }
 
 
@@ -1242,7 +1310,7 @@ public:
     }
 
     /**
-     * @brief allocate in shm for a hasSharedPtrAttachment to be publioshed later
+     * @brief allocate in shm for a hasSharedPtrAttachment to be published later
      * The release of it is auto handled in TIPS
      * 
      * @tparam Message hasSharedPtrAttachment tparam

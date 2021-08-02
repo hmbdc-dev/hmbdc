@@ -106,20 +106,15 @@ struct ChatMessage
 };
 
 /// Admin node that runs in a thread and gets message callbacks
-template <typename ChatDomain>
 struct Admin 
-: Node<Admin<ChatDomain>, std::tuple<ChatMessage>> //only subscribe ChatMessage
+: Node<Admin, std::tuple<ChatMessage>, std::tuple<Announcement>>
 , TimerManager {                                                                        //<=======
-    Admin(ChatDomain& domain)
-    : domain_(domain)
-    , reportTimer_(Duration::seconds(10), [this](TimerManager&, SysTime const&) {       // <======
+    Admin()
+    : reportTimer_(Duration::seconds(10), [this](TimerManager&, SysTime const&) {       // <======
         cout << "chatMessageCount = " << chatMessageCount_ << std::endl;
     }) { //start the timer
         schedule(SysTime::now(), reportTimer_);                                         // <======
     }
-
-    /// specify what types to publish
-    using SendMessageTuple = std::tuple<Announcement>;
 
     /// message callback - won't compile if missing
     void handleMessageCb(ChatMessage const& m) {
@@ -130,21 +125,17 @@ struct Admin
     void annouce(std::string&& text) {
         Announcement m;
         m.msg = std::move(text);
-        domain_.publish(m);
+        publish(m);
     }
 
     private:
-    ChatDomain& domain_;
     ReoccuringTimer reportTimer_;                                                  
     size_t chatMessageCount_ = 0;
 };
 
 /// Chatter node
 struct Chatter 
-: Node<Chatter, std::tuple<Announcement, ChatMessage>> { //subscribe both Announcement and ChatMessage
-    /// specify what types to publish
-    using SendMessageTuple = std::tuple<ChatMessage>;
-
+: Node<Chatter, std::tuple<Announcement, ChatMessage>, std::tuple<ChatMessage>> {
     Chatter(std::string id, std::string group)
     : id(id)
     , groupId(ChatMessage::getGroupId(group)) {
@@ -205,7 +196,7 @@ int main(int argc, char** argv) {
     >;  
 
     if (myId == "admin") { //as admin
-        using SubMessages = typename Admin<void*>::RecvMessageTuple;
+        using SubMessages = typename Admin::RecvMessageTuple;
         using NetProp = net_property<tcpcast::Protocol
             , 1400
         >;
@@ -215,9 +206,9 @@ int main(int argc, char** argv) {
                                                     /// so run it first
 
         /// a thread pool of 3 Admins - they collectively handle its messages           // <======
-        vector<unique_ptr<Admin<ChatDomain>>> admins;                                   // <======
+        vector<unique_ptr<Admin>> admins;                                               // <======
         for (auto i = 0; i < 3; ++i) {                                                  // <======
-            admins.emplace_back(new Admin<ChatDomain>{domain});                         // <======
+            admins.emplace_back(new Admin);                         // <======
         }                                                                               // <======
         domain.startPool(admins.data(), admins.data() + 3); // start pool of 3 threads  // <======
 

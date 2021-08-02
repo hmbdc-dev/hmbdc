@@ -3,6 +3,7 @@
 
 #include "hmbdc/tips/Node.hpp"
 #include "hmbdc/tips/Domain.hpp"
+#include "hmbdc/tips/SingleNodeDomain.hpp"
 #include "hmbdc/tips/Messages.hpp"
 
 namespace hmbdc { namespace tips {

@@ -131,7 +131,7 @@ struct dispatcher {
 
 template<class T, class U>
 struct ascending_by_tag 
-: std::integral_constant<bool, T::typeSortIndex < U::typeSortIndex>
+: std::integral_constant<bool, (uint8_t)T::typeSortIndex < (uint8_t)U::typeSortIndex>
 {};
 
 template <typename CcClient, typename>

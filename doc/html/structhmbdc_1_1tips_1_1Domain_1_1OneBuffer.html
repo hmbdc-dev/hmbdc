@@ -91,7 +91,7 @@ Public Member Functions</h2></td></tr>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -136,7 +136,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
 template&lt;app::MessageC Message&gt; </div>
 <table class="mlabels">
@@ -167,7 +167,7 @@ template&lt;app::MessageC Message&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, template&lt; class... &gt; class NodeContext = app::BlockingContext, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

@@ -103,7 +103,7 @@ struct inTagRange {
     }
 };
 
-HMBDC_CLASS_HAS_DECLARE(hmbdcShmRefCount);
+HMBDC_CLASS_HAS_DECLARE(hmbdcIsAttInShm);
 /**
  * @class hasMemoryAttachment
  * @brief if a specific hmbdc network transport (for example tcpcast, rmcast, and rnetmap) supports message 
@@ -160,8 +160,9 @@ struct hasMemoryAttachment {
     };
     template <MessageC Message>
     bool holdShmHandle() const {
-        if constexpr (has_hmbdcShmRefCount<Message>::value) {
-            return Message::is_att_0cpyshm || len >= HMBDC_ATTACH_THRU_SHM_POOL_SIZE_THRESH;
+        if constexpr (has_hmbdcIsAttInShm<Message>::value) {
+            auto& m = static_cast<Message const&>(*this);
+            return m.hmbdcIsAttInShm;
         }
         return false;
     }
@@ -381,10 +382,14 @@ template <MessageC Message>
 struct is_hasMemoryAttachment_first_base_of {
     static bool constexpr value = [](){
         if constexpr (std::is_base_of<hasMemoryAttachment, Message>::value) {
+#ifdef __clang__
+            return true;
+#else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
             return offsetof(Message, hasMemoryAttachment::afterConsumedCleanupFunc) == 0;
-#pragma GCC diagnostic pop            
+#pragma GCC diagnostic pop
+#endif    
         } else {
             return false;
         }
@@ -424,13 +429,17 @@ struct InBandHasMemoryAttachment
         hasMemoryAttachment& att = underlyingMessage;
         assert(att.holdShmHandle<Message>());
         if constexpr (Message::is_att_0cpyshm) {
-            /// already in shm
-            att.shmHandle = allocator.getHandle(att.attachment);
-        } else {
-            auto shmAddr = allocator.allocate(att.len);
-            memcpy(shmAddr, att.attachment, att.len);
-            att.shmHandle = allocator.getHandle(shmAddr);
-        }
+            if (att.len >= sizeof(size_t) && *(size_t*)att.attachment) {
+                /// already in shm
+                att.shmHandle = allocator.getHandle(att.attachment);
+                return;
+            } else {
+                assert(0);
+            }
+        } 
+        auto shmAddr = allocator.allocate(att.len);
+        memcpy(shmAddr, att.attachment, att.len);
+        att.shmHandle = allocator.getHandle(shmAddr);
     }
 
     Message underlyingMessage;

@@ -301,17 +301,10 @@ struct SendTransportEngine
     using SendTransport::SendTransport;
 
     void rotate() {
-        if (runLock_.try_lock()) {
-            this->checkTimers(hmbdc::time::SysTime::now());
-            SendTransportEngine::invokedCb(0);
-            runLock_.unlock();
-        }
+        this->checkTimers(hmbdc::time::SysTime::now());
+        SendTransportEngine::invokedCb(0);
     }
 
-    /*virtual*/ 
-    void messageDispatchingStartedCb(size_t const*)  override {
-        runLock_.lock();
-    }
 
 
     /*virtual*/ 
@@ -330,13 +323,6 @@ struct SendTransportEngine
     std::tuple<char const*, int> schedSpec() const {
         return std::make_tuple(this->schedPolicy_.c_str(), this->schedPriority_);
     }
-
-    ~SendTransportEngine() {
-        this->runLock_.unlock();
-    }
-
-private:
-    std::mutex runLock_;
 };
 
 } //sendtransportengine_detail

@@ -33,11 +33,20 @@ struct Hello
     char msg[6] = "hello";
 };
 
+/// write a Node publish the message
+struct Sender
+: Node<Sender
+    , std::tuple<>      // does not subscibe to anything
+    , std::tuple<Hello> // will publish Hello
+> { 
+    void doSend() {
+        publish(Hello{});
+    }
+};
+
 /// write a Node subscribe to the message
 struct Receiver
-: Node<Receiver, std::tuple<Hello>> { //only subscribe Hello
-    /// specify what types to publish - nothing
-    using SendMessageTuple = std::tuple<>;
+: Node<Receiver, std::tuple<Hello>> { //only subscribe Hello, no publish
     /// message callback - won't compile if missing
     void handleMessageCb(Hello const& m) {
         cout << m.msg << endl;
@@ -69,8 +78,9 @@ int main(int argc, char** argv) {
         config.put("minRecvToStart", 1);    /// ask the Domain to buffer the network messages until 
                                             /// the first connection is established
         auto domain = MyDomain{config};
-        domain.addPub<std::tuple<Hello>>(); 
-        domain.publish(Hello{});
+        Sender sender;
+        domain.start(sender);
+        sender.doSend();
         sleep(1); //so the message does go out to the network
         domain.stop();
         domain.join();

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>hmbdc: hmbdc::tips::Node&lt; CcNode, RecvMessageTuple, HasMessageStash &gt; Struct Template Reference</title>
+<title>hmbdc: hmbdc::tips::Node&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -66,8 +66,12 @@ $(function() {
 </div>
 </div><!-- top -->
 <div class="header">
+  <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="structhmbdc_1_1tips_1_1Node-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">hmbdc::tips::Node&lt; CcNode, RecvMessageTuple, HasMessageStash &gt; Struct Template Reference</div>  </div>
+<div class="title">hmbdc::tips::Node&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -75,9 +79,61 @@ $(function() {
  <a href="structhmbdc_1_1tips_1_1Node.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="Node_8hpp_source.html">Node.hpp</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:ae47a705256040d83712b2c2ca89d8ad2"><td class="memItemLeft" align="right" valign="top"><a id="ae47a705256040d83712b2c2ca89d8ad2"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#ae47a705256040d83712b2c2ca89d8ad2">Interests</a> = RecvMessageTupleIn</td></tr>
+<tr class="memdesc:ae47a705256040d83712b2c2ca89d8ad2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> needs to specify a list of Messages that would be sent out if this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is active to help IPC and network delivering filtering. If not fully specified the message could be invisible outside of this process. <br /></td></tr>
+<tr class="separator:ae47a705256040d83712b2c2ca89d8ad2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a9d624e6635c73f399542dda44933080c"><td class="memItemLeft" align="right" valign="top">char const  *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a9d624e6635c73f399542dda44933080c">hmbdcName</a> () const</td></tr>
+<tr class="memdesc:a9d624e6635c73f399542dda44933080c"><td class="mdescLeft">&#160;</td><td class="mdescRight">the thread name used to identify the thread the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is running on  <a href="#a9d624e6635c73f399542dda44933080c">More...</a><br /></td></tr>
+<tr class="separator:a9d624e6635c73f399542dda44933080c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f90ad0a28c0c1a4c7383f595f45f125"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a4f90ad0a28c0c1a4c7383f595f45f125">maxMessageSize</a> () const</td></tr>
+<tr class="memdesc:a4f90ad0a28c0c1a4c7383f595f45f125"><td class="mdescLeft">&#160;</td><td class="mdescRight">unless JustBytes is used in <a class="el" href="classInterests.html" title="a std tuple holding messages types it can dispatch ">Interests</a> - this is automatic  <a href="#a4f90ad0a28c0c1a4c7383f595f45f125">More...</a><br /></td></tr>
+<tr class="separator:a4f90ad0a28c0c1a4c7383f595f45f125"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa204ea127fea564523cbf9a563731808"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aa204ea127fea564523cbf9a563731808">addJustBytesSubsFor</a> (std::function&lt; void(uint16_t)&gt; addTag) const</td></tr>
+<tr class="memdesc:aa204ea127fea564523cbf9a563731808"><td class="mdescLeft">&#160;</td><td class="mdescRight">What tags are going to published when JustBytes is in the RecvMessageTuple.  <a href="#aa204ea127fea564523cbf9a563731808">More...</a><br /></td></tr>
+<tr class="separator:aa204ea127fea564523cbf9a563731808"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27818559b95606fb0377e32e87ec3431"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a27818559b95606fb0377e32e87ec3431">addJustBytesPubsFor</a> (std::function&lt; void(uint16_t)&gt; addTag) const</td></tr>
+<tr class="memdesc:a27818559b95606fb0377e32e87ec3431"><td class="mdescLeft">&#160;</td><td class="mdescRight">What tags are going to published when JustBytes is in the SendMessageTuple.  <a href="#a27818559b95606fb0377e32e87ec3431">More...</a><br /></td></tr>
+<tr class="separator:a27818559b95606fb0377e32e87ec3431"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac324c202a6737e84cca5aa5bf7b25737"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
+<tr class="memitem:ac324c202a6737e84cca5aa5bf7b25737"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#ac324c202a6737e84cca5aa5bf7b25737">addTypeTagRangeSubsFor</a> (Message *, std::function&lt; void(uint16_t)&gt; addOffsetInRange) const</td></tr>
+<tr class="memdesc:ac324c202a6737e84cca5aa5bf7b25737"><td class="mdescLeft">&#160;</td><td class="mdescRight">The concrete node overrides this function for each inTagRange type of Message to indicate which type tags in the range this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> subscribes for - otherwise each one in range is subscribed.  <a href="#ac324c202a6737e84cca5aa5bf7b25737">More...</a><br /></td></tr>
+<tr class="separator:ac324c202a6737e84cca5aa5bf7b25737"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63b25af85b574cfdbbe051e0bc9bf0ef"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
+<tr class="memitem:a63b25af85b574cfdbbe051e0bc9bf0ef"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a63b25af85b574cfdbbe051e0bc9bf0ef">addTypeTagRangePubsFor</a> (Message *, std::function&lt; void(uint16_t)&gt; addOffsetInRange) const</td></tr>
+<tr class="memdesc:a63b25af85b574cfdbbe051e0bc9bf0ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The concrete node overrides this function for each inTagRange type of Message to indicate which type tags in the range this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> subscribes for - otherwise each one in range is expected to be published.  <a href="#a63b25af85b574cfdbbe051e0bc9bf0ef">More...</a><br /></td></tr>
+<tr class="separator:a63b25af85b574cfdbbe051e0bc9bf0ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3b108914951c43d7876ff0e167213ab"><td class="memItemLeft" align="right" valign="top"><a id="aa3b108914951c43d7876ff0e167213ab"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aa3b108914951c43d7876ff0e167213ab">updateSubscription</a> ()</td></tr>
+<tr class="memdesc:aa3b108914951c43d7876ff0e167213ab"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> calls this first before handles the subscritions for this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>. <br /></td></tr>
+<tr class="separator:aa3b108914951c43d7876ff0e167213ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58d8d8b40a13a38d90bb4b01e2d1b98e"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
+<tr class="memitem:a58d8d8b40a13a38d90bb4b01e2d1b98e"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a58d8d8b40a13a38d90bb4b01e2d1b98e">ifDeliver</a> (Message const &amp;message) const</td></tr>
+<tr class="memdesc:a58d8d8b40a13a38d90bb4b01e2d1b98e"><td class="mdescLeft">&#160;</td><td class="mdescRight">an overridable method in the concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> that determine if a message should be deliverred to this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> instance This is called at the sending part before the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is unblocked due to this delivery  <a href="#a58d8d8b40a13a38d90bb4b01e2d1b98e">More...</a><br /></td></tr>
+<tr class="separator:a58d8d8b40a13a38d90bb4b01e2d1b98e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02ecf1dacc88917c2913b481826061b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a02ecf1dacc88917c2913b481826061b6">ifDeliver</a> (uint16_t tag, uint8_t const *bytes) const</td></tr>
+<tr class="memdesc:a02ecf1dacc88917c2913b481826061b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">an overridable method in the concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> that determine if a message should be deliverred to this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> instance's JustBytes <a class="el" href="classInterests.html" title="a std tuple holding messages types it can dispatch ">Interests</a> This is called at the sending part before the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is unblocked due to this delivery  <a href="#a02ecf1dacc88917c2913b481826061b6">More...</a><br /></td></tr>
+<tr class="separator:a02ecf1dacc88917c2913b481826061b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9cb6b90a31057b451d5c58cee4ad354"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#ac9cb6b90a31057b451d5c58cee4ad354">invokedCb</a> (size_t dispatched)</td></tr>
+<tr class="memdesc:ac9cb6b90a31057b451d5c58cee4ad354"><td class="mdescLeft">&#160;</td><td class="mdescRight">this callback is called all the time (frequently) - the exact timing is after a batch of messages are dispatched. After this call returns, the previously dispatched message's addresses are no longer valid, which means if you cache the event addresses in the previous handleMessageCb()s, you cannot use those after the return of the next invokeCb function.  <a href="#ac9cb6b90a31057b451d5c58cee4ad354">More...</a><br /></td></tr>
+<tr class="separator:ac9cb6b90a31057b451d5c58cee4ad354"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebe8d41969deeb5012f464916169ae24"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
+<tr class="memitem:aebe8d41969deeb5012f464916169ae24"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aebe8d41969deeb5012f464916169ae24">publish</a> (Message &amp;&amp;message)</td></tr>
+<tr class="memdesc:aebe8d41969deeb5012f464916169ae24"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#aebe8d41969deeb5012f464916169ae24">More...</a><br /></td></tr>
+<tr class="separator:aebe8d41969deeb5012f464916169ae24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa11242cdd2cc5a17deef86dcca4accf2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aa11242cdd2cc5a17deef86dcca4accf2">publishJustBytes</a> (uint16_t tag, void const *bytes, size_t len, <a class="el" href="structhmbdc_1_1app_1_1hasMemoryAttachment.html">app::hasMemoryAttachment</a> *att)</td></tr>
+<tr class="memdesc:aa11242cdd2cc5a17deef86dcca4accf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#aa11242cdd2cc5a17deef86dcca4accf2">More...</a><br /></td></tr>
+<tr class="separator:aa11242cdd2cc5a17deef86dcca4accf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename CcNode, app::MessageTupleC RecvMessageTuple, bool HasMessageStash = false&gt;<br />
-struct hmbdc::tips::Node&lt; CcNode, RecvMessageTuple, HasMessageStash &gt;</h3>
+<div class="textblock"><h3>template&lt;typename CcNode, app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt;<br />
+struct hmbdc::tips::Node&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;</h3>
 
 <p>a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is a thread of execution that can suscribe and receive Messages </p>
 <p>All messages are received through callback function. All callback functions are called in this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> thread sequentially, so there is no data protection needs within a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> from this perspective. </p><dl class="tparams"><dt>Template Parameters</dt><dd>
@@ -89,7 +145,496 @@ struct hmbdc::tips::Node&lt; CcNode, RecvMessageTuple, HasMessageStash &gt;</h3>
   </dd>
 </dl>
 <dl><dt><b>Examples: </b></dt><dd><a class="el" href="hello-world_8cpp-example.html#_a1">hello-world.cpp</a>.</dd>
-</dl></div><hr/>The documentation for this struct was generated from the following file:<ul>
+</dl></div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a27818559b95606fb0377e32e87ec3431"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27818559b95606fb0377e32e87ec3431">&#9670;&nbsp;</a></span>addJustBytesPubsFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::addJustBytesPubsFor </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void(uint16_t)&gt;&#160;</td>
+          <td class="paramname"><em>addTag</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>What tags are going to published when JustBytes is in the SendMessageTuple. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addTag</td><td>functor used to addd a tag value (NOT tag offset) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aa204ea127fea564523cbf9a563731808"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa204ea127fea564523cbf9a563731808">&#9670;&nbsp;</a></span>addJustBytesSubsFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::addJustBytesSubsFor </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void(uint16_t)&gt;&#160;</td>
+          <td class="paramname"><em>addTag</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>What tags are going to published when JustBytes is in the RecvMessageTuple. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addTag</td><td>functor used to addd a tag value (NOT tag offset) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a63b25af85b574cfdbbe051e0bc9bf0ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63b25af85b574cfdbbe051e0bc9bf0ef">&#9670;&nbsp;</a></span>addTypeTagRangePubsFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<div class="memtemplate">
+template&lt;app::MessageC Message&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::addTypeTagRangePubsFor </td>
+          <td>(</td>
+          <td class="paramtype">Message *&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void(uint16_t)&gt;&#160;</td>
+          <td class="paramname"><em>addOffsetInRange</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The concrete node overrides this function for each inTagRange type of Message to indicate which type tags in the range this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> subscribes for - otherwise each one in range is expected to be published. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Message</td><td>the inTagRange Message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addOffsetInRange</td><td>a functor that adds a type tag into the subscription Note - the functor does not take a type tag - instead it takes the tag offset within the range </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac324c202a6737e84cca5aa5bf7b25737"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac324c202a6737e84cca5aa5bf7b25737">&#9670;&nbsp;</a></span>addTypeTagRangeSubsFor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<div class="memtemplate">
+template&lt;app::MessageC Message&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::addTypeTagRangeSubsFor </td>
+          <td>(</td>
+          <td class="paramtype">Message *&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; void(uint16_t)&gt;&#160;</td>
+          <td class="paramname"><em>addOffsetInRange</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The concrete node overrides this function for each inTagRange type of Message to indicate which type tags in the range this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> subscribes for - otherwise each one in range is subscribed. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Message</td><td>the inTagRange Message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addOffsetInRange</td><td>a functor that adds a type tag into the subscription Note - the functor does not take a type tag - instead it takes the tag offset within the range </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9d624e6635c73f399542dda44933080c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d624e6635c73f399542dda44933080c">&#9670;&nbsp;</a></span>hmbdcName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char const* <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::hmbdcName </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>the thread name used to identify the thread the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is running on </p>
+<ul>
+<li>only for display purpose</li>
+</ul>
+<dl class="section return"><dt>Returns</dt><dd>char const* a string - less than 8 char typically </dd></dl>
+
+</div>
+</div>
+<a id="a58d8d8b40a13a38d90bb4b01e2d1b98e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58d8d8b40a13a38d90bb4b01e2d1b98e">&#9670;&nbsp;</a></span>ifDeliver() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<div class="memtemplate">
+template&lt;app::MessageC Message&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::ifDeliver </td>
+          <td>(</td>
+          <td class="paramtype">Message const &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>an overridable method in the concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> that determine if a message should be deliverred to this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> instance This is called at the sending part before the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is unblocked due to this delivery </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Message</td><td>decision is for this Message type </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">message</td><td>The decision on this Message instance </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if proceed to deliever it </dd>
+<dd>
+false if not </dd></dl>
+
+</div>
+</div>
+<a id="a02ecf1dacc88917c2913b481826061b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02ecf1dacc88917c2913b481826061b6">&#9670;&nbsp;</a></span>ifDeliver() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::ifDeliver </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t&#160;</td>
+          <td class="paramname"><em>tag</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t const *&#160;</td>
+          <td class="paramname"><em>bytes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>an overridable method in the concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> that determine if a message should be deliverred to this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> instance's JustBytes <a class="el" href="classInterests.html" title="a std tuple holding messages types it can dispatch ">Interests</a> This is called at the sending part before the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is unblocked due to this delivery </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Message</td><td>decision is for this Message type </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tag</td><td>message tag </td></tr>
+    <tr><td class="paramname">bytes</td><td>message address </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if proceed to deliever it </dd>
+<dd>
+false if not </dd></dl>
+
+</div>
+</div>
+<a id="ac9cb6b90a31057b451d5c58cee4ad354"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9cb6b90a31057b451d5c58cee4ad354">&#9670;&nbsp;</a></span>invokedCb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::invokedCb </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>dispatched</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>this callback is called all the time (frequently) - the exact timing is after a batch of messages are dispatched. After this call returns, the previously dispatched message's addresses are no longer valid, which means if you cache the event addresses in the previous handleMessageCb()s, you cannot use those after the return of the next invokeCb function. </p>
+<p>you can collectively process the messages received/cached so far here, or do something needs to be done all the time like powering another message loop</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dispatched</td><td>the number of messages dispatched since last invokedCb called </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a4f90ad0a28c0c1a4c7383f595f45f125"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f90ad0a28c0c1a4c7383f595f45f125">&#9670;&nbsp;</a></span>maxMessageSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::maxMessageSize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>unless JustBytes is used in <a class="el" href="classInterests.html" title="a std tuple holding messages types it can dispatch ">Interests</a> - this is automatic </p>
+<dl class="section return"><dt>Returns</dt><dd>size_t what is the biggest message this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is to receive </dd></dl>
+
+</div>
+</div>
+<a id="aebe8d41969deeb5012f464916169ae24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebe8d41969deeb5012f464916169ae24">&#9670;&nbsp;</a></span>publish()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<div class="memtemplate">
+template&lt;app::MessageC Message&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::publish </td>
+          <td>(</td>
+          <td class="paramtype">Message &amp;&amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> </p>
+<p>see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> publish </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Message</td><td>TIPS message type with tag &gt; 1000 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">message</td><td>the message </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aa11242cdd2cc5a17deef86dcca4accf2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa11242cdd2cc5a17deef86dcca4accf2">&#9670;&nbsp;</a></span>publishJustBytes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::publishJustBytes </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t&#160;</td>
+          <td class="paramname"><em>tag</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void const *&#160;</td>
+          <td class="paramname"><em>bytes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structhmbdc_1_1app_1_1hasMemoryAttachment.html">app::hasMemoryAttachment</a> *&#160;</td>
+          <td class="paramname"><em>att</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> </p>
+<p>see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> publish </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tag</td><td>message tag </td></tr>
+    <tr><td class="paramname">bytes</td><td>message bytes </td></tr>
+    <tr><td class="paramname">len</td><td>message len of the above bytes </td></tr>
+    <tr><td class="paramname">att</td><td>attachment ptr </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>The documentation for this struct was generated from the following file:<ul>
 <li>hmbdc/tips/<a class="el" href="Node_8hpp_source.html">Node.hpp</a></li>
 </ul>
 </div><!-- contents -->

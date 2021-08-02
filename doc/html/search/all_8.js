@@ -31,7 +31,7 @@ var searchData=
   ['hastag_3c_207_20_3e',['hasTag&lt; 7 &gt;',['../structhmbdc_1_1app_1_1hasTag.html',1,'hmbdc::app']]],
   ['hastag_3c_208_20_3e',['hasTag&lt; 8 &gt;',['../structhmbdc_1_1app_1_1hasTag.html',1,'hmbdc::app']]],
   ['hastag_3c_20999_20_3e',['hasTag&lt; 999 &gt;',['../structhmbdc_1_1app_1_1hasTag.html',1,'hmbdc::app']]],
-  ['hmbdcname',['hmbdcName',['../structhmbdc_1_1app_1_1Client.html#a91448c0e9b4a40c1ab9fa795aa1175b5',1,'hmbdc::app::Client::hmbdcName()'],['../structhmbdc_1_1tips_1_1Node_3_01CcNode_00_01std_1_1tuple_3_01RecvMessages_8_8_8_01_4_00_01HasMessageStash_01_4.html#a1f6861e3be832ef8fba9fc456b578a33',1,'hmbdc::tips::Node&lt; CcNode, std::tuple&lt; RecvMessages... &gt;, HasMessageStash &gt;::hmbdcName()']]],
+  ['hmbdcname',['hmbdcName',['../structhmbdc_1_1app_1_1Client.html#a91448c0e9b4a40c1ab9fa795aa1175b5',1,'hmbdc::app::Client::hmbdcName()'],['../structhmbdc_1_1tips_1_1domain__detail_1_1NodeProxy.html#aa54359de10f759c9c5b9420810d8b331',1,'hmbdc::tips::domain_detail::NodeProxy::hmbdcName()'],['../structhmbdc_1_1tips_1_1Node.html#a9d624e6635c73f399542dda44933080c',1,'hmbdc::tips::Node::hmbdcName()']]],
   ['hmbdcserialized',['hmbdcSerialized',['../structhmbdc_1_1tips_1_1hasSharedPtrAttachment_1_1hmbdcSerialized.html',1,'hmbdc::tips::hasSharedPtrAttachment']]],
   ['hmbdc',['hmbdc',['../index.html',1,'']]]
 ];

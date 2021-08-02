@@ -266,15 +266,15 @@ ShmBasePtrAllocator(char const* name, size_t offset, size_t len, int& ownership)
                 if (base != MAP_FAILED) {
                     set(base, len, own_);
                     addr_ = base;
-                    lock_ = boost::interprocess::file_lock(devName.c_str());
                     close(fd);
+                    lock_ = boost::interprocess::file_lock(devName.c_str());
                     return;
                 }
             }
 
             HMBDC_THROW(std::runtime_error
                 , "error when creating file errno=" << errno);
-        } catch (std::runtime_error const& e) {
+        } catch (std::exception const& e) {
             if (--retry == 0) throw;
             sleep(1);
         }
@@ -314,8 +314,8 @@ DevMemBasePtrAllocator(char const* devName, size_t offset, size_t len, int owner
     }
     own_ = ownership > 0;
     set(addr_, len, own_);
-    lock_ = boost::interprocess::file_lock(devName);
     close(fd);
+    lock_ = boost::interprocess::file_lock(devName);
 }
 
 inline

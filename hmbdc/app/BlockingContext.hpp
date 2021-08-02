@@ -758,7 +758,8 @@ private:
                 return;
             }
 
-            while(!stopped_ && runOnceFunc(this->stopped_, buffer, c, maxBlockingTime)) {
+            bool stillIn = true;
+            while(!stopped_ && (stillIn = runOnceFunc(this->stopped_, buffer, c, maxBlockingTime))) {
             }
             if (stopped_) {
                 if (buffer) { /// drain all to release sending party
@@ -770,14 +771,15 @@ private:
                         buffer->wasteAfterPeek(count);
                     } while (count);
                 }
-                c.dropped();
+                if (stillIn) {
+                    c.dropped();
+                }
             }
         }
         );
 
         return thrd;
     }
-
 
     template <MessageC Message>
     void justBytesSend(Message&& m) {

@@ -16,10 +16,12 @@ for reliability, scalability, performance and design
 information.
 
 Keywords and features:
+- Supports x86_64, aarch64, Linux, gcc(>=8.4.1), clang(>=10) 
+  and QNX/qcc(>=11, beta)
 - multithreaded without the headache
-- low latency / high throughput / kernel bypassing
+- low latency / high throughput / supports kernel bypassing
 - support multiple types of transport mechanisms with
-  the consistent look and feel C++7 API:
+  the consistent look and feel C++17 API:
     interthread
     interprocess
     UDP multicast
@@ -29,12 +31,10 @@ Keywords and features:
     reliable netmap
 - support easy to use symetric (no broker process) type based message 
   publish / subscribe with recording and playback tool
-- other high performance computing features: packet or message
-  level sniffing, network link traffic arbitration, 
+- other high performance computing features:
   high speed async logging, timer, rate control ...
 - straightforward integration with any other programming 
-  languages that supports Linux piping - see the Python 
-  example in package.
+  languages that supports Linux piping
 - provide performance measurement tools
 
 ### What is this repository for? ###
@@ -50,20 +50,30 @@ Keywords and features:
   make sure you have the QNX or aarch64 cross compiling tools ready 
   if you are building for them
   for QNX, source the qnx set env script now
-1. use the following recommneded g++ options to build the executables:
+1. use the following recommneded g++ (>= 8.4.1) or clang (>=10) 
+options to build the executables:
 g++ <cpp-file> -std=c++1z -fconcepts -D BOOST_BIND_GLOBAL_PLACEHOLDERS -O3 
--D NDEBUG -Wall -Werror -pthread -isystem <boost-include> 
+-Wall -Werror -pthread -isystem <boost-include> 
 -I. -s 
 <boost-lib>/libboost_program_options.a <boost-lib>/libboost_system.a 
 <boost-lib>/libboost_iostreams.a  
--lrt -o <output-executable>
+-lrt -o <output-executable> # libboost_*.a is only needed for tools build
+
+clang++  <cpp-file> -std=c++2a -stdlib=libstdc++ -Wno-parentheses 
+-D BOOST_BIND_GLOBAL_PLACEHOLDERS -O3 
+-Wall -Werror -pthread -I. -isystem <boost-include> 
+-I. -s 
+<boost-lib>/libboost_program_options.a <boost-lib>/libboost_system.a 
+<boost-lib>/libboost_iostreams.a  
+-lrt -o <output-executable> # libboost_*.a is only needed for tools build
+
 for example:
-g++ tools/perf-base-lat.cpp  -std=c++1z -fconcepts \
+g++ tools/tips-ping-pong.cpp  -std=c++1z -fconcepts \
 -D BOOST_BIND_GLOBAL_PLACEHOLDERS -O3 -D NDEBUG -Wall -Werror -pthread \
 -isystem /usr/local/boost/include -I. -s \
 /usr/local/boost/lib/libboost_program_options.a \
 /usr/local/boost/lib/libboost_system.a \
-/usr/local/boost/lib/libboost_iostreams.a  -lrt -o /tmp/perf-base-lat
+/usr/local/boost/lib/libboost_iostreams.a  -lrt -o /tmp/tips-ping-pong-lat
 
 ### Contribution guidelines ###
 * all suggestions and issue reports are welcome

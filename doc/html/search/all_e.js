@@ -8,8 +8,7 @@ var searchData=
   ['nmrecvtransport',['NmRecvTransport',['../structhmbdc_1_1tips_1_1rnetmap_1_1nmrecvtransport__detail_1_1NmRecvTransport.html',1,'hmbdc::tips::rnetmap::nmrecvtransport_detail']]],
   ['nmsendtransport',['NmSendTransport',['../structhmbdc_1_1tips_1_1rnetmap_1_1nmsendtransport__detail_1_1NmSendTransport.html',1,'hmbdc::tips::rnetmap::nmsendtransport_detail']]],
   ['node',['Node',['../structhmbdc_1_1tips_1_1Node.html',1,'hmbdc::tips']]],
-  ['node_3c_20ccnode_2c_20std_3a_3atuple_3c_20recvmessages_2e_2e_2e_20_3e_2c_20hasmessagestash_20_3e',['Node&lt; CcNode, std::tuple&lt; RecvMessages... &gt;, HasMessageStash &gt;',['../structhmbdc_1_1tips_1_1Node_3_01CcNode_00_01std_1_1tuple_3_01RecvMessages_8_8_8_01_4_00_01HasMessageStash_01_4.html',1,'hmbdc::tips']]],
-  ['node_3c_20registrationnode_3c_20sendmessagetuplein_2c_20recvmessagetuplein_20_3e_2c_20recvmessagetuplein_20_3e',['Node&lt; RegistrationNode&lt; SendMessageTupleIn, RecvMessageTupleIn &gt;, RecvMessageTupleIn &gt;',['../structhmbdc_1_1tips_1_1Node.html',1,'hmbdc::tips']]],
+  ['nodeproxy',['NodeProxy',['../structhmbdc_1_1tips_1_1domain__detail_1_1NodeProxy.html',1,'hmbdc::tips::domain_detail']]],
   ['noprotocol',['NoProtocol',['../structhmbdc_1_1tips_1_1NoProtocol.html',1,'hmbdc::tips']]],
   ['numeric_5flimits_3c_20hmbdc_3a_3atime_3a_3aduration_20_3e',['numeric_limits&lt; hmbdc::time::Duration &gt;',['../structstd_1_1numeric__limits_3_01hmbdc_1_1time_1_1Duration_01_4.html',1,'std']]]
 ];

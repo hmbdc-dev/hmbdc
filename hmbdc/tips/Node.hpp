@@ -1,8 +1,6 @@
 #include "hmbdc/Copyright.hpp"
 #pragma once
 #include "hmbdc/tips/TypeTagSet.hpp"
-#include "hmbdc/app/Client.hpp"
-#include "hmbdc/app/ClientWithStash.hpp"
 #include "hmbdc/MetaUtils.hpp"
 
 #include <functional>
@@ -10,6 +8,60 @@
 #include <unistd.h>
 
 namespace hmbdc { namespace tips {
+namespace node_detail {
+template <app::MessageC Message>
+struct Publisher {
+    void operator()(Message const& m) {publisher_(m);}
+    template <typename Impl>
+    void set(Impl& impl) {
+        publisher_ = [&impl](Message const& m) {
+            impl.publish(m);
+        };
+    }
+
+private:
+    std::function<void (Message const&)> publisher_;
+};
+
+template <>
+struct Publisher<app::JustBytes> {
+    void operator()(uint16_t tag, void const* bytes, size_t len
+        , app::hasMemoryAttachment* att) {
+            publisher_(tag, bytes, len, att);
+    }
+
+    template <typename Impl>
+    void set(Impl& impl) {
+        publisher_ = [&impl](uint16_t tag, void const* bytes, size_t len
+        , app::hasMemoryAttachment* att) {
+            impl.publishJustBytes(tag, bytes, len, att);
+        };
+    }
+
+private:
+    std::function<void (uint16_t, void const*, size_t, app::hasMemoryAttachment*)> publisher_;
+};
+
+template <app::MessageTupleC SendMessgeTuple>
+struct Publishers {
+    template <typename Impl>
+    void set(Impl&){}
+};
+
+template <app::MessageC Message, app::MessageC ...Messages>
+struct Publishers<std::tuple<Message, Messages...>>
+: Publisher<Message>
+, Publishers<std::tuple<Messages...>> {
+    template <typename Impl>
+    void set(Impl& impl) {
+        Publisher<Message>& p = *this;
+        p.set(impl);
+        Publishers<std::tuple<Messages...>>& next = *this;
+        next.set(impl);
+    }
+};
+}
+
 template <typename... Nodes>
 struct aggregate_recv_msgs {
     using type = std::tuple<>;
@@ -47,16 +99,13 @@ struct aggregate_send_msgs<Node, Nodes ...> {
  * @tparam HasMessageStash - if the Node needs Message reorderring support
  * See ClientWithStash.hpp
  */
-template <typename CcNode, app::MessageTupleC RecvMessageTuple, bool HasMessageStash = false>
-struct Node;
-
-template <typename CcNode, app::MessageC ...RecvMessages, bool HasMessageStash>
-struct Node<CcNode, std::tuple<RecvMessages...>, HasMessageStash>
-: std::conditional<HasMessageStash
-    , app::ClientWithStash<CcNode, 0, RecvMessages...> 
-    , app::Client<CcNode, RecvMessages...>
->::type {
+template <typename CcNode
+    , app::MessageTupleC RecvMessageTupleIn
+    , app::MessageTupleC SendMessageTupleIn = std::tuple<>
+    , bool HasMessageStashIn = false>
+struct Node {
     enum {
+        HasMessageStash = HasMessageStashIn,
         manual_subscribe = false, /// if defined as true in CcNode, auto subscribe is 
                                   /// not happening - User manually call
                                   /// Domain::subscribeFor() at the right time
@@ -66,8 +115,9 @@ struct Node<CcNode, std::tuple<RecvMessages...>, HasMessageStash>
      * if this Node is active to help IPC and network delivering filtering.
      * If not fully specified the message could be invisible outside of this process.
      */
-    using SendMessageTuple = std::tuple<>;
-    using RecvMessageTuple = typename app::Client<CcNode, RecvMessages...>::Interests;
+    using Interests = RecvMessageTupleIn;
+    using SendMessageTuple = SendMessageTupleIn;
+    using RecvMessageTuple = Interests;
 
     /**
      * @brief the thread name used to identify the thread the Node is running on
@@ -88,6 +138,17 @@ struct Node<CcNode, std::tuple<RecvMessages...>, HasMessageStash>
             , "need to override this function since JustBytes is used");
         return max_size_in_tuple<typename CcNode::Interests>::value;
     }
+
+    std::tuple<char const*, int> schedSpec() const {
+#ifndef _QNX_SOURCE        
+        return std::make_tuple<char const*, int>(nullptr, 0);
+#else
+        return std::make_tuple<char const*, int>(nullptr, 20);
+#endif        
+    }
+    virtual void messageDispatchingStartedCb(size_t const*){}
+    virtual void stoppedCb(std::exception const&) {}
+    virtual bool droppedCb() {return true;}
 
     /**
      * @brief What tags are going to published when JustBytes is in the RecvMessageTuple
@@ -204,17 +265,51 @@ struct Node<CcNode, std::tuple<RecvMessages...>, HasMessageStash>
      * 
      * @param dispatched the number of messages dispatched since last invokedCb called
      */
-    void invokedCb(size_t dispatched) override {
+    virtual void invokedCb(size_t dispatched) {
         // called as frequently as workload allowed
     }
 
+    /**
+     * @brief publish a message in the Domain that start (own) this Node
+     * @details see Domain publish
+     * @tparam Message TIPS message type with tag > 1000
+     * @param message the message
+     */
+    template <app::MessageC Message>
+    void publish(Message&& message) {
+        using M = typename std::decay<Message>::type;
+        node_detail::Publisher<M>& publisher = publishers_;
+        publisher(message);
+    }
+
+    /**
+     * @brief publish a message in the Domain that start (own) this Node
+     * @details see Domain publish
+     * @param tag message tag
+     * @param bytes message bytes
+     * @param len message len of the above bytes
+     * @param att attachment ptr
+     */
+    void publishJustBytes(uint16_t tag, void const* bytes, size_t len
+        , app::hasMemoryAttachment* att) {
+            publishers_(tag, bytes, len, att);
+    }
+
+    virtual ~Node(){}
+
 protected:
     TypeTagSet subscription;
-};
+private:
+    template <app::MessageTupleC T1, typename T2, typename T3, typename T4, typename T5> 
+    friend struct Domain;
+    template <typename T1, app::MessageTupleC T2, typename T3, typename T4, typename T5> 
+    friend struct SingleNodeDomain;
 
-template <typename SendMessageTupleIn, typename RecvMessageTupleIn>
-struct RegistrationNode
-: Node<RegistrationNode<SendMessageTupleIn, RecvMessageTupleIn>, RecvMessageTupleIn> {
-    using SendMessageTuple = SendMessageTupleIn;
+    template <typename Domain>
+    void setDomain(Domain& domain) {
+        publishers_.set(domain);
+    }
+    using Publishers = node_detail::Publishers<SendMessageTuple>;
+    Publishers publishers_;
 };
 }}
