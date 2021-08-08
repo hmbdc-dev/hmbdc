@@ -1,3 +1,8 @@
+* Sun Aug 08 2021 - 12.41
+- added publish directly in Node 
+
+- improved tips-ping-pong tool
+
 * Sat Jul 31 2021 - 12.40
 - provided publish support directly in Node
 - provided ping pong performance test
@@ -272,6 +277,11 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sun Aug 08 2021 - 12.41
+- added publish directly in Node 
+
+- improved tips-ping-pong tool
 
 * Sat Jul 31 2021 - 12.40
 - provided publish support directly in Node

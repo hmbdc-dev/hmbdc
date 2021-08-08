@@ -144,6 +144,7 @@ struct Duration {
     explicit Duration(int64_t sec, int64_t usec = 0, int64_t nsec = 0) { 
         nsec_ = sec * 1000000000l + usec * 1000l + nsec;}
 
+    int64_t seconds() const { return nsec_ / 1000000000l; }
     int64_t milliseconds() const { return nsec_ / 1000000l; }
     int64_t microseconds() const { return nsec_ / 1000l; }
     int64_t nanoseconds() const { return nsec_; }

@@ -73,7 +73,7 @@ struct SendServer {
      * @param begin if nothing can be released in buffer return this
      * @param end if all can be releases return this
      * 
-     * @return iterator in buffer poing to new start (not released)
+     * @return iterator in buffer poiting to new start (not released)
      */
     hmbdc::pattern::MonoLockFreeBuffer::iterator runOnce(hmbdc::pattern::MonoLockFreeBuffer::iterator begin
         , hmbdc::pattern::MonoLockFreeBuffer::iterator end) HMBDC_RESTRICT {

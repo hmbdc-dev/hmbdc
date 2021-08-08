@@ -1,5 +1,5 @@
 // hello-world for hmbdc TIPS 
-// - see concept of doamin and Node https://www.hummingbirdcode.net/p/concept-model.html
+// - see concepts of domain and Node https://www.hummingbirdcode.net/p/concept-model.html
 // to build:
 // g++ hello-world.cpp -O3 -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw
 //
@@ -33,13 +33,17 @@ struct Hello
     char msg[6] = "hello";
 };
 
-/// write a Node publish the message
+/// write a Node publish the message periodically
 struct Sender
 : Node<Sender
     , std::tuple<>      // does not subscibe to anything
     , std::tuple<Hello> // will publish Hello
 > { 
-    void doSend() {
+    void invokedCb(size_t) {    // this is called once whenever this Sender
+                                // thread is unblockeb - by new message arriving
+                                // or max blocking timeouts 
+                                // - see domain.start() call below
+        cout << "sending a Hello" << endl;
         publish(Hello{});
     }
 };
@@ -67,7 +71,7 @@ int main(int argc, char** argv) {
     }
 
     Config config; //other config values are default
-    config.put("ifaceAddr", ifaceAddr);//which net IP to use for communication
+    config.put("ifaceAddr", ifaceAddr);//which net IP to use for net communication
     
     SingletonGuardian<tcpcast::Protocol> g; //RAII for tcpcast::Protocol resources
 
@@ -75,14 +79,15 @@ int main(int argc, char** argv) {
         using MyDomain = Domain<std::tuple<>    /// no subscribing
             , ipc_property<>                    /// default IPC params
             , net_property<tcpcast::Protocol>>; /// use tcpcast as network transport
-        config.put("minRecvToStart", 1);    /// ask the Domain to buffer the network messages until 
-                                            /// the first connection is established
         auto domain = MyDomain{config};
         Sender sender;
-        domain.start(sender);
-        sender.doSend();
-        sleep(1); //so the message does go out to the network
-        domain.stop();
+        domain.start(sender
+            , 0     /// no need to have incoming buffer since only publish
+            , hmbdc::time::Duration::seconds(1));   /// max blocks for 1 second
+                                                    /// sender.invokdeCb() is called
+                                                    /// when the 1 second expires
+        sleep(10); //let the sender thread run for 10 seconds - ~10 Hellos sent out
+        domain.stop();      //wrap up and exit
         domain.join();
     } else {  //as a receiver
         using MyDomain = Domain<std::tuple<Hello>   /// subscribe to Hello

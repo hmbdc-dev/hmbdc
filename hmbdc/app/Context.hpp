@@ -1317,8 +1317,9 @@ private:
                     return;
                 }
 
+                bool stillIn = true;
                 while(!stopped_ &&
-                    context_detail::runOnceImpl(hmbdcNumber, this->stopped_, this->buffer_, c)) {
+                    (stillIn = context_detail::runOnceImpl(hmbdcNumber, this->stopped_, this->buffer_, c))) {
                 }
                 if (this->stopped_) {
                     if (clientParticipateInMessaging) { /// drain all to release sending party
@@ -1335,7 +1336,10 @@ private:
                             }
                         } while (count);
                     }
-                    c.dropped();
+                    
+                    if (stillIn) {
+                        c.dropped();
+                    }
                 }
                 if (clientParticipateInMessaging) context_detail::unblock(this->buffer_, hmbdcNumber);
             }

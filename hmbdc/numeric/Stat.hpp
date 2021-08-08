@@ -35,9 +35,9 @@ struct Stat {
             os << "mean=" << st.sum_ / st.sampleSize_ 
                 << " std_dev=" << sqrt((st.sumSq_ - double(st.sum_) * double(st.sum_) / st.sampleSize_) / st.sampleSize_)
                 << " min=" << st.min_ << " max=" << st.max_
-                << " sampleSize=" << st.sampleSize_ << std::endl;
+                << " sampleSize=" << st.sampleSize_;
         } else {
-            os << "NA sampleSize=" << st.sampleSize_ << std::endl;
+            os << "NA sampleSize=" << st.sampleSize_;
         }
         return os;
     }

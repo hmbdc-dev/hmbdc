@@ -12,7 +12,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "ipcMaxMessageSizeRuntime"      : 1000,             "__ipcMaxMessageSizeRuntime"        : "if not listed in code's ipc_property (==0), use this value",
     "ipcTransportOwnership"         : "optional",       "__ipcTransportOwnership"           : "'optional':, this Domain is either creating the IPC transport or attach to the existing one; 'own': recreate and own; 'attach': only attach to existing one",
     "ipcPurgeIntervalSeconds"       : 0,                "__ipcPurgeIntervalSeconds"         : "if not 0, a purger is to run to remove dead or stagnant IPC party so other parties are not impacted. This is the period of doing the purge",
-    "ipcShmForAttPoolSize"          : 104857600,        "__ipcShmForAttPoolSize"            : "large IPCable message or 0cpy messages could use this shm pool to pass around the attachment. This is the pool size in bytes.",
+    "ipcShmForAttPoolSize"          : 134217728,        "__ipcShmForAttPoolSize"            : "large IPCable message or 0cpy messages could use this shm pool to pass around the attachment. This is the pool size in bytes.",
     "netMaxMessageSizeRuntime"      : 1000,             "__netMaxMessageSizeRuntime"        : "if not listed in code's (==0), use this as network transport's buffer width in bytes",
     "pumpHmbdcName"                 : "tipspump",       "__pumpHmbdcName"                   : "pump thread uses this as thread name",
     "pumpCount"                     : 1,                "__pumpCount"                       : "thread count for Domain activities - only increase it when the traffic cannot be handled by 1 thread",
