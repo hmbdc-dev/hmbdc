@@ -5,40 +5,38 @@ type                notes                            [a] Intel(R) Core(TM) i7-47
                                                      [b] Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz, Ubuntu 18.04
                                                      [c] 1G CISCO SG200 switch (intel 82574L and 82579LM NIC)
 
-qperf               standard TCP measurement tool    0.1) 5us - 2ms for loopback messages (100B-10MB)
-                    (use as reference only           0.2) 60us - 90ms for network messages (100B-10MB)
-                     not part of hmbdc)              
+qperf               industry standard TCP            0.1) 5us - 2ms for loopback messages (100B-10MB)
+                    measurement tool                 0.2) 60us - 90ms for network messages (100B-10MB)
+                    (use as REFERENCE only
+                     , not part of hmbdc)
 
 inter-thread        reliable,                        1.1) ~2us (shared poniter passing)
                     sender / receiver blocks         
-                    if buffer full or no msg         
-                    supports up to 64                
-                    threads(cores)                   
+                    if buffer full or no msg
                                                      
 
-inter-process       reliable,                        2.1) hundreds of nano seconds for 0cpy messages
-(IPC)               sender blocks if buffer          2.2) 1us - 4ms for regular messages (100B-10MB)
-                    full using blocking interface,   
-                    receivers can be purged
+inter-process       reliable,                        2.1) less than 1us for 0cpy messages (100B-10MB)
+(IPC)               sender blocks if buffer full     2.2) 1us - 4ms for regular messages (100B-10MB)
+                    receivers could be purged
                     if too slow or crashed,
                     supports up to 256 
                     processes
 
-TCP                 as reliable/scalable as TCP,     3.1) 60us - 80ms for messages (100B-10MB)
-(tcpcast)           slow receivers can be            
+tcpcast             as reliable/scalable as TCP,     3.1) 60us - 80ms for messages (100B-10MB)
+                    slow receivers can be            
                     purged if configured at sender 
                     (see waitForSlowReceivers)
 
 reliable UDP        as reliable as TCP               4.1) 60us - 80ms for messages (100B-10MB)
 multicast           as scalable as UDP multicast,    
-(rmcast)            slow receivers can be
-                    purged if configured at sender 
+(rmcast)            slow receivers could be
+                    dropped if configured at sender 
                     (see waitForSlowReceivers)
 
 reliable netmap     as reliable as TCP               slightly better than rmcast
 multicast           as scalable as UDP multicast     
-(rnetmap)           slow receivers can be
-                    purged if configured at sender 
+(rnetmap)           slow receivers could be
+                    dropped if configured at sender
                     (see waitForSlowReceivers)
 
 --------------------------------------------------------------------------------------------------------------------
