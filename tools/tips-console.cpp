@@ -2,7 +2,9 @@
 #include "hmbdc/time/Timers.hpp"
 #include "hmbdc/tips/tcpcast/Protocol.hpp"
 #include "hmbdc/tips/rmcast/Protocol.hpp"
+#ifndef HMBDC_NO_NETMAP
 #include "hmbdc/tips/rnetmap/Protocol.hpp"
+#endif
 
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
@@ -571,7 +573,9 @@ R"|(
     using Runners = std::tuple<
           RUNNER_LIST(tcpcast)
         , RUNNER_LIST(rmcast)
+#ifndef HMBDC_NO_NETMAP        
         , RUNNER_LIST(rnetmap)
+#endif        
     >;
     config = Config{};
     for (auto it = params.begin(); it != params.end(); ++it) {

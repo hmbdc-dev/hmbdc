@@ -1,6 +1,9 @@
 #include "hmbdc/tips/tcpcast/Protocol.hpp"
 #include "hmbdc/tips/rmcast/Protocol.hpp"
+
+#ifndef HMBDC_NO_NETMAP        
 #include "hmbdc/tips/rnetmap/Protocol.hpp"
+#endif
 
 #include "hmbdc/tips/SingleNodeDomain.hpp"
 #include "hmbdc/tips/Tips.hpp"
@@ -524,11 +527,15 @@ main(int argc, char** argv) {
         config.put("ifaceAddr", netIface);
         config.put("outBufferSizePower2", 18);  /// rmcast and rnetmap need this much to handle 100MB
         return run((rmcast::Protocol*)nullptr);
+
+#ifndef HMBDC_NO_NETMAP                
     } else if (netprot == "rnetmap") {
         config.put("netmapPort", netIface);
         config.put("outBufferSizePower2", 18);  /// rmcast and rnetmap need this much to handle 100MB
         return run((rnetmap::Protocol*)nullptr);
-    } if (netprot == "nonet") {
+#endif        
+
+    } else if (netprot == "nonet") {
         return run((NoProtocol*)nullptr);
     } else {
         cerr << desc << "\n";
