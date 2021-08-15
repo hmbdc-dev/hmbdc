@@ -46,10 +46,14 @@ Keywords and features:
   hmbdc helps you get it done quick and fast.
 
 ### How do I build code in example and tools dir ###
-0. make sure you have the required lib in place: boost(1-62 or later)
+0. make sure you have the required lib in place: boost-dev package
   make sure you have the QNX or aarch64 cross compiling tools ready 
   if you are building for them
   for QNX, source the qnx set env script now
+1. in hmbdc root dir, type
+  make
+
+If you had to use your own building tool:
 1. use the following recommneded g++ (>= 8.4.1) or clang (>=10) 
 options to build the executables:
 g++ <cpp-file> -std=c++1z -fconcepts -D BOOST_BIND_GLOBAL_PLACEHOLDERS -O3 
