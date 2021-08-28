@@ -12,6 +12,7 @@
 #include <vector>
 #include <list>
 #include <mutex>
+#include <atomic>
 
 namespace hmbdc { namespace app {
 
@@ -539,6 +540,12 @@ struct ThreadCommBase
         return buffer_;
     }
 
+    /**
+     * @brief return how many IPC parties (processes) is managed by this
+     * Context - including itself
+     * 
+     * @return size_t (>= 1)
+     */
     size_t dispatchingStartedCount() const {
         __atomic_thread_fence(__ATOMIC_ACQUIRE);
         return *pDispStartCount_;
@@ -548,15 +555,18 @@ struct ThreadCommBase
     std::shared_ptr<T> allocateInShm(size_t actualSize, Args&& ...args) {
         static_assert(std::is_trivially_destructible<T>::value);
         auto ptr = shmAttAllocator_->allocate(actualSize);
-        auto ptrT = new (ptr) T{std::forward<Args>(args)...};
-        // HMBDC_LOG_N(shmAttAllocator_->getHandle(ptr));
-        return std::shared_ptr<T>(
-            ptrT
-            , [this](T* t) {
-                if (0 == __atomic_sub_fetch(&t->hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
-                    shmAttAllocator_->deallocate((uint8_t*)t);
-                }
-        });
+        if (ptr) {
+            auto ptrT = new (ptr) T{std::forward<Args>(args)...};
+            // HMBDC_LOG_N(shmAttAllocator_->getHandle(ptr));
+            return std::shared_ptr<T>(
+                ptrT
+                , [this](T* t) {
+                    if (0 == __atomic_sub_fetch(&t->hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
+                        shmAttAllocator_->deallocate((uint8_t*)t);
+                    }
+            });
+        }
+        return std::shared_ptr<T>{};
     }
 
 protected:
@@ -683,7 +693,10 @@ protected:
         }
 
         uint8_t* allocate(size_t len) {
-            auto res = (uint8_t*)managedShm_.allocate(len);
+            auto res = (uint8_t*)nullptr;
+            while (!(res = (uint8_t*)managedShm_.allocate(len, std::nothrow))) {
+                std::this_thread::yield();
+            };
             // HMBDC_LOG_N(getHandle(res));
             return res;
         }
@@ -1371,7 +1384,7 @@ private:
     uint16_t usedHmbdcCapacity_;
     std::vector<uint16_t> hmbdcNumbers_;
 
-    bool stopped_;
+    std::atomic<bool> stopped_;
     typename Pool::ptr pool_;
     using Threads = std::vector<std::thread>;
     Threads threads_;

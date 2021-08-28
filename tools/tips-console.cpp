@@ -514,10 +514,11 @@ struct Runner {
         using Console = ConsoleNode<ConsoleDomain>;
         ConsoleDomain domain{config};
         Console console{domain, config};
-        domain.start(console
+        domain.add(console
             , bufDepth
             , time::Duration::seconds(1)
         );
+        domain.startPumping();
         console.waitUntilFinish();
         domain.stop();
         domain.join();

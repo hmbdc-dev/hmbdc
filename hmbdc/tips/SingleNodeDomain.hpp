@@ -74,17 +74,18 @@ public:
      * @brief start this node - before this point, no thread is spawned and no message delievered
      *  or publish by this Node/Domain
      */
-    void start(CcNode& node) {
+    void startPumpingFor(CcNode& node) {
         this->threadCtx_.node = &node;
         node.setDomain(*this);
         this->addPubSubFor(node);
-        this->startDelayedPumping();
+        this->startPumping();
     }
 
     /**
      * @brief exposed from Domain - see Domain documentation
      * 
      */
+    using SingleNodeDomain::Domain::getDftConfig;
     using SingleNodeDomain::Domain::runOnce;
     using SingleNodeDomain::Domain::ipcPartyDetectedCount;
     using SingleNodeDomain::Domain::netSendingPartyDetectedCount;

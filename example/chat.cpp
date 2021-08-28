@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
         auto domain = ChatDomain{config};           /// admin should create the chat group and own it
                                                     /// so run it first
         Admin admin;
-        domain.start(admin);
+        domain.add(admin).startPumping();
         //we can read the admin's input and send messages out now
         string line;
         cout << "start type a message" << endl;
@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
             cout << "You own the IPC transport now!" << endl;
         }
         Chatter chatter(myId, chatGroup);
-        domain.start(chatter);
+        domain.add(chatter).startPumping();
 
         //we can read the user's input and send messages out now
         string line;

@@ -7,6 +7,7 @@ var searchData=
   ['deliverall',['deliverAll',['../structhmbdc_1_1app_1_1BlockingContext_1_1deliverAll.html',1,'hmbdc::app::BlockingContext']]],
   ['devmembaseptrallocator',['DevMemBasePtrAllocator',['../structhmbdc_1_1os_1_1DevMemBasePtrAllocator.html',1,'hmbdc::os']]],
   ['dispatcher',['dispatcher',['../structhmbdc_1_1app_1_1messagehandler__detail_1_1dispatcher.html',1,'hmbdc::app::messagehandler_detail']]],
+  ['dispatchingstartedcount',['dispatchingStartedCount',['../structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#a423d0afffe8e8fa230852c2c4af078ba',1,'hmbdc::app::context_detail::ThreadCommBase']]],
   ['domain',['Domain',['../structhmbdc_1_1tips_1_1Domain.html',1,'hmbdc::tips::Domain&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;'],['../structhmbdc_1_1tips_1_1Domain.html#a06d2f5c3f9d83688b1b45a0052ac4cb8',1,'hmbdc::tips::Domain::Domain()']]],
   ['domain_3c_20recvmessagetuplein_2c_20ipcprop_2c_20netprop_2c_20detail_3a_3acontextcallforwarder_3c_20ccnode_2c_20recvmessagetuplein_20_3e_2c_20attachmentallocator_20_3e',['Domain&lt; RecvMessageTupleIn, IpcProp, NetProp, detail::ContextCallForwarder&lt; CcNode, RecvMessageTupleIn &gt;, AttachmentAllocator &gt;',['../structhmbdc_1_1tips_1_1Domain.html',1,'hmbdc::tips']]],
   ['downloadfile',['DownloadFile',['../structhmbdc_1_1os_1_1DownloadFile.html',1,'hmbdc::os']]],

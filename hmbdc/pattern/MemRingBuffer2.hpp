@@ -1,3 +1,5 @@
+#include <atomic>
+
 namespace hmbdc { namespace pattern {
 
 namespace memringbuffer_detail {
@@ -15,7 +17,7 @@ private:
     hmbdc::pattern::lf_misc::chunk_base_ptr<Sequence> const buffer_;
     Sequence toBeClaimedSeq_
     __attribute__((__aligned__(SMP_CACHE_BYTES)));
-    Sequence readSeq_
+    std::atomic<Sequence> readSeq_
     __attribute__((__aligned__(SMP_CACHE_BYTES)));
 
     bool readyToWriteOver(Sequence seq) const {
@@ -194,9 +196,11 @@ public:
                 boost::detail::yield(k);
             }
             memcpy(item, buffer_ + index, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-        // } while (hmbdc_unlikely(!__sync_bool_compare_and_swap(&readSeq_, seq, seq + 1)));
-        } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
-            &readSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        // } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
+        //     &readSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        }  while (hmbdc_unlikely(
+            !readSeq_.compare_exchange_weak(seq, seq + 1
+                , std::memory_order_relaxed, std::memory_order_relaxed)));
         markAsToWriteOver(seq);
     }
 
@@ -207,9 +211,12 @@ public:
             auto index =  seq & MASK;
             if (seq != *buffer_.getSeq(index)) return false;
             memcpy(item, buffer_ + index, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-        // } while (hmbdc_unlikely(!__sync_bool_compare_and_swap(&readSeq_, seq, seq + 1)));
-        } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
-            &readSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        // } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
+        //     &readSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        }  while (hmbdc_unlikely(
+            !readSeq_.compare_exchange_weak(seq, seq + 1
+                , std::memory_order_relaxed, std::memory_order_relaxed)));
+
         markAsToWriteOver(seq);
         return true;
     }
@@ -224,9 +231,11 @@ public:
             if (seq == *buffer_.getSeq(seq & MASK)) {
                 res = iterator(buffer_, seq++);
             } 
-        // } while (hmbdc_unlikely(!__sync_bool_compare_and_swap(&readSeq_, readSeq, seq)));
-        } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
-            &readSeq_, &readSeq, seq, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        // } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
+        //     &readSeq_, &readSeq, seq, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        }  while (hmbdc_unlikely(
+            !readSeq_.compare_exchange_weak(readSeq, seq
+                , std::memory_order_relaxed, std::memory_order_relaxed)));
         return res;
     }
 
@@ -243,9 +252,12 @@ public:
                 ++seq;
             }
             end = iterator(buffer_, seq);
-        // } while (hmbdc_unlikely(!__sync_bool_compare_and_swap(&readSeq_, readSeq, seq)));
-        } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
-            &readSeq_, &readSeq, seq, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        // } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
+        //     &readSeq_, &readSeq, seq, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        }  while (hmbdc_unlikely(
+            !readSeq_.compare_exchange_weak(readSeq, seq
+                , std::memory_order_relaxed, std::memory_order_relaxed)));
+        
         return end - begin;
     }
 
@@ -276,9 +288,11 @@ public:
                 }
             }
             end = iterator(buffer_, seq);
-        // } while (hmbdc_unlikely(!__sync_bool_compare_and_swap(&readSeq_, readSeq, seq)));
-        } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
-            &readSeq_, &readSeq, seq, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        // } while (hmbdc_unlikely(!__atomic_compare_exchange_n(
+        //     &readSeq_, &readSeq, seq, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED)));
+        }  while (hmbdc_unlikely(
+            !readSeq_.compare_exchange_weak(readSeq, seq
+                , std::memory_order_relaxed, std::memory_order_relaxed)));
         return end - begin;
     }
 
@@ -306,8 +320,9 @@ public:
     void reset() {
         __sync_synchronize();
         for (auto i = 0ul; i < CAPACITY; ++i) {
-            markAsToWriteOver(i);
+            *buffer_.getSeq(i & MASK) = std::numeric_limits<Sequence>::max();
         }
+        // __atomic_store(&readSeq_, &toBeClaimedSeq_, __ATOMIC_RELEASE);
         readSeq_ = toBeClaimedSeq_;
     }
 };

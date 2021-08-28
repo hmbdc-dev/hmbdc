@@ -1,6 +1,6 @@
                                 HMBDC PERFORMANCE SAMPLE (updated with release 12-41)
 
-transport           reliability/scalability          latency performance measured on following hardware with CentOs 7
+transport           reliability/scalability          1-way latency measured on following hardware/OS
 type                notes                            [a] Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz 8 core 16G RAM, CentOs8
                                                      [b] Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz, Ubuntu 18.04
                                                      [c] 1G CISCO SG200 switch (intel 82574L and 82579LM NIC)

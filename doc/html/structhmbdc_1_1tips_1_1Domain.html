@@ -69,6 +69,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="structhmbdc_1_1tips_1_1Domain-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">hmbdc::tips::Domain&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt; Struct Template Reference</div>  </div>
@@ -105,20 +106,25 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af901a275f7c033e93c9602d4f3f72fc0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#af901a275f7c033e93c9602d4f3f72fc0">addPubSubFor</a> (CcNode const &amp;node)</td></tr>
 <tr class="memdesc:af901a275f7c033e93c9602d4f3f72fc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">configure the subscriptions and advertisement for a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#af901a275f7c033e93c9602d4f3f72fc0">More...</a><br /></td></tr>
 <tr class="separator:af901a275f7c033e93c9602d4f3f72fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a40aae8dea02565dadfa9b7b32937f931"><td class="memTemplParams" colspan="2">template&lt;typename Node &gt; </td></tr>
+<tr class="memitem:a40aae8dea02565dadfa9b7b32937f931"><td class="memTemplParams" colspan="2"><a id="a40aae8dea02565dadfa9b7b32937f931"></a>
+template&lt;typename Node &gt; </td></tr>
 <tr class="memitem:a40aae8dea02565dadfa9b7b32937f931"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a40aae8dea02565dadfa9b7b32937f931">start</a> (<a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;nodeIn, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
-<tr class="memdesc:a40aae8dea02565dadfa9b7b32937f931"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too  <a href="#a40aae8dea02565dadfa9b7b32937f931">More...</a><br /></td></tr>
+<tr class="memdesc:a40aae8dea02565dadfa9b7b32937f931"><td class="mdescLeft">&#160;</td><td class="mdescRight">depricated - use <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aaa82de2ba3a6bd32f358b8b210d1f8a4" title="add a Node within this Domain as a thread - handles its subscribing here too ">add()</a> instead and following by <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aa81c6017d3fe05cfeb9b75ff84747049" title="if pumpRunMode is set to be delayed this function start all the pumps ">startPumping()</a> <br /></td></tr>
 <tr class="separator:a40aae8dea02565dadfa9b7b32937f931"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9acacc6e02c0936285974b30e7fe3cce"><td class="memItemLeft" align="right" valign="top"><a id="a9acacc6e02c0936285974b30e7fe3cce"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a9acacc6e02c0936285974b30e7fe3cce">startDelayedPumping</a> ()</td></tr>
-<tr class="memdesc:a9acacc6e02c0936285974b30e7fe3cce"><td class="mdescLeft">&#160;</td><td class="mdescRight">if pumpRunMode is set to be delayed this function start all the pumps <br /></td></tr>
-<tr class="separator:a9acacc6e02c0936285974b30e7fe3cce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7e36503ab0645fc0667c2d870f5ed13"><td class="memTemplParams" colspan="2">template&lt;typename LoadSharingNodePtrIt &gt; </td></tr>
-<tr class="memitem:ab7e36503ab0645fc0667c2d870f5ed13"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#ab7e36503ab0645fc0667c2d870f5ed13">startPool</a> (LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
-<tr class="memdesc:ab7e36503ab0645fc0667c2d870f5ed13"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a group of Nodes as a thread pool within the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that collectively processing messages in a load sharing manner. Each <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is powered by a single OS thread.  <a href="#ab7e36503ab0645fc0667c2d870f5ed13">More...</a><br /></td></tr>
-<tr class="separator:ab7e36503ab0645fc0667c2d870f5ed13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa82de2ba3a6bd32f358b8b210d1f8a4"><td class="memTemplParams" colspan="2">template&lt;typename Node &gt; </td></tr>
+<tr class="memitem:aaa82de2ba3a6bd32f358b8b210d1f8a4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aaa82de2ba3a6bd32f358b8b210d1f8a4">add</a> (<a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;nodeIn, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
+<tr class="memdesc:aaa82de2ba3a6bd32f358b8b210d1f8a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">add a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too  <a href="#aaa82de2ba3a6bd32f358b8b210d1f8a4">More...</a><br /></td></tr>
+<tr class="separator:aaa82de2ba3a6bd32f358b8b210d1f8a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa81c6017d3fe05cfeb9b75ff84747049"><td class="memItemLeft" align="right" valign="top"><a id="aa81c6017d3fe05cfeb9b75ff84747049"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aa81c6017d3fe05cfeb9b75ff84747049">startPumping</a> ()</td></tr>
+<tr class="memdesc:aa81c6017d3fe05cfeb9b75ff84747049"><td class="mdescLeft">&#160;</td><td class="mdescRight">if pumpRunMode is set to be delayed this function start all the pumps <br /></td></tr>
+<tr class="separator:aa81c6017d3fe05cfeb9b75ff84747049"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a050565f6749a83bcd5fab823ef618aa7"><td class="memTemplParams" colspan="2">template&lt;typename LoadSharingNodePtrIt &gt; </td></tr>
+<tr class="memitem:a050565f6749a83bcd5fab823ef618aa7"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a050565f6749a83bcd5fab823ef618aa7">addPool</a> (LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
+<tr class="memdesc:a050565f6749a83bcd5fab823ef618aa7"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a group of Nodes as a thread pool within the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that collectively processing messages in a load sharing manner. Each <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is powered by a single OS thread.  <a href="#a050565f6749a83bcd5fab823ef618aa7">More...</a><br /></td></tr>
+<tr class="separator:a050565f6749a83bcd5fab823ef618aa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2c51ef16c89dabf53860c0bf66546c6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#ad2c51ef16c89dabf53860c0bf66546c6">ipcPartyDetectedCount</a> () const</td></tr>
-<tr class="memdesc:ad2c51ef16c89dabf53860c0bf66546c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">how many IPC parties (processes) have been detected by this context  <a href="#ad2c51ef16c89dabf53860c0bf66546c6">More...</a><br /></td></tr>
+<tr class="memdesc:ad2c51ef16c89dabf53860c0bf66546c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">how many IPC parties (processes) have been detected by this context including the current process  <a href="#ad2c51ef16c89dabf53860c0bf66546c6">More...</a><br /></td></tr>
 <tr class="separator:ad2c51ef16c89dabf53860c0bf66546c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f95382ffa844d9b14ac8cbdae084ae3"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a7f95382ffa844d9b14ac8cbdae084ae3">netSendingPartyDetectedCount</a> () const</td></tr>
 <tr class="memdesc:a7f95382ffa844d9b14ac8cbdae084ae3"><td class="mdescLeft">&#160;</td><td class="mdescRight">how many network parties (processes) are ready to send messages to this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>  <a href="#a7f95382ffa844d9b14ac8cbdae084ae3">More...</a><br /></td></tr>
@@ -157,6 +163,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a30ebab7de6054452c727d3401e120f55">join</a> ()</td></tr>
 <tr class="memdesc:a30ebab7de6054452c727d3401e120f55"><td class="mdescLeft">&#160;</td><td class="mdescRight">wait for all the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> threads to stop <br /></td></tr>
 <tr class="separator:a30ebab7de6054452c727d3401e120f55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a9eb9a7f3ac686a0e28e7b5e7558a6a09"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a9eb9a7f3ac686a0e28e7b5e7558a6a09">getDftConfig</a> ()</td></tr>
+<tr class="memdesc:a9eb9a7f3ac686a0e28e7b5e7558a6a09"><td class="mdescLeft">&#160;</td><td class="mdescRight">get the default configuration  <a href="#a9eb9a7f3ac686a0e28e7b5e7558a6a09">More...</a><br /></td></tr>
+<tr class="separator:a9eb9a7f3ac686a0e28e7b5e7558a6a09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt;<br />
@@ -226,6 +238,151 @@ template&lt;typename ... NodeContextCtorArgs&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aaa82de2ba3a6bd32f358b8b210d1f8a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa82de2ba3a6bd32f358b8b210d1f8a4">&#9670;&nbsp;</a></span>add()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<div class="memtemplate">
+template&lt;typename Node &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a>&amp; <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::add </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;&#160;</td>
+          <td class="paramname"><em>nodeIn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>capacity</em> = <code>1024</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a>&#160;</td>
+          <td class="paramname"><em>maxBlockingTime</em> = <code>time::Duration::seconds(1)</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>cpuAffinity</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>add a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too </p>
+<p>It is a good practice to add all Nodes into the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> then followed by <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aa81c6017d3fe05cfeb9b75ff84747049" title="if pumpRunMode is set to be delayed this function start all the pumps ">startPumping()</a> in one thread (main thread) to ensure there is no race condition between messages arriving and <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> starting </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname"><a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a></td><td>a concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> type that send and/or recv Messages </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>the instance of the node - the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> does not manage the object lifespan </td></tr>
+    <tr><td class="paramname">capacity</td><td>the inbound message buffer depth - if the buffer is full the delivery mechanism is blocked until the buffer becomes available </td></tr>
+    <tr><td class="paramname">maxBlockingTime</td><td>The node wakes up periodically even there is no messages for it so its thread can respond to <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> status change - like stopping </td></tr>
+    <tr><td class="paramname">cpuAffinity</td><td>The CPU mask that he <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> thread assigned to </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a050565f6749a83bcd5fab823ef618aa7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a050565f6749a83bcd5fab823ef618aa7">&#9670;&nbsp;</a></span>addPool()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<div class="memtemplate">
+template&lt;typename LoadSharingNodePtrIt &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a>&amp; <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::addPool </td>
+          <td>(</td>
+          <td class="paramtype">LoadSharingNodePtrIt&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">LoadSharingNodePtrIt&#160;</td>
+          <td class="paramname"><em>end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>capacity</em> = <code>1024</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a>&#160;</td>
+          <td class="paramname"><em>maxBlockingTime</em> = <code>time::Duration::seconds(1)</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>cpuAffinity</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>start a group of Nodes as a thread pool within the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that collectively processing messages in a load sharing manner. Each <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is powered by a single OS thread. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">LoadSharingNodePtrIt</td><td>iterator to a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> pointer</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">begin</td><td>an iterator, **begin should produce a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>&amp; for the first <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> </td></tr>
+    <tr><td class="paramname">end</td><td>an end iterator, [begin, end) is the range for Nodes </td></tr>
+    <tr><td class="paramname">capacity</td><td>the maximum messages this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> can buffer </td></tr>
+    <tr><td class="paramname">cpuAffinity</td><td>cpu affinity mask for this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>'s thread </td></tr>
+    <tr><td class="paramname">maxBlockingTime</td><td>it is recommended to limit the duration a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> blocks due to no messages to handle, so it can respond to things like <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> is stopped, or generate heartbeats if applicable. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="af901a275f7c033e93c9602d4f3f72fc0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af901a275f7c033e93c9602d4f3f72fc0">&#9670;&nbsp;</a></span>addPubSubFor()</h2>
 
@@ -336,6 +493,36 @@ template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
 
 </div>
 </div>
+<a id="a9eb9a7f3ac686a0e28e7b5e7558a6a09"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9eb9a7f3ac686a0e28e7b5e7558a6a09">&#9670;&nbsp;</a></span>getDftConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::getDftConfig </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>get the default configuration </p>
+<dl class="section return"><dt>Returns</dt><dd>app::Config </dd></dl>
+
+</div>
+</div>
 <a id="ad2c51ef16c89dabf53860c0bf66546c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad2c51ef16c89dabf53860c0bf66546c6">&#9670;&nbsp;</a></span>ipcPartyDetectedCount()</h2>
 
@@ -361,8 +548,8 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 </table>
 </div><div class="memdoc">
 
-<p>how many IPC parties (processes) have been detected by this context </p>
-<dl class="section return"><dt>Returns</dt><dd>size_t </dd></dl>
+<p>how many IPC parties (processes) have been detected by this context including the current process </p>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>
@@ -616,7 +803,7 @@ template&lt;app::MessageForwardIterC ForwardIt&gt; </div>
 </div><div class="memdoc">
 
 <p>publish a sequence of message of the same type through this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>, all the Nodes in the TIPS domain could get it if it subscribed to the Message type </p>
-<p>It is recommended to use this method if publishing an array of Messages (particularly to a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> pool - see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#ab7e36503ab0645fc0667c2d870f5ed13" title="start a group of Nodes as a thread pool within the Domain that collectively processing messages in a ...">startPool()</a> above) for performance Messages that are not trivially destructable are not deliverred outside of this process (No IPC and network paths). They are tried to be deliverred amoung the Nodes within local process though</p>
+<p>It is recommended to use this method if publishing an array of Messages (particularly to a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> pool - see startPool() above) for performance Messages that are not trivially destructable are not deliverred outside of this process (No IPC and network paths). They are tried to be deliverred amoung the Nodes within local process though</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Message</td><td></td></tr>
@@ -755,151 +942,6 @@ template&lt;typename... Args&gt; </div>
 <dl class="section return"><dt>Returns</dt><dd>true if pump runs fine </dd>
 <dd>
 false either <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> stopped or exception thrown </dd></dl>
-
-</div>
-</div>
-<a id="a40aae8dea02565dadfa9b7b32937f931"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40aae8dea02565dadfa9b7b32937f931">&#9670;&nbsp;</a></span>start()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
-<div class="memtemplate">
-template&lt;typename Node &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::start </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structhmbdc_1_1tips_1_1Node.html">Node</a> &amp;&#160;</td>
-          <td class="paramname"><em>nodeIn</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>capacity</em> = <code>1024</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a>&#160;</td>
-          <td class="paramname"><em>maxBlockingTime</em> = <code>time::Duration::seconds(1)</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>cpuAffinity</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>start a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname"><a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a></td><td>a concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> type that send and/or recv Messages </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">node</td><td>the instance of the node - the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> does not manage the object lifespan </td></tr>
-    <tr><td class="paramname">capacity</td><td>the inbound message buffer depth - if the buffer is full the delivery mechanism is blocked until the buffer becomes available </td></tr>
-    <tr><td class="paramname">maxBlockingTime</td><td>The node wakes up periodically even there is no messages for it so its thread can respond to <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> status change - like stopping </td></tr>
-    <tr><td class="paramname">cpuAffinity</td><td>The CPU mask that he <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> thread assigned to </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ab7e36503ab0645fc0667c2d870f5ed13"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7e36503ab0645fc0667c2d870f5ed13">&#9670;&nbsp;</a></span>startPool()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
-<div class="memtemplate">
-template&lt;typename LoadSharingNodePtrIt &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::startPool </td>
-          <td>(</td>
-          <td class="paramtype">LoadSharingNodePtrIt&#160;</td>
-          <td class="paramname"><em>begin</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">LoadSharingNodePtrIt&#160;</td>
-          <td class="paramname"><em>end</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>capacity</em> = <code>1024</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a>&#160;</td>
-          <td class="paramname"><em>maxBlockingTime</em> = <code>time::Duration::seconds(1)</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>cpuAffinity</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>start a group of Nodes as a thread pool within the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that collectively processing messages in a load sharing manner. Each <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is powered by a single OS thread. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">LoadSharingNodePtrIt</td><td>iterator to a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> pointer</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">begin</td><td>an iterator, **begin should produce a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>&amp; for the first <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> </td></tr>
-    <tr><td class="paramname">end</td><td>an end iterator, [begin, end) is the range for Nodes </td></tr>
-    <tr><td class="paramname">capacity</td><td>the maximum messages this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> can buffer </td></tr>
-    <tr><td class="paramname">cpuAffinity</td><td>cpu affinity mask for this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>'s thread </td></tr>
-    <tr><td class="paramname">maxBlockingTime</td><td>it is recommended to limit the duration a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> blocks due to no messages to handle, so it can respond to things like <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> is stopped, or generate heartbeats if applicable. </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>

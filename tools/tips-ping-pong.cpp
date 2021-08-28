@@ -38,6 +38,8 @@ uint32_t msgSize;
 uint32_t msgPerSec;
 bool use0cpy;
 uint32_t runTime;
+bool show;
+std::vector<std::string> additionalCfg;
 }
 
 struct Ping
@@ -286,11 +288,30 @@ private:
     size_t skipped_ = skipFirst;
 };
 
+static
+void printAdditionalConfig(Config const& config) {
+    auto content = config.content();
+    namespace po = boost::program_options;
+    po::options_description desc("Allowed --additional configs");
+    string noUse;
+    for (auto it = content.begin(); it != content.end();) {
+        auto paramIt = it;
+        auto commentIt = ++it; 
+        desc.add_options()(paramIt->first.c_str()
+            , po::value<string>(&noUse)->default_value(paramIt->second), commentIt->second.c_str());
+        it++;
+    }
+    cout << desc << "\n";
+}
+
 template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingInDomain(Config const& config, uint16_t pingCpu) {
+    using MyDomain = Domain<std::tuple<Pong>, ipc_property<>, net_property<NetProt>>;
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0; }
     SingletonGuardian<NetProt> g;
-    Domain<std::tuple<Pong>, ipc_property<>, net_property<NetProt>> domain{config};
+    MyDomain domain{config};
+
     Pinger<Ping, Pong> pinger;
     hmbdc::os::HandleSignals::onTermIntDo(
         [&domain]() {
@@ -299,11 +320,12 @@ runPingInDomain(Config const& config, uint16_t pingCpu) {
 
     Ping::init(domain);
 
-    domain.start(pinger
+    domain.add(pinger
         , 1024 * 128
         , hmbdc::time::Duration::milliseconds(0)
         , 1ul << pingCpu);
 
+    domain.startPumping();
     if (runTime) {
         sleep(runTime);
         domain.stop();
@@ -317,9 +339,12 @@ runPingInDomain(Config const& config, uint16_t pingCpu) {
 template <typename NetProt>
 int 
 runPongInDomain(Config const& config, uint16_t pongCpu) {
+    using MyDomain =
+        Domain<std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>;
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
     SingletonGuardian<NetProt> g;
-    Domain<std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>
-        domain{config};
+    MyDomain domain{config};
+    
     Ponger ponger;
     hmbdc::os::HandleSignals::onTermIntDo(
         [&domain]() {
@@ -330,10 +355,12 @@ runPongInDomain(Config const& config, uint16_t pongCpu) {
         domain.stop();
     }
 
-    domain.start(ponger
+    domain.add(ponger
         , 1024 * 128
         , hmbdc::time::Duration::milliseconds(0)
         , 1ul << pongCpu);
+
+    domain.startPumping();
     domain.join();
     ponger.finalReport();
     return 0;
@@ -342,9 +369,11 @@ runPongInDomain(Config const& config, uint16_t pongCpu) {
 template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingInSingleNodeDomain(Config const& config) {
+    using MyDomain = SingleNodeDomain<Pinger<Ping, Pong>
+        , std::tuple<Pong>, ipc_property<>, net_property<NetProt>>;
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
     SingletonGuardian<NetProt> g;
-    SingleNodeDomain<Pinger<Ping, Pong>
-        , std::tuple<Pong>, ipc_property<>, net_property<NetProt>> domain{config};
+    MyDomain domain{config};
     Pinger<Ping, Pong> pinger;
     hmbdc::os::HandleSignals::onTermIntDo(
         [&domain]() {
@@ -352,8 +381,7 @@ runPingInSingleNodeDomain(Config const& config) {
     });
 
     Ping::init(domain);
-    domain.start(pinger);
-
+    domain.startPumpingFor(pinger);
     if (runTime) {
         sleep(runTime);
         domain.stop();
@@ -367,16 +395,17 @@ runPingInSingleNodeDomain(Config const& config) {
 template <typename NetProt>
 int 
 runPongInSingleNodeDomain(Config const& config) {
+    using MyDomain = SingleNodeDomain<Ponger
+        , std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>;
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
     SingletonGuardian<NetProt> g;
-    SingleNodeDomain<Ponger
-        , std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>
-        domain{config};
+    MyDomain domain{config};
     Ponger ponger;
     hmbdc::os::HandleSignals::onTermIntDo(
         [&domain]() {
         domain.stop();
     });
-    domain.start(ponger);
+    domain.startPumpingFor(ponger);
 
     if (runTime) {
         sleep(runTime);
@@ -390,11 +419,13 @@ runPongInSingleNodeDomain(Config const& config) {
 template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingPong(Config const& config, uint16_t pingCpu, uint16_t pongCpu) {
+    using MyDomain = Domain<typename aggregate_recv_msgs<Pinger<Ping, Pong>, Ponger>::type
+        , ipc_property<>, net_property<NetProt>>;
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
     SingletonGuardian<NetProt> g;
     Pinger<Ping, Pong> pinger;
     Ponger ponger;
-    Domain<typename aggregate_recv_msgs<decltype(pinger), decltype(ponger)>::type
-        , ipc_property<>, net_property<NetProt>> domain{config};
+    MyDomain domain{config};
 
     hmbdc::os::HandleSignals::onTermIntDo(
         [&domain]() {
@@ -402,15 +433,16 @@ runPingPong(Config const& config, uint16_t pingCpu, uint16_t pongCpu) {
     });
 
     Ping::init(domain);
-    domain.start(ponger
+    domain.add(ponger
         , 1024 * 128
         , hmbdc::time::Duration::milliseconds(0)
         , 1ul << pingCpu);
-    domain.start(pinger
+    domain.add(pinger
         , 1024 * 128
         , hmbdc::time::Duration::seconds(1)
         , 1ul << pongCpu);
-        
+    
+    domain.startPumping();    
     if (runTime) {
         sleep(runTime);
         domain.stop();
@@ -443,13 +475,15 @@ main(int argc, char** argv) {
     ("role,r", po::value<string>(&role)->default_value("pong"), "ping (sender process), pong (echoer process) or both (sender and echoer in the same process")
     ("use0cpy", po::value<bool>(&use0cpy)->default_value(true), "use 0cpy IPC for intra-host communications when msgSize > 1000B")
     ("msgSize", po::value<uint32_t>(&msgSize)->default_value(16), "msg size in bytes, 16B-100MB - the limit is specific to the test, hmbdc does not put limits")
-    ("msgPerSec", po::value<uint32_t>(&msgPerSec)->default_value(500), "msg per second, the test uses default config - if you see bad_alloc exception, reduce the rate")
+    ("msgPerSec", po::value<uint32_t>(&msgPerSec)->default_value(500), "msg per second, the test uses default config - if you see poor performance, reduce the rate or increase the default config")
     ("netIface,I", po::value<string>(&netIface)->default_value("127.0.0.1"), "interface to use, for example: 192.168.0.101 or 192.168.1.0/24.")
     ("netIface2", po::value<string>(&netIface2)->default_value(""), "if netprot uses a second (backup) interface (rmcast, rnetmap) - specify here, otherwise it uses the netIface.")
     ("cpuIndex", po::value(&cpuIndex)->multitoken()->default_value({0}, "0"), "specify the cpu index numbers to use - net results can benefit from 2 CPUs (pump, ping/pong), expect exact 3 CPUs when role=both (pump, pinger, ponger)")
     ("skipFirst", po::value<size_t>(&skipFirst)->default_value(1u), "skipp the first N results (buffering & warming up stage) when collecting latency stats")
     ("runTime", po::value<uint32_t>(&runTime)->default_value(0), "how many seconds does the test last before exit. By default it runs forever")
     ("pumpMaxBlockingTimeSec", po::value<double>(&pumpMaxBlockingTimeSec)->default_value(0), "for low latency results use 0 - for low CPU utilization make it bigger - like 0.00001 sec")
+    ("show", "display additional configs")
+    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, ""), "specify the additional configs: '--additional xxx=123 yyy=abcd'. see --show option")
     ("logging", po::value<bool>(&logging)->default_value(false), "turn on hmbdc internal logging - to stdout")
 ;
 
@@ -463,9 +497,9 @@ main(int argc, char** argv) {
         cout << desc << "\n";
         return 0;
     }
+    show = vm.count("show");
+
     Config config;
-
-
     config.put("ipcMaxMessageSizeRuntime", sizeof(Ping));
     config.put("netMaxMessageSizeRuntime", sizeof(Ping));
     config.put("pumpMaxBlockingTimeSec", pumpMaxBlockingTimeSec);
@@ -473,6 +507,16 @@ main(int argc, char** argv) {
     config.put("ipcMessageQueueSizePower2Num", 21);
     if (netIface2.size()) config.put("tcpIfaceAddr", netIface2);  
     msgSize = max<uint32_t>(msgSize, 16);
+
+    for (auto& param : additionalCfg) {
+        char name[128];
+        char val[128];
+        if (sscanf(param.c_str(), "%s=%s", name, val) != 2) {
+            cerr << "format error: " << param << endl;
+            return -4;
+        }
+        config.put(name, val);
+    }
 
     auto run = [&](auto* netProt) {
         std::optional<SingletonGuardian<SyncLogger>> logGuard;

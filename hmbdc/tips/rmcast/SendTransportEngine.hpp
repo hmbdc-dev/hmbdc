@@ -18,6 +18,7 @@
 #include <tuple>
 #include <mutex>
 #include <type_traits>
+#include <atomic>
 
 namespace hmbdc { namespace tips { namespace rmcast {
 
@@ -199,7 +200,7 @@ private:
 
     hmbdc::time::Rater rater_;
     McSendTransport mcSendTransport_;
-    size_t minRecvToStart_;
+    std::atomic<size_t> minRecvToStart_;
     hmbdc::time::ReoccuringTimer typeTagAdTimer_;
     HMBDC_SEQ_TYPE lastBackupSeq_;
     hmbdc::time::ReoccuringTimer flushTimer_;

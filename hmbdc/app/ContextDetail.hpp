@@ -142,7 +142,7 @@ struct tm_runner<true> {
 };
 
 template <typename LFB, typename CcClient>
-bool runOnceImpl(uint16_t hmbdcNumber, bool& HMBDC_RESTRICT stopped
+bool runOnceImpl(uint16_t hmbdcNumber, std::atomic<bool> const& stopped
     , LFB& HMBDC_RESTRICT lfb, CcClient& HMBDC_RESTRICT c) {
     typename LFB::iterator begin, end;
     try {
@@ -179,7 +179,7 @@ bool runOnceImpl(uint16_t hmbdcNumber, bool& HMBDC_RESTRICT stopped
 } 
 
 template <typename CcClient>
-bool runOnceImpl(uint16_t threadSerialNumber, bool& HMBDC_RESTRICT stopped
+bool runOnceImpl(uint16_t threadSerialNumber, std::atomic<bool> const& stopped
     , hmbdc::pattern::MonoLockFreeBuffer& HMBDC_RESTRICT lfb, CcClient& HMBDC_RESTRICT c) {
     hmbdc::pattern::MonoLockFreeBuffer::iterator begin, end;
     try {

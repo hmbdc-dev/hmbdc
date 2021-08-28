@@ -40,9 +40,9 @@ struct Sender
     , std::tuple<Hello> // will publish Hello
 > { 
     void invokedCb(size_t) {    // this is called once whenever this Sender
-                                // thread is unblockeb - by new message arriving
+                                // thread is unblocked - by new message arriving
                                 // or max blocking timeouts 
-                                // - see domain.start() call below
+                                // - see domain.add() call below
         cout << "sending a Hello" << endl;
         publish(Hello{});
     }
@@ -81,11 +81,12 @@ int main(int argc, char** argv) {
             , net_property<tcpcast::Protocol>>; /// use tcpcast as network transport
         auto domain = MyDomain{config};
         Sender sender;
-        domain.start(sender
+        domain.add(sender
             , 0     /// no need to have incoming buffer since only publish
             , hmbdc::time::Duration::seconds(1));   /// max blocks for 1 second
                                                     /// sender.invokdeCb() is called
                                                     /// when the 1 second expires
+        domain.startPumping();                      /// start process level message IO
         sleep(10); //let the sender thread run for 10 seconds - ~10 Hellos sent out
         domain.stop();      //wrap up and exit
         domain.join();
@@ -95,7 +96,7 @@ int main(int argc, char** argv) {
             , net_property<tcpcast::Protocol>>;     /// match sender side
         auto domain = MyDomain{config};
         Receiver recv;
-        domain.start(recv);                         /// recv Node started
+        domain.add(recv).startPumping();            /// recv Node and IO started
         /// handle ctrl-c
         hmbdc::os::HandleSignals::onTermIntDo([&](){domain.stop();});
         domain.join();

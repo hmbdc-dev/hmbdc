@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <cstddef>
 #include <functional>
+#include <atomic>
 
 #include <stdint.h>
 #include <stddef.h>
@@ -56,8 +57,9 @@ struct chunk_base_ptr {
         return (((char* const)this) + space_) + (index << valueTypeSizePower2Num_) + sizeof(Seq);
     }
 
-    Seq* getSeq(size_t index) const HMBDC_RESTRICT  {
-        return reinterpret_cast<Seq*>((((char* const)this) + space_) + (index << valueTypeSizePower2Num_));
+    std::atomic<Seq>* getSeq(size_t index) const HMBDC_RESTRICT  {
+        static_assert(sizeof(std::atomic<Seq>) == sizeof(Seq));
+        return reinterpret_cast<std::atomic<Seq>*>((((char* const)this) + space_) + (index << valueTypeSizePower2Num_));
     }
 
     friend 

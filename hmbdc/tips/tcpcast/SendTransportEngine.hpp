@@ -17,6 +17,7 @@
 #include <regex>
 #include <type_traits>
 #include <mutex>
+#include <atomic>
 
 namespace hmbdc { namespace tips { namespace tcpcast {
 
@@ -129,7 +130,7 @@ struct SendTransport
 
 protected:
     size_t maxMessageSize_;
-    size_t minRecvToStart_;
+    std::atomic<size_t> minRecvToStart_;
     MonoLockFreeBuffer buffer_;
 
     std::unique_ptr<udpcast::SendTransport> mcSendTransport_;

@@ -139,6 +139,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac9ab84ba422763ec3232503f5a1adbd0"><td class="memItemLeft" align="right" valign="top">Buffer &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#ac9ab84ba422763ec3232503f5a1adbd0">buffer</a> ()</td></tr>
 <tr class="memdesc:ac9ab84ba422763ec3232503f5a1adbd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">accessor - mostly used internally  <a href="#ac9ab84ba422763ec3232503f5a1adbd0">More...</a><br /></td></tr>
 <tr class="separator:ac9ab84ba422763ec3232503f5a1adbd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a423d0afffe8e8fa230852c2c4af078ba"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#a423d0afffe8e8fa230852c2c4af078ba">dispatchingStartedCount</a> () const</td></tr>
+<tr class="memdesc:a423d0afffe8e8fa230852c2c4af078ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">return how many IPC parties (processes) is managed by this <a class="el" href="structhmbdc_1_1app_1_1Context.html" title="A Context is like a media object that facilitates the communications for the Clients that it is holdi...">Context</a> - including itself  <a href="#a423d0afffe8e8fa230852c2c4af078ba">More...</a><br /></td></tr>
+<tr class="separator:a423d0afffe8e8fa230852c2c4af078ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;size_t MaxMessageSize, typename... ContextProperties&gt;<br />
@@ -263,6 +266,36 @@ template&lt;typename IteratorAdaptor &gt; </div>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a423d0afffe8e8fa230852c2c4af078ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a423d0afffe8e8fa230852c2c4af078ba">&#9670;&nbsp;</a></span>dispatchingStartedCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;size_t MaxMessageSize, typename... ContextProperties&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t <a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html">hmbdc::app::context_detail::ThreadCommBase</a>&lt; MaxMessageSize, ContextProperties &gt;::dispatchingStartedCount </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>return how many IPC parties (processes) is managed by this <a class="el" href="structhmbdc_1_1app_1_1Context.html" title="A Context is like a media object that facilitates the communications for the Clients that it is holdi...">Context</a> - including itself </p>
+<dl class="section return"><dt>Returns</dt><dd>size_t (&gt;= 1) </dd></dl>
 
 </div>
 </div>

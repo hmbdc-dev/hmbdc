@@ -47,6 +47,7 @@ struct NoProtocol
     using SendTransportEngine = void*;
     template <typename Buffer, typename AttachmentAllocator>
     using RecvTransportEngine = void*;
+    static constexpr auto dftConfig() { return "{}"; }
 
     /**
      * @brief construct the host-wide unique TIPS domain name
@@ -1002,6 +1003,18 @@ public:
     }
 
     /**
+     * @brief get the default configuration
+     * 
+     * @return app::Config
+     */
+    static app::Config getDftConfig() {
+        auto res = app::Config{DefaultUserConfig};
+        app::Config netCfg{NetProperty::protocol::dftConfig()};
+        res.setAdditionalFallbackConfig(netCfg);
+        return res;
+    }
+
+    /**
      * @brief manually drive the domain's pumps
      * 
      * @tparam Args the arguments used for pump
@@ -1047,8 +1060,25 @@ public:
     }
 
     /**
-     * @brief start a Node within this Domain as a thread - handles its subscribing here too
+     * @brief depricated - use add() instead and following by startPumping()
      * 
+     */
+    template <typename Node>
+    void start(Node& nodeIn
+        , size_t capacity = 1024
+        , time::Duration maxBlockingTime = time::Duration::seconds(1)
+        , uint64_t cpuAffinity = 0
+    ) {
+        static_assert(!sizeof(Node)
+            , R"(please replace start() with add() to start a Node in the Domain.
+                When all Nodes are added into the Domain, call startPumping())");
+    }
+
+    /**
+     * @brief add a Node within this Domain as a thread - handles its subscribing here too
+     * @details It is a good practice to add all Nodes into the Domain then followed by startPumping()
+     * in one thread (main thread) to ensure there is no race condition between messages
+     * arriving and Node starting
      * @tparam Node a concrete Node type that send and/or recv Messages
      * @param node the instance of the node - the Domain does not manage the object lifespan
      * @param capacity the inbound message buffer depth - if the buffer is full the delivery mechanism 
@@ -1058,7 +1088,7 @@ public:
      * @param cpuAffinity The CPU mask that he Node thread assigned to
      */
     template <typename Node>
-    void start(Node& nodeIn
+    Domain& add(Node& nodeIn
         , size_t capacity = 1024
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , uint64_t cpuAffinity = 0
@@ -1079,14 +1109,17 @@ public:
                 return node.ifDeliver(std::forward<decltype(args)>(args)...);
             }
         );
+        return *this;
     }
 
     /**
      * @brief if pumpRunMode is set to be delayed
      * this function start all the pumps
      */
-    void startDelayedPumping() {
+    void startPumping() {
         auto pumpRunMode = config_.getExt<std::string>("pumpRunMode");
+        static_assert(run_pump_in_ipc_portal || run_pump_in_thread_ctx
+            , "no pump for this Domain type, do not call this");
         if (pumpRunMode == "delayed") {
             if constexpr (run_pump_in_ipc_portal) {
                 for (auto& pump : pumps_) {
@@ -1099,8 +1132,6 @@ public:
                         , config_.getHex<uint64_t>("pumpCpuAffinityHex")
                         , config_.getHex<time::Duration>("pumpMaxBlockingTimeSec"));
                 }
-            } else {
-                HMBDC_THROW(std::runtime_error, "pumpRunMode=" << pumpRunMode);
             }
         }
     }
@@ -1120,11 +1151,11 @@ public:
      * heartbeats if applicable.
      */
     template <typename LoadSharingNodePtrIt>
-    void startPool(LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end
+    Domain& addPool(LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end
         , size_t capacity = 1024
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , uint64_t cpuAffinity = 0) {
-        if (begin == end) return;
+        if (begin == end) return *this;
         using Node = typename std::decay<decltype(**LoadSharingNodePtrIt())>::type;
         auto maxItemSize = (*begin)->maxMessageSize();
         
@@ -1150,13 +1181,14 @@ public:
             , [&node = **proxies.begin()](auto && ...args) {
                 return node.ifDeliver(std::forward<decltype(args)>(args)...);
         });
+        return *this;
     }
 
 
     /**
      * @brief how many IPC parties (processes) have been detected by this context
-     * 
-     * @return size_t 
+     * including the current process
+     * @return
      */
     size_t ipcPartyDetectedCount() const {
         if constexpr (run_pump_in_ipc_portal) {

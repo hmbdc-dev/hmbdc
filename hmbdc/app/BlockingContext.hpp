@@ -11,6 +11,7 @@
 #include "hmbdc/Exception.hpp"
 
 #include <type_traits>
+#include <atomic>
 #include <tuple>
 #include <vector>
 #include <thread>
@@ -75,7 +76,7 @@ waitDuration(T const&, time::Duration maxBlockingTime) {
 }
 
 template <typename CcClient>
-bool runOnceImpl(bool& HMBDC_RESTRICT stopped
+bool runOnceImpl(std::atomic<bool>& stopped
     , pattern::BlockingBuffer* HMBDC_RESTRICT buf
     , CcClient& HMBDC_RESTRICT c, time::Duration maxBlockingTime) {
     pattern::BlockingBuffer::iterator begin, end;
@@ -119,7 +120,7 @@ bool runOnceImpl(bool& HMBDC_RESTRICT stopped
 
 
 template <typename CcClient>
-bool runOnceLoadSharingImpl(bool& HMBDC_RESTRICT stopped
+bool runOnceLoadSharingImpl(std::atomic<bool>& stopped
     , pattern::BlockingBuffer* HMBDC_RESTRICT buf
     , CcClient& HMBDC_RESTRICT c, time::Duration maxBlockingTime) {
     pattern::BlockingBuffer::iterator begin, end;
@@ -279,6 +280,9 @@ public:
         auto thrd = kickOffClientThread(blocking_context_detail::runOnceImpl<Client>
             , c, t.use_count() == 1?nullptr:&t->buffer, cpuAffinity, maxBlockingTime);
         threads_.push_back(move(thrd));
+        while (dispStartCount_ != threads_.size()) {
+            std::this_thread::yield();
+        }
     }
 
     private: using Transport = blocking_context_detail::Transport;
@@ -324,7 +328,7 @@ public:
      */
     template <typename CcClient>
     bool runOnce(ClientRegisterHandle& t, CcClient& c, time::Duration maxBlockingTime) {
-        bool stopped = false;
+        std::atomic<bool> stopped = false;
         return runOnceImpl(stopped, &t->buffer, c, maxBlockingTime);
     }
 
@@ -664,7 +668,7 @@ private:
     MsgConduits msgConduits_;
     using Threads = std::vector<std::thread>;
     Threads threads_;
-    bool stopped_;
+    std::atomic<bool> stopped_;
 
     template <typename MsgConduits, typename DeliverPred, typename Tuple>
     struct setupConduit {
@@ -745,8 +749,9 @@ private:
 
                 os::configureCurrentThread(name.c_str(), cpuAffinityMask
                     , schedule, priority);
-                __atomic_add_fetch(&dispStartCount_, 1, __ATOMIC_RELEASE);
-                c.messageDispatchingStartedCb(&dispStartCount_);
+                dispStartCount_++;
+                static_assert(sizeof(dispStartCount_) == sizeof(size_t));
+                c.messageDispatchingStartedCb((size_t const*)&dispStartCount_);
             } catch (std::exception const& e) {
                 c.stopped(e);
                 return;
@@ -894,7 +899,7 @@ private:
     }
 
     private:
-    size_t dispStartCount_ = 0;
+    std::atomic<size_t> dispStartCount_ = 0;
     
 
 };

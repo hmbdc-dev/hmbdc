@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
         for (auto i = 0; i < 3; ++i) {                                                  // <======
             admins.emplace_back(new Admin);                         // <======
         }                                                                               // <======
-        domain.startPool(admins.data(), admins.data() + 3); // start pool of 3 threads  // <======
+        domain.addPool(admins.data(), admins.data() + 3).startPumping(); // start pool of 3 threads  // <======
 
         //we can read the admin's input and send messages out now
         string line;
@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
             cout << "You own the IPC transport now!" << endl;
         }
         Chatter chatter(myId, chatGroup);
-        domain.start(chatter);
+        domain.add(chatter).startPumping();
 
         //we can read the user's input and send messages out now
         string line;
