@@ -11,7 +11,7 @@ also be used as libraries to collaborate with other
 frameworks.
 
 Please refer to: 
-http://www.hummingbirdcode.net
+https://www.hummingbirdcode.net
 for reliability, scalability, performance and design 
 information.
 
