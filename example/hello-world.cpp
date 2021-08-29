@@ -17,7 +17,7 @@
 // somtimes you need to reset shared memory by "rm /dev/shm/*" 
 // - see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
 //
-#include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
+#include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for inter-host communication
 #include "hmbdc/tips/Tips.hpp"
 #include "hmbdc/os/Signals.hpp"
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
     if (isSender) { //running as sender
         using MyDomain = Domain<std::tuple<>    /// no subscribing
-            , ipc_property<>                    /// default IPC params
+            , ipc_property<>                    /// default IPC params (using shared mem)
             , net_property<tcpcast::Protocol>>; /// use tcpcast as network transport
         auto domain = MyDomain{config};
         Sender sender;
