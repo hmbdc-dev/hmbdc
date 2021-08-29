@@ -1005,11 +1005,13 @@ public:
     /**
      * @brief get the default configuration
      * 
+     * @param section nullptr, "tx", "rx"
+     * network configuration have fallback, tx and rx sections
      * @return app::Config
      */
-    static app::Config getDftConfig() {
+    static app::Config getDftConfig(char const* section = "") {
         auto res = app::Config{DefaultUserConfig};
-        app::Config netCfg{NetProperty::protocol::dftConfig()};
+        app::Config netCfg{NetProperty::protocol::dftConfig(), section};
         res.setAdditionalFallbackConfig(netCfg);
         return res;
     }

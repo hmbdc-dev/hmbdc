@@ -32,14 +32,15 @@ bool logging;
 string netprot;
 string role;
 string netIface, netIface2;
-std::vector<uint16_t> cpuIndex;
+vector<uint16_t> cpuIndex;
 size_t skipFirst;
 uint32_t msgSize;
 uint32_t msgPerSec;
 bool use0cpy;
 uint32_t runTime;
 bool show;
-std::vector<std::string> additionalCfg;
+string showSection;
+vector<string> additionalCfg;
 }
 
 struct Ping
@@ -292,7 +293,7 @@ static
 void printAdditionalConfig(Config const& config) {
     auto content = config.content();
     namespace po = boost::program_options;
-    po::options_description desc("Allowed --additional configs");
+    po::options_description desc("Default configs: " + showSection);
     string noUse;
     for (auto it = content.begin(); it != content.end();) {
         auto paramIt = it;
@@ -308,7 +309,7 @@ template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingInDomain(Config const& config, uint16_t pingCpu) {
     using MyDomain = Domain<std::tuple<Pong>, ipc_property<>, net_property<NetProt>>;
-    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0; }
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0; }
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
 
@@ -341,7 +342,7 @@ int
 runPongInDomain(Config const& config, uint16_t pongCpu) {
     using MyDomain =
         Domain<std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>;
-    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
     
@@ -371,7 +372,7 @@ int
 runPingInSingleNodeDomain(Config const& config) {
     using MyDomain = SingleNodeDomain<Pinger<Ping, Pong>
         , std::tuple<Pong>, ipc_property<>, net_property<NetProt>>;
-    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
     Pinger<Ping, Pong> pinger;
@@ -397,7 +398,7 @@ int
 runPongInSingleNodeDomain(Config const& config) {
     using MyDomain = SingleNodeDomain<Ponger
         , std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>;
-    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
     Ponger ponger;
@@ -421,7 +422,7 @@ int
 runPingPong(Config const& config, uint16_t pingCpu, uint16_t pongCpu) {
     using MyDomain = Domain<typename aggregate_recv_msgs<Pinger<Ping, Pong>, Ponger>::type
         , ipc_property<>, net_property<NetProt>>;
-    if (show) { printAdditionalConfig(MyDomain::getDftConfig()); return 0;}
+    if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     Pinger<Ping, Pong> pinger;
     Ponger ponger;
@@ -482,8 +483,8 @@ main(int argc, char** argv) {
     ("skipFirst", po::value<size_t>(&skipFirst)->default_value(1u), "skipp the first N results (buffering & warming up stage) when collecting latency stats")
     ("runTime", po::value<uint32_t>(&runTime)->default_value(0), "how many seconds does the test last before exit. By default it runs forever")
     ("pumpMaxBlockingTimeSec", po::value<double>(&pumpMaxBlockingTimeSec)->default_value(0), "for low latency results use 0 - for low CPU utilization make it bigger - like 0.00001 sec")
-    ("show", "display additional configs")
-    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, ""), "specify the additional configs: '--additional xxx=123 yyy=abcd'. see --show option")
+    ("show", po::value<string>(&showSection)->default_value("")->implicit_value(""), "empty, tx or rx, display additional configs, network config has tx and rx sections")
+    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, ""), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. see --show option")
     ("logging", po::value<bool>(&logging)->default_value(false), "turn on hmbdc internal logging - to stdout")
 ;
 
@@ -548,7 +549,7 @@ main(int argc, char** argv) {
             }
         } else if (role == "both") {
             if (cpuIndex.size() != 3) {
-                cerr << "3 cpuIndex, for pump, ping and pong expected" << "\n";
+                cerr << "3 cpuIndex, for pump, ping and pong expected, see --cpuIndex" << "\n";
                 return -1;
              }
             if (msgSize < Ping::max_payload) {

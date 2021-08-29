@@ -1,5 +1,6 @@
-* Sat Aug 28 2021 - 14.1
+* Sat Aug 28 2021 - 14.2
 - Made Nodes and Domain pump starting explictly synced by user
+- tool improvement
 
 * Sun Aug 08 2021 - 12.41
 - added publish directly in Node 
@@ -281,8 +282,9 @@
 * Fri Jul 22 2016 - 1.7
 - Initial release
 
-* Sat Aug 28 2021 - 14.1
+* Sat Aug 28 2021 - 14.2
 - Made Nodes and Domain pump starting explictly synced by user
+- tool improvement
 
 * Sun Aug 08 2021 - 12.41
 - added publish directly in Node 
