@@ -498,7 +498,7 @@ main(int argc, char** argv) {
         cout << desc << "\n";
         return 0;
     }
-    show = vm.count("show");
+    show = showSection.size();
 
     Config config;
     config.put("ipcMaxMessageSizeRuntime", sizeof(Ping));
