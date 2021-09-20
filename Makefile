@@ -1,3 +1,6 @@
+#
+# the Makefile is for reference purpose, if you need netmap functions in the tools remove the HMBDC_NO_NETMAP definition
+#
 exes := $(basename $(wildcard example/*.cpp)) $(basename $(wildcard tools/*.cpp))
 .PHONY : all
 all : $(exes)

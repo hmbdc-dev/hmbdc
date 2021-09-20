@@ -59,7 +59,7 @@ commands and notes when obtaining the above performance data
 
 3.1)
 [b] ./tips-ping-pong -r pong --cpuIndex 4 -I 192.168.2.0/24
-[a] ./tips-ping-pong -r pong --cpuIndex 4 -I 192.168.2.0/24
+[a] for cfg in "100 500" "1000 500" "10000 500" "100000 500" "1000000 50" "10000000 10"; do a=($cfg); ./tips-ping-pong -r ping --cpuIndex 2 --msgPerSec ${a[1]} --netprot tcpcast --msgSize=${a[0]} --runTime 10 -I 192.168.2.0/24; done
 
 4.1)
 [b] ./tips-ping-pong -r pong --cpuIndex 4 -I 192.168.2.0/24 --netprot=rmcast 
