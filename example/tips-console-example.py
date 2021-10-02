@@ -25,16 +25,16 @@ console.subtags([1001, 2001])
 time.sleep(1)
 console.pubstr(1001, "hello world")
 msgs = console.incoming_msgs()
-line = next(msgs)
-assert line["tag"] == 1001, line
-assert line["msgstr"] == "hello world", line
+message = next(msgs)
+assert message["tag"] == 1001, message
+assert message["msgstr"] == "hello world", message
 
 console.ohex()
 console.pubatt(2001, 4, bytearray(b'\x01\x02\x03\x04\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'))
-line = next(msgs)
-assert line["tag"] == 2001, line
-assert line["msgatt"][:4] == bytearray(b'\x01\x02\x03\x04'), line
-assert line["att"][:10] == bytearray(b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'), line
+message = next(msgs)
+assert message["tag"] == 2001, message
+assert message["msgatt"][:4] == bytearray(b'\x01\x02\x03\x04'), message
+assert message["att"][:10] == bytearray(b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'), message
 console.record("/tmp/1.bag", 1.5)
 console.pubatt(2001, 4, bytearray(b'\x01\x02\x03\x04\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'))
 time.sleep(2)
