@@ -1,5 +1,5 @@
-//this is an additon to chat.cpp exampel to introduce:
-//serialization, thread pool and timer usage of HMBDC TIPS
+//this is an additon to chat.cpp example to introduce:
+//serialization, thread pool, timer and logger usage of HMBDC TIPS
 //
 //the additional assumption here is that a single Admin (thread) cannot monitor all the conversations
 //we need a pool of Admins to collectively monitor all the Chatters
@@ -22,6 +22,8 @@
 #include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
 #include "hmbdc/tips/Tips.hpp"
 #include "hmbdc/time/Timers.hpp"                                                        // <=====
+
+#include "hmbdc/app/Logger.hpp"                                                         // <=====
 
 
 #include <iostream>
@@ -108,10 +110,10 @@ struct ChatMessage
 /// Admin node that runs in a thread and gets message callbacks
 struct Admin 
 : Node<Admin, std::tuple<ChatMessage>, std::tuple<Announcement>>
-, TimerManager {                                                                        //<=======
+, TimerManager {                                                                        // <======
     Admin()
     : reportTimer_(Duration::seconds(10), [this](TimerManager&, SysTime const&) {       // <======
-        cout << "chatMessageCount = " << chatMessageCount_ << std::endl;
+        HMBDC_LOG_n("chatMessageCount = ", chatMessageCount_); // to avoid message interleaving
     }) { //start the timer
         schedule(SysTime::now(), reportTimer_);                                         // <======
     }
@@ -119,7 +121,7 @@ struct Admin
     /// message callback - won't compile if missing
     void handleMessageCb(ChatMessage const& m) {
         chatMessageCount_++;                                                            
-        cout << m.id << ": " << m.attachmentSp.get() << endl;
+        HMBDC_LOG_N(m.id, ": ", m.attachmentSp.get());
     }
 
     void annouce(std::string&& text) {
@@ -196,6 +198,10 @@ int main(int argc, char** argv) {
     >;  
 
     if (myId == "admin") { //as admin
+        /// cout used by 3 Admin threads mixes output
+        /// use the a simple SynLogger to avoid it - see AsynLogger.hpp for high performance logger
+        SingletonGuardian<SyncLogger> logGuard(std::cout);     /// logger RAII           // <=====
+        SyncLogger::instance().setMinLogLevel(SyncLogger::L_NOTICE);    /// hide debug messages
         using SubMessages = typename Admin::RecvMessageTuple;
         using NetProp = net_property<tcpcast::Protocol
             , 1400
