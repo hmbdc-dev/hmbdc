@@ -98,6 +98,21 @@ struct TypeTagSource
     }
 } __attribute__((packed));
 
+struct UdpcastListenedAt
+: app::hasTag<251> {
+    UdpcastListenedAt(){}
+
+    UdpcastListenedAt(std::string const& ipIn, uint16_t portIn) {
+        snprintf(ipPort, sizeof(ipPort), "%s:%d", ipIn.c_str(), portIn);
+    }
+    char ipPort[24] = {0};
+
+    friend
+    std::ostream& operator << (std::ostream& os, UdpcastListenedAt const& m) {
+        os << "UdpcastListeningAt:" << m.ipPort;
+        return os;
+    }
+} __attribute__((packed));
 /**
  * @class SessionStarted
  * @brief this message tipsears in the receiver's buffer indicating a new source is connected

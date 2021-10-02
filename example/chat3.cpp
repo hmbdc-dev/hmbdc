@@ -63,7 +63,7 @@ struct ChatMessage
         /// no need to worry about deallocate afterwards on local machine
         /// or on other processes or remote hosts, the message type works everywhere
         domain.allocateInShmFor0cpy(*this
-            , sizeof(TextInShm::hmbdc0cpyShmRefCount) + strlen(msg) + 1); ///   <===== - that's it! send it away
+            , sizeof(TextInShm::hmbdc0cpyShmRefCount) + strlen(msg) + 1); ///   <===== that's it! fill and send it away
         snprintf(id, sizeof(id), "%s", myId);
         snprintf(hasSharedPtrAttachment::attachmentSp->text, strlen(msg) + 1
             , "%s", msg);
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
 
         while(!chatter.stopFlag && getline(cin, line)) {
             ChatMessage m(myId.c_str(), chatter.groupId, line.c_str(), domain);
-            domain.publish(m); //now publish
+            chatter.publish(m); //now publish
         }
 
         domain.stop();

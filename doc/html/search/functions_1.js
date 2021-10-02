@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['add',['add',['../structhmbdc_1_1tips_1_1Domain.html#aaa82de2ba3a6bd32f358b8b210d1f8a4',1,'hmbdc::tips::Domain']]],
+  ['add',['add',['../structhmbdc_1_1tips_1_1Domain.html#aaa82de2ba3a6bd32f358b8b210d1f8a4',1,'hmbdc::tips::Domain::add()'],['../structhmbdc_1_1tips_1_1SingleNodeDomain.html#aae8e8a3c36230b2d9991002176e059dd',1,'hmbdc::tips::SingleNodeDomain::add()']]],
+  ['adddest',['addDest',['../structhmbdc_1_1tips_1_1udpcast_1_1sendtransportengine__detail_1_1SendTransport.html#a07d44698a0233b6f6f3f691b05a61db9',1,'hmbdc::tips::udpcast::sendtransportengine_detail::SendTransport']]],
   ['addjustbytespubsfor',['addJustBytesPubsFor',['../structhmbdc_1_1tips_1_1Node.html#a27818559b95606fb0377e32e87ec3431',1,'hmbdc::tips::Node']]],
   ['addjustbytessubsfor',['addJustBytesSubsFor',['../structhmbdc_1_1tips_1_1Node.html#aa204ea127fea564523cbf9a563731808',1,'hmbdc::tips::Node']]],
   ['addpool',['addPool',['../structhmbdc_1_1tips_1_1Domain.html#a050565f6749a83bcd5fab823ef618aa7',1,'hmbdc::tips::Domain']]],

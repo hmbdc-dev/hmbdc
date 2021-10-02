@@ -67,7 +67,9 @@ void noop(TimerManager&, SysTime const&)
 
 } //timers_detail
 
-struct TimerManager {
+struct TimerManagerTrait{};
+
+struct TimerManager : TimerManagerTrait {
     /**
      * @brief schedule the timer to start at a specific time
      * @details make sure the Timer is not already scheduled

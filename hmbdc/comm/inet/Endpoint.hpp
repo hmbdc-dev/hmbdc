@@ -43,6 +43,13 @@ struct Endpoint {
     bool operator == (Endpoint const& other) const {
         return memcmp(&v, &other.v, sizeof(v)) == 0;
     }
+
+    friend
+    std::ostream& operator << (std::ostream& os, Endpoint& ep) {
+        os << inet_ntoa(ep.v.sin_addr) << ":" << ntohs(ep.v.sin_port);
+        return os;
+    }
+
     friend
     std::istream& operator >> (std::istream& is, Endpoint& ep) {
         std::string ipPort;

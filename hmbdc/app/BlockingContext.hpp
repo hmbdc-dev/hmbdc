@@ -37,19 +37,6 @@ struct RealInterests {
     >::type;
 };
 
-template <bool is_timer_manager>
-struct tm_runner {
-    template<typename C>
-    void operator()(C&) {}
-};
-
-template <>
-struct tm_runner<true> {
-    void operator()(time::TimerManager& tm) {
-        tm.checkTimers(time::SysTime::now());
-    }
-};
-
 template <typename... MessageTuples>
 struct context_property_aggregator {
     using Interests = std::tuple<>;
@@ -63,16 +50,13 @@ struct context_property_aggregator<MessageTuple, MessageTuples ...> {
 };
 
 
-template <typename T>
-typename std::enable_if<std::is_base_of<time::TimerManager, T>::value, time::Duration>::type
-waitDuration(T const& tm, time::Duration maxBlockingTime) {
-    return std::min(tm.untilNextFire(), maxBlockingTime);
-}
-
-template <typename T>
-typename std::enable_if<!std::is_base_of<time::TimerManager, T>::value, time::Duration>::type
-waitDuration(T const&, time::Duration maxBlockingTime) {
-    return maxBlockingTime;
+template <typename CcClient>
+auto waitDuration(CcClient const& c, time::Duration maxBlockingTime) {
+    if constexpr(std::is_base_of<time::TimerManagerTrait, CcClient>::value) {
+        return std::min(c.untilNextFire(), maxBlockingTime);
+    } else {
+        return maxBlockingTime;
+    }
 }
 
 template <typename CcClient>
@@ -81,8 +65,9 @@ bool runOnceImpl(std::atomic<bool>& stopped
     , CcClient& HMBDC_RESTRICT c, time::Duration maxBlockingTime) {
     pattern::BlockingBuffer::iterator begin, end;
     try {
-        tm_runner<std::is_base_of<time::TimerManager, CcClient>::value> tr;
-        tr(c);
+        if constexpr(std::is_base_of<time::TimerManagerTrait, CcClient>::value) {
+            c.checkTimers(time::SysTime::now());
+        }
 
         const bool clientParticipateInMessaging = 
             std::decay<CcClient>::type::INTERESTS_SIZE != 0;
@@ -125,8 +110,9 @@ bool runOnceLoadSharingImpl(std::atomic<bool>& stopped
     , CcClient& HMBDC_RESTRICT c, time::Duration maxBlockingTime) {
     pattern::BlockingBuffer::iterator begin, end;
     try {
-        tm_runner<std::is_base_of<time::TimerManager, CcClient>::value> tr;
-        tr(c);
+        if constexpr(std::is_base_of<time::TimerManagerTrait, CcClient>::value) {
+            c.checkTimers(time::SysTime::now());
+        }
 
         const bool clientParticipateInMessaging = 
             std::decay<CcClient>::type::INTERESTS_SIZE != 0;
@@ -327,7 +313,8 @@ public:
      * @return false otherwise
      */
     template <typename CcClient>
-    bool runOnce(ClientRegisterHandle& t, CcClient& c, time::Duration maxBlockingTime) {
+    bool runOnce(ClientRegisterHandle& t, CcClient& c
+        , time::Duration maxBlockingTime = time::Duration::seconds(1)) {
         std::atomic<bool> stopped = false;
         return runOnceImpl(stopped, &t->buffer, c, maxBlockingTime);
     }

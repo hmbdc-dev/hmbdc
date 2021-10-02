@@ -18,10 +18,10 @@ struct ContextCallForwarder {
             node->handleMessageCb(std::forward<Message>(message));
         }
     }
-    void sendJustBytesInPlace(uint16_t tag, uint8_t* bytes, app::hasMemoryAttachment* att) {
+    void sendJustBytesInPlace(uint16_t tag, void const* bytes, size_t, app::hasMemoryAttachment* att) {
         if constexpr (index_in_tuple<app::JustBytes, RecvMessageTuple>::value
                 != std::tuple_size<RecvMessageTuple>::value) {
-            node->handleJustBytesCb(tag, bytes, att);
+            node->handleJustBytesCb(tag, (uint8_t const*)bytes, att);
         }
     }
     void invokedCb(size_t n) {
@@ -40,13 +40,12 @@ struct ContextCallForwarder {
 }
 
 /**
- * @brief Replace Node template with SingleNodeDomain if the application just has exact one Node
- * We call this kind of Node SingleNodeDomain. SingleNodeDomain adds Domain function into a single
- * Node. SingleNodeDomain is powered by a single pump thread. Lower latency can be achieved due to
- * one less thread hop compared to Regular Node
+ * @brief Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node
+ * We call this kind of Domain SingleNodeDomain. SingleNodeDomain is powered by a single pump thread.
+ * Lower latency can be achieved due to one less thread hop compared to Regular Node
  * 
- * @tparam CcNode see Node documentation
- * @tparam RecvMessageTupleIn see Node documentation
+ * @tparam CcNode the Node type the Domain is to hold
+ * @tparam RecvMessageTupleIn see Domain documentation
  * @tparam IpcProp see Domain documentation
  * @tparam NetProp see Domain documentation
  * @tparam DefaultAttachmentAllocator see Domain documentation
@@ -70,15 +69,21 @@ public:
     : SingleNodeDomain::Domain(cfg.put("pumpRunMode", "delayed")) {
     }
 
-    /**
-     * @brief start this node - before this point, no thread is spawned and no message delievered
-     *  or publish by this Node/Domain
+/**
+     * @brief add THE Node within this Domain as a thread - handles its subscribing here too
+     * @details should only call this once since it is a SingleNodeDomain
+     * @tparam Node a concrete Node type that send and/or recv Messages
+     * @param node the instance of the node - the Domain does not manage the object lifespan
+     * @return the SingleNodeDomain itself
      */
-    void startPumpingFor(CcNode& node) {
+    SingleNodeDomain& add(CcNode& node) {
+        if (this->threadCtx_.node) {
+            HMBDC_THROW(std::logic_error, "previously added a Node")
+        }
         this->threadCtx_.node = &node;
         node.setDomain(*this);
         this->addPubSubFor(node);
-        this->startPumping();
+        return *this;
     }
 
     /**
@@ -86,7 +91,9 @@ public:
      * 
      */
     using SingleNodeDomain::Domain::getDftConfig;
-    using SingleNodeDomain::Domain::runOnce;
+    using SingleNodeDomain::Domain::startPumping;
+    using SingleNodeDomain::Domain::pumpOnce;
+    using SingleNodeDomain::Domain::addPubSubFor;
     using SingleNodeDomain::Domain::ipcPartyDetectedCount;
     using SingleNodeDomain::Domain::netSendingPartyDetectedCount;
     using SingleNodeDomain::Domain::netRecvingPartyDetectedCount;

@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['add',['add',['../structhmbdc_1_1tips_1_1Domain.html#aaa82de2ba3a6bd32f358b8b210d1f8a4',1,'hmbdc::tips::Domain']]],
+  ['add',['add',['../structhmbdc_1_1tips_1_1Domain.html#aaa82de2ba3a6bd32f358b8b210d1f8a4',1,'hmbdc::tips::Domain::add()'],['../structhmbdc_1_1tips_1_1SingleNodeDomain.html#aae8e8a3c36230b2d9991002176e059dd',1,'hmbdc::tips::SingleNodeDomain::add()']]],
   ['add_5fif_5fnot_5fin_5ftuple',['add_if_not_in_tuple',['../structhmbdc_1_1add__if__not__in__tuple.html',1,'hmbdc']]],
   ['add_5fif_5fnot_5fin_5ftuple_3c_20t_2c_20std_3a_3atuple_3c_20types_20_2e_2e_2e_20_3e_20_3e',['add_if_not_in_tuple&lt; T, std::tuple&lt; Types ... &gt; &gt;',['../structhmbdc_1_1add__if__not__in__tuple_3_01T_00_01std_1_1tuple_3_01Types_01_8_8_8_01_4_01_4.html',1,'hmbdc']]],
+  ['adddest',['addDest',['../structhmbdc_1_1tips_1_1udpcast_1_1sendtransportengine__detail_1_1SendTransport.html#a07d44698a0233b6f6f3f691b05a61db9',1,'hmbdc::tips::udpcast::sendtransportengine_detail::SendTransport']]],
   ['adder',['adder',['../structhmbdc_1_1tips_1_1typetagset__detail_1_1adder.html',1,'hmbdc::tips::typetagset_detail']]],
   ['adder_3c_20t_2c_20std_3a_3atuple_3c_20message_2c_20messages_2e_2e_2e_20_3e_20_3e',['adder&lt; T, std::tuple&lt; Message, Messages... &gt; &gt;',['../structhmbdc_1_1tips_1_1typetagset__detail_1_1adder_3_01T_00_01std_1_1tuple_3_01Message_00_01Messages_8_8_8_01_4_01_4.html',1,'hmbdc::tips::typetagset_detail']]],
   ['addjustbytespubsfor',['addJustBytesPubsFor',['../structhmbdc_1_1tips_1_1Node.html#a27818559b95606fb0377e32e87ec3431',1,'hmbdc::tips::Node']]],

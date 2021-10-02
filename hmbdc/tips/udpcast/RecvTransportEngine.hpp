@@ -64,7 +64,14 @@ struct RecvTransportImpl
         udpcastListenAddrPort.sin_addr.s_addr = inet_addr(ipStr.c_str());
         udpcastListenAddrPort.sin_port = htons(udpcastListenPort);
         if (::bind(fd, (struct sockaddr *)&udpcastListenAddrPort, sizeof(udpcastListenAddrPort)) < 0) {
-            HMBDC_THROW(std::runtime_error, "failed to bind unicast udpcast listen address " 
+            HMBDC_THROW(std::runtime_error, "failed to bind udpcast listen address " 
+                << ipStr << ':' << cfg.getExt<short>("udpcastListenPort") << " errno=" << errno);
+        }
+
+        uint32_t tmp = sizeof(udpcastListenAddrPort);
+        if (udpcastListenPort == 0
+            && getsockname(fd, (struct sockaddr *)&udpcastListenAddrPort, &tmp)) {
+            HMBDC_THROW(std::runtime_error, "failed getsockname for udpcast listen address " 
                 << ipStr << ':' << cfg.getExt<short>("udpcastListenPort") << " errno=" << errno);
         }
 
@@ -76,13 +83,23 @@ struct RecvTransportImpl
                 comm::inet::getLocalIpMatchMask(config_.getExt<std::string>("ifaceAddr")); 
             mreq.imr_interface.s_addr=inet_addr(iface.c_str());
             if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
-                HMBDC_THROW(std::runtime_error, "failed to join " << ipStr << ':'
-                    << cfg.getExt<short>("udpcastPort"));
+                HMBDC_THROW(std::runtime_error, "failed to join " << ipStr << ":"
+                    << udpcastListenPort << " errno=" << errno);
             }
         }
-        HMBDC_LOG_N("listen at ", cfg.getExt<std::string>("ifaceAddr"));
+        listenAddr_ = ipStr;
+        listenPort_ = ntohs(udpcastListenAddrPort.sin_port);
+        HMBDC_LOG_N("listen at ", listenAddr_+ ":" + std::to_string(listenPort_));
 
         start();
+    }
+
+    auto const& listenAddr() const {
+        return listenAddr_;
+    }
+
+    auto listenPort() const {
+        return listenPort_;
     }
 
     template <app::MessageTupleC Messages, typename CcNode>
@@ -163,6 +180,8 @@ private:
     char* bufCur_;
     size_t bytesRecved_;
     TypeTagSet subscriptions_;
+    std::string listenAddr_;
+    uint16_t listenPort_;
 };
 
 template <typename OutputBuffer>

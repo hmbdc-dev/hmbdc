@@ -98,10 +98,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a06d2f5c3f9d83688b1b45a0052ac4cb8">Domain</a> (<a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> const &amp;cfg, NodeContextCtorArgs &amp;&amp;...nodeCtxArgs)</td></tr>
 <tr class="memdesc:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object.  <a href="#a06d2f5c3f9d83688b1b45a0052ac4cb8">More...</a><br /></td></tr>
 <tr class="separator:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07a812f0b6c906e91cca600276bfe8c9"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a07a812f0b6c906e91cca600276bfe8c9"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a07a812f0b6c906e91cca600276bfe8c9">runOnce</a> (size_t pumpIndex, Args &amp;&amp;...args)</td></tr>
-<tr class="memdesc:a07a812f0b6c906e91cca600276bfe8c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">manually drive the domain's pumps  <a href="#a07a812f0b6c906e91cca600276bfe8c9">More...</a><br /></td></tr>
-<tr class="separator:a07a812f0b6c906e91cca600276bfe8c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbd45e042073456c25759633c85ba026"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
+<tr class="memitem:adbd45e042073456c25759633c85ba026"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#adbd45e042073456c25759633c85ba026">pumpOnce</a> (size_t pumpIndex=0, Args &amp;&amp;...args)</td></tr>
+<tr class="memdesc:adbd45e042073456c25759633c85ba026"><td class="mdescLeft">&#160;</td><td class="mdescRight">manually drive the domain's pumps one time (vs startPumping that drives pump in dedicated threads)  <a href="#adbd45e042073456c25759633c85ba026">More...</a><br /></td></tr>
+<tr class="separator:adbd45e042073456c25759633c85ba026"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af901a275f7c033e93c9602d4f3f72fc0"><td class="memTemplParams" colspan="2">template&lt;typename CcNode &gt; </td></tr>
 <tr class="memitem:af901a275f7c033e93c9602d4f3f72fc0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#af901a275f7c033e93c9602d4f3f72fc0">addPubSubFor</a> (CcNode const &amp;node)</td></tr>
 <tr class="memdesc:af901a275f7c033e93c9602d4f3f72fc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">configure the subscriptions and advertisement for a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#af901a275f7c033e93c9602d4f3f72fc0">More...</a><br /></td></tr>
@@ -304,6 +304,7 @@ template&lt;typename Node &gt; </div>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> itself </dd></dl>
 
 </div>
 </div>
@@ -890,8 +891,8 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 
 </div>
 </div>
-<a id="a07a812f0b6c906e91cca600276bfe8c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a07a812f0b6c906e91cca600276bfe8c9">&#9670;&nbsp;</a></span>runOnce()</h2>
+<a id="adbd45e042073456c25759633c85ba026"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbd45e042073456c25759633c85ba026">&#9670;&nbsp;</a></span>pumpOnce()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -904,10 +905,10 @@ template&lt;typename... Args&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::runOnce </td>
+          <td class="memname">bool <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::pumpOnce </td>
           <td>(</td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>pumpIndex</em>, </td>
+          <td class="paramname"><em>pumpIndex</em> = <code>0</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -928,7 +929,7 @@ template&lt;typename... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>manually drive the domain's pumps </p>
+<p>manually drive the domain's pumps one time (vs startPumping that drives pump in dedicated threads) </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Args</td><td>the arguments used for pump </td></tr>
@@ -938,9 +939,9 @@ template&lt;typename... Args&gt; </div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pumpIndex</td><td>which pump - see pumpCount configure </td></tr>
-    <tr><td class="paramname">args</td><td>the arguments used for pump<ul>
-<li>if IPC is enabled: empty</li>
-<li>else <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime</li>
+    <tr><td class="paramname">args</td><td>the arguments used for pump, if pump is default type:<ul>
+<li>if IPC is enabled: ignored</li>
+<li>else optional, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime</li>
 </ul>
 </td></tr>
   </table>

@@ -18,7 +18,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "pumpCount"                     : 1,                "__pumpCount"                       : "thread count for Domain activities - only increase it when the traffic cannot be handled by 1 thread",
     "pumpCpuAffinityHex"            : 1,                "__pumpCpuAffinityHex"              : "CPU mask that the pumps threads pinned on - use the same few N CPUs for multiple M process's Domains (M >> N) is recommended",
     "pumpMaxBlockingTimeSec"        : 0.00001,          "__pumpMaxBlockingTimeSec"          : "starting from 0.0, increase this float if you want the Domain's pump to be more CPU friendly, decrease to reduce latency",
-    "pumpRunMode"                   : "delayed",        "__pumpRunMode"                     : "delayed - user will call Domain<...>::startPumping() to start message pumping; manual - user will use own thread to call runOnce() each time to pump messages flow",
+    "pumpRunMode"                   : "delayed",        "__pumpRunMode"                     : "delayed - user will call Domain<...>::startPumping() to start message pumping; manual - user will use own thread to call pumpOnce() each time to pump messages flow",
     "tipsDomainNonNet"              : "tips-local",     "__tipsDomainNonNet"                : "a string used in IPC transport name when network is disabled"
 }
 )|";

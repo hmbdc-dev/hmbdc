@@ -49,8 +49,6 @@ struct RecvTransportEngine
     : RecvTransport(((cfg.setAdditionalFallbackConfig(hmbdc::app::Config(DefaultUserConfig))
         , cfg.resetSection("rx", false))))
     , hmbdc::time::ReoccuringTimer(hmbdc::time::Duration::seconds(cfg.getExt<size_t>("heartbeatPeriodSeconds")))
-    , config_(cfg)
-    , mcConfig_(config_) 
     , buffer_(std::max({sizeof(app::MessageWrap<TypeTagSource>)})
     , config_.getExt<uint16_t>("cmdBufferSizePower2"))
     , outputBuffer_(outputBuffer)
@@ -65,12 +63,24 @@ struct RecvTransportEngine
             HMBDC_THROW(std::out_of_range
                 , "buffer is too small for notification: SessionStarted and SessionDropped");
         }
-        mcConfig_.put("outBufferSizePower2", 3u);
-        mcReceiver_.emplace(mcConfig_, buffer_);
+        mcReceiver_.emplace(config_, buffer_);
         mcReceiver_->template subscribe<TypeTagSource>();
+
+        auto multicastProxies = config_.getExt<std::string>("multicastProxies");
+        if (!multicastProxies.empty()) {
+            auto proxyCfg = config_;
+            proxyCfg.put("udpcastDests", multicastProxies)
+                .put("outBufferSizePower2", 3u);
+            udpcastListenedAt_.emplace(mcReceiver_->listenAddr(), mcReceiver_->listenPort());
+            mcProxyMessageSink_.emplace(
+                proxyCfg, sizeof(app::MessageWrap<UdpcastListenedAt>));
+        }
 
         setCallback(
             [this](hmbdc::time::TimerManager& tm, hmbdc::time::SysTime const& now) {
+                if (mcProxyMessageSink_) {
+                    mcProxyMessageSink_->tryQueue(*udpcastListenedAt_);
+                }
                 for (auto& s : recvSessions_) {
                     s.second->heartbeat();
                 }
@@ -121,6 +131,7 @@ struct RecvTransportEngine
         buffer_.wasteAfterPeek(begin, n);
 
         mcReceiver_->runOnce(true);
+        if (hmbdc_unlikely(mcProxyMessageSink_)) mcProxyMessageSink_->runOnce();
     }
     
    /**
@@ -171,7 +182,6 @@ struct RecvTransportEngine
 private:
     using Session = RecvSession<OutputBuffer, AttachmentAllocator>;
 
-    hmbdc::app::Config config_, mcConfig_;
     pattern::MonoLockFreeBuffer buffer_;
     OutputBuffer& outputBuffer_;
     size_t maxItemSize_;
@@ -181,7 +191,9 @@ private:
     boost::unordered_map<std::pair<uint64_t, uint16_t>
         , typename Session::ptr> recvSessions_;
     uint32_t myIp_;
-    uint32_t myPid_ = 0; 
+    uint32_t myPid_ = 0;
+    std::optional<udpcast::SendTransport> mcProxyMessageSink_;
+    std::optional<UdpcastListenedAt> udpcastListenedAt_;
 };
 
 } //recvtransportengine_detail

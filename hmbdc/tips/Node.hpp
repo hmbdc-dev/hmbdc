@@ -60,6 +60,21 @@ struct Publishers<std::tuple<Message, Messages...>>
         next.set(impl);
     }
 };
+
+struct DomainNonPubFuncForwarder {
+    template <typename CcNode, typename CcDomain>
+    void setDomain(CcNode& node, CcDomain& domain) {
+        addPubSubFor_ = [&node, &domain]() {
+            domain.addPubSubFor(node);
+        };
+    }
+
+    void addPubSub() { addPubSubFor_(); }
+
+private:
+    std::function<void()> addPubSubFor_;
+};
+
 }
 
 template <typename... Nodes>
@@ -105,10 +120,7 @@ template <typename CcNode
     , bool HasMessageStashIn = false>
 struct Node {
     enum {
-        HasMessageStash = HasMessageStashIn,
-        manual_subscribe = false, /// if defined as true in CcNode, auto subscribe is 
-                                  /// not happening - User manually call
-                                  /// Domain::subscribeFor() at the right time
+        HasMessageStash = HasMessageStashIn
     };
     /**
      * @brief Concrete Node needs to specify a list of Messages that would be sent out
@@ -270,6 +282,15 @@ struct Node {
     }
 
     /**
+     * @brief reset the pub sub egistration
+     * @details can only be called after the Node is added into a Domain
+     * 
+     */
+    void resetPubSub() {
+        domainNonPubFuncForwarder_.addPubSub();
+    }
+
+    /**
      * @brief publish a message in the Domain that start (own) this Node
      * @details see Domain publish
      * @tparam Message TIPS message type with tag > 1000
@@ -308,8 +329,11 @@ private:
     template <typename Domain>
     void setDomain(Domain& domain) {
         publishers_.set(domain);
+        domainNonPubFuncForwarder_.setDomain((CcNode&)*this, domain);
     }
+
     using Publishers = node_detail::Publishers<SendMessageTuple>;
     Publishers publishers_;
+    node_detail::DomainNonPubFuncForwarder domainNonPubFuncForwarder_;
 };
 }}

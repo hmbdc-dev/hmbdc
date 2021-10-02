@@ -26,14 +26,14 @@ struct PoolConsumerProxy
     template <typename U = CcClient>
     PoolConsumerProxy(U& client
         , size_t* pDispStartCount
-        , typename std::enable_if<std::is_base_of<time::TimerManager, U>::value>::type* = nullptr)
+        , typename std::enable_if<std::is_base_of<time::TimerManagerTrait, U>::value>::type* = nullptr)
     : pattern::PoolConsumer(CcClient::INTERESTS_SIZE != 0, &client, pDispStartCount)
     , client_(client){}
 
     template <typename U = CcClient>
     PoolConsumerProxy(U& client
         , size_t* pDispStartCount
-        , typename std::enable_if<!std::is_base_of<time::TimerManager, U>::value>::type* = nullptr)
+        , typename std::enable_if<!std::is_base_of<time::TimerManagerTrait, U>::value>::type* = nullptr)
     : pattern::PoolConsumer(CcClient::INTERESTS_SIZE != 0, nullptr, pDispStartCount)
     , client_(client){}
 
@@ -128,26 +128,14 @@ struct context_property_aggregator<context_property::pci_ipc
     };
 };
 
-template <bool is_timer_manager>
-struct tm_runner {
-    template<typename C>
-    void operator()(C&) {}
-};
-
-template <>
-struct tm_runner<true> {
-    void operator()(hmbdc::time::TimerManager& tm) {
-        tm.checkTimers(hmbdc::time::SysTime::now());
-    }
-};
-
 template <typename LFB, typename CcClient>
 bool runOnceImpl(uint16_t hmbdcNumber, std::atomic<bool> const& stopped
     , LFB& HMBDC_RESTRICT lfb, CcClient& HMBDC_RESTRICT c) {
     typename LFB::iterator begin, end;
     try {
-        tm_runner<std::is_base_of<hmbdc::time::TimerManager, CcClient>::value> tr;
-        tr(c);
+        if constexpr(std::is_base_of<time::TimerManagerTrait, CcClient>::value) {
+            c.checkTimers(time::SysTime::now());
+        }
 
         using Cc = typename std::decay<CcClient>::type;
 
@@ -183,8 +171,9 @@ bool runOnceImpl(uint16_t threadSerialNumber, std::atomic<bool> const& stopped
     , hmbdc::pattern::MonoLockFreeBuffer& HMBDC_RESTRICT lfb, CcClient& HMBDC_RESTRICT c) {
     hmbdc::pattern::MonoLockFreeBuffer::iterator begin, end;
     try {
-        tm_runner<std::is_base_of<hmbdc::time::TimerManager, CcClient>::value> tr;
-        tr(c);
+        if constexpr(std::is_base_of<time::TimerManagerTrait, CcClient>::value) {
+            c.checkTimers(time::SysTime::now());
+        }
 
         using Cc = typename std::decay<CcClient>::type;
         const bool clientParticipateInMessaging = Cc::INTERESTS_SIZE != 0;

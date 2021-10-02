@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
         while(!chatter.stopFlag && getline(cin, line)) {
             ChatMessage m(myId.c_str(), chatter.groupId, line.c_str());
-            domain.publish(m); //now publish
+            chatter.publish(m); //now publish
         }
 
         domain.stop();

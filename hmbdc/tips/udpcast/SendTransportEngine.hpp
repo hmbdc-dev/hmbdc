@@ -68,6 +68,18 @@ struct SendTransport
 
     void stop();
 
+    /// not threadsafe - call it in runOnce thread
+    void addDest(comm::inet::Endpoint const& dest) {
+        if (std::find(udpcastDests_.begin(), udpcastDests_.end(), dest) == udpcastDests_.end()) {
+            udpcastDests_.push_back(dest);
+        }
+    }
+
+    /// not threadsafe - call it in runOnce thread
+    void eraseDest(comm::inet::Endpoint const& dest) {
+        std::remove(udpcastDests_.begin(), udpcastDests_.end(), dest);
+    }
+
 private:
     size_t maxMessageSize_;
     typename Buffer::iterator begin_, it_, end_;
@@ -271,39 +283,24 @@ resumeSend() HMBDC_RESTRICT {
 
         auto toSendPktsCount = toSendPktsTail_ - toSendPktsHead_;
         if (toSendPktsCount && isFdReady()) {
-            int l = 0;
-            l = sendmmsg(fd, toSendPkts_ + toSendPktsHead_, toSendPktsCount, MSG_NOSIGNAL|MSG_DONTWAIT);
-            if (hmbdc_unlikely(udpcastDests_.size() > 1)) {
-                for (auto i = 1u; hmbdc_unlikely(i < udpcastDests_.size()); ++i) {
-                    auto& addr = udpcastDests_[i].v;
+            for (auto it = udpcastDests_.begin(); it != udpcastDests_.end(); ++it) {
+                auto& addr = it->v;
+                if (hmbdc_unlikely(toSendPkts_[toSendPktsHead_].msg_hdr.msg_name != &addr)) {
                     std::for_each(toSendPkts_ + toSendPktsHead_, toSendPkts_ + toSendPktsHead_ + toSendPktsCount
                         , [&addr](mmsghdr& pkt) {
                             pkt.msg_hdr.msg_name = &addr;
                         }
                     );
-                    l = std::max(l, sendmmsg(fd, toSendPkts_ + toSendPktsHead_, toSendPktsCount, MSG_NOSIGNAL|MSG_DONTWAIT));
                 }
-                std::for_each(toSendPkts_ + toSendPktsHead_, toSendPkts_ + toSendPktsHead_ + toSendPktsCount
-                    , [this](mmsghdr& pkt) {
-                        pkt.msg_hdr.msg_name = &udpcastDests_[0].v;
-                    }
-                );
-            }
-            if (hmbdc_likely(l > 0)) {
-            } else if (hmbdc_likely(l < 0)) {
-                if (hmbdc_unlikely(!checkErr())) {
-                    HMBDC_LOG_C("sendmmsg failed errno=", errno);
+                auto ll = sendmmsg(fd, toSendPkts_ + toSendPktsHead_, toSendPktsCount, MSG_NOSIGNAL|MSG_DONTWAIT);
+                if (ll < 0 && errno != EAGAIN) {
+                    HMBDC_LOG_C("unreachable dest=", *it, " erased, errno=", errno);
+                    udpcastDests_.erase(it++);
                 }
-                return;
-            } else {
-                return; //try again later
             }
-
-            toSendPktsHead_ += l;
-            if (toSendPktsHead_ == toSendPktsTail_) {
-                toSendPktsHead_ = toSendPktsTail_ = 0;
-                toSendMsgsHead_ = toSendMsgsTail_ = 0;
-            }
+            // no retry for unreliable transport to avoid buffer full
+            toSendPktsHead_ = toSendPktsTail_ = 0;
+            toSendMsgsHead_ = toSendMsgsTail_ = 0;
         } else {
             //nothing to do now
             return;

@@ -63,11 +63,9 @@ struct BagMessageHead {
  * regardless of their types
  * 
  * @tparam Domain some NetProp type for a specific transport mechanism, 
- * for example udpcast::NetProp, tcpcast::NetProp
  */
-template <typename Domain>
 struct ConsoleNode 
-: Node<ConsoleNode<Domain>, std::tuple<JustBytes>, std::tuple<JustBytes>>
+: Node<ConsoleNode, std::tuple<JustBytes>, std::tuple<JustBytes>>
 , time::TimerManager {
     /**
      * @brief constructor
@@ -78,14 +76,11 @@ struct ConsoleNode
      * @param myCout for output
      * @param myCerr for error
      */
-    ConsoleNode(Domain& domain
-        , Config const& cfg
+    ConsoleNode(Config const& cfg
         , istream& myCin = cin
         , ostream& myCout = cout
         , ostream& myCerr = cerr) 
-    : domain_(domain)
-    , config_(cfg)
-    , hex_(true)
+    : config_(cfg)
     , myCin_(myCin)
     , myCout_(myCout)
     , myCerr_(myCerr)
@@ -123,8 +118,14 @@ pubstr <tag> <string>
     example: pubstr 1099 some string in a line
 pub <tag> <msg-len> <space-seprated-hex-for-msg>
     example: pub 1251 4 a1 a2 a3 a4
+pubbin <tag> <msg-len> <after the space, followed by msg-len binary bytes>
+    example: pubbin 1251 4 /* then undisplayable 4 bytes */
+    pub is recommened over pubbin due to safety
 pubatt <tag> <msg-len> <attachment-len> <space-seprated-hex-for-msg-followed-by-attachment>
     example: pubatt 1201 4 10 01 02 03 04 01 02 03 04 05 06 07 08 09 0a
+pubattbin <tag> <msg-len> <attachment-len> <space-seprated-hex-for-msg-followed-by-attachment>
+    example: pubattbin 1201 4 10 /* then 14 binary bytes */
+    pubatt is recommened over pubattbin due to safety
 play <bag-file-name>
     play a recorded data bag (in the same relative timing as recorded)
 
@@ -132,13 +133,22 @@ Output control cmds:
 ohex
     output bytes in hex - default. There is always a '\n' between the message bytes and attachment bytes.
     ohex output example:
-    1201 msg= 02 03 04 ff ff ff ff ff ff ff ff ff ff ff
+    1201 msgatt= 02 03 04 ff ff ff ff ff ff ff ff ff ff ff
     att= 01 02 03 04 05 06 07 08 09 0a
 
 ostr
     output in string - unless you are sure all the incoming messages are strings without attachment, do not use this.
     ostr output example:
-    1099 some string in a line
+    1099 msgstr= some string in a line
+
+obin
+    output binary bytes - this only works well when connecting console with pipes, not recommended normally
+    obin output example:
+    1099 msgbin= 1024
+    /* after the newline, followed by 1024 binary bytes */
+    1201 msgattbin= 1016 /* after the space, followed by 1016 binary bytes */
+    attbin= 10
+    /* after the newline, followed by 10 binary bytes */
 
 record <bag-file-name> <duration>
     record the output within the next duration seconds with time info in binary bag format into a file (bag) and exit
@@ -180,7 +190,7 @@ exit
         }
     }
 
-    void handleJustBytesCb(uint16_t tag, uint8_t* bytes, hasMemoryAttachment* att) {
+    void handleJustBytesCb(uint16_t tag, uint8_t const* bytes, hasMemoryAttachment* att) {
         //only handle user msgs
         if (tag <= LastSystemMessage::typeTag) return;
 
@@ -192,11 +202,11 @@ exit
                 recordBag_.write((char*)att->attachment, att->len);
             }
         } else {
-            myCout_ << dec << tag << " msg=";
             if (att) {
                 bytes += sizeof(app::hasMemoryAttachment);
             }
-            if (hex_) {
+            if (outputForm_ == OHEX) {
+                myCout_ << dec << tag << (att?" msgatt=":" msg=");
                 for (auto p = bytes; p != bytes + bufWidth_ - sizeof(app::hasMemoryAttachment); ++p) {
                     myCout_ << ' ' << boost::format("%02x") % (uint16_t)*p;
                 }
@@ -207,10 +217,22 @@ exit
                     }
                     att->release(); /// important for JustBytes
                 }
-            } else {
+            } else if (outputForm_ == OSTR)  {
+                myCout_ << dec << tag << " msgstr=";
                 myCout_ << ' ' << string((char*)bytes, strnlen((char*)bytes, bufWidth_));
                 if (att) {
                     myCerr_ << "[status] ignored att for tag=" << tag << endl;
+                }
+            } else if (outputForm_ == OBIN)  {
+                auto msgLen = bufWidth_ - sizeof(app::hasMemoryAttachment);
+                myCout_ << dec << tag << (att?" msgattbin= ":" msgbin= ")
+                    << msgLen << '\n';
+                myCout_.write((char const*)bytes, msgLen);
+                if (att) {
+                    auto attLen = att->len;
+                    myCout_ << "\nattbin= " << attLen << '\n';
+                    myCout_.write((char const*)att->attachment, attLen);
+                    att->release(); /// important for JustBytes
                 }
             }
             myCout_ << endl;
@@ -225,6 +247,13 @@ exit
     }
 
  private:
+    enum OForm {
+        OHEX,
+        OSTR,
+        OBIN
+    };
+    
+    atomic<OForm> outputForm_{OHEX};
     void stdinThreadEntrance() {
         myCerr_ << "[status] Session started" << std::endl;
         processCmd(myCin_);
@@ -232,8 +261,28 @@ exit
     }
 
     void processCmd(istream& is) {
-        string line; 
-        while(getline(is, line)) {
+        while(is) {
+            string line;
+            is >> line;
+            if (!is){
+                if (!is.eof()) {
+                    myCerr_ << "input error, reset input" << std::endl;
+                    is.clear();
+                    is.ignore();
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            if (line == "pubbin") {
+                string s1, s2;
+                is >> s1 >> s2;
+                line += " " + s1 + " " + s2;
+            } else {
+                string remaining;
+                getline(is, remaining);
+                line += " " + remaining;
+            }
             if (!line.size()) continue;
             istringstream iss{line};
             string op;
@@ -244,7 +293,7 @@ exit
                     ; ++it) {
                     pubTags_.insert(*it);
                 };
-                domain_.addPubSubFor(*this);
+                resetPubSub();
             } else if (op == "subtags") {
                 for (auto it = std::istream_iterator<uint16_t>(iss)
                     ; it != std::istream_iterator<uint16_t>()
@@ -252,7 +301,7 @@ exit
                     subTags_.insert(*it);
                     this->subscription.set(*it);
                 };
-                domain_.addPubSubFor(*this);
+                resetPubSub();
             } else if (op == "pubstr") {
                 uint16_t tag;
                 iss >> tag;
@@ -260,9 +309,9 @@ exit
                 getline(iss, msg); /// msg has a leading space
                 auto len = msg.size();
                 if (iss && len >= 0 && pubTags_.find(tag) != pubTags_.end()) {
-                    domain_.publishJustBytes(tag, msg.c_str() + 1, (size_t)len, nullptr);
+                    publishJustBytes(tag, msg.c_str() + 1, (size_t)len, nullptr);
                 } else {
-                    myCerr_ << "[status] pubstr syntax error or unknown tag" << endl;
+                    myCerr_ << "[status] pubstr syntax error or unknown tag in line:" << line << endl;
                 }
             } else if (op == "pub") {
                 uint16_t tag;
@@ -281,9 +330,26 @@ exit
                     msgBytes[i] = (uint8_t)byte;
                 };
                 if (iss && pubTags_.find(tag) != pubTags_.end()) {
-                    domain_.publishJustBytes(tag, toSend_.get(), msgLen, nullptr);
+                    publishJustBytes(tag, toSend_.get(), msgLen, nullptr);
                 } else {
-                    myCerr_ << "[status] syntax error or unknown tag" << endl;
+                    myCerr_ << "[status] syntax error or unknown tag in line:" << line << endl;
+                }
+            } else if (op == "pubbin") {
+                uint16_t tag;
+                iss >> tag;
+                size_t msgLen;
+                iss >> msgLen;
+                if (msgLen > bufWidth_) {
+                    myCerr_ << "[status] msgLen too big" << endl;
+                    continue;
+                }
+                auto msgBytes = &toSend_[0];
+                is.ignore(1); // the spaces
+                is.read((char*)msgBytes, msgLen);
+                if (iss && pubTags_.find(tag) != pubTags_.end()) {
+                    publishJustBytes(tag, toSend_.get(), msgLen, nullptr);
+                } else {
+                    myCerr_ << "[status] syntax error or unknown tag in line:" << line << endl;
                 }
             } else if (op == "pubatt") {
                 uint16_t tag;
@@ -327,9 +393,9 @@ exit
                     };
                 }
                 if (iss && pubTags_.find(tag) != pubTags_.end()) {
-                    domain_.publishJustBytes(tag, toSend_.get(), msgLen + sizeof(*att), att);
+                    publishJustBytes(tag, toSend_.get(), msgLen + sizeof(*att), att);
                 } else {
-                    myCerr_ << "[status] syntax error or unknown tag" << endl;
+                    myCerr_ << "[status] syntax error or unknown tag in line:" << line << endl;
                     auto toFree = (char*)att->attachment;
                     toFree -= sizeof(size_t);
                     ::free(toFree);
@@ -385,12 +451,15 @@ exit
                     playBagOpen_ = true;
                 }
             } else if (op == "ohex") {
-                hex_ = true;
+                outputForm_ = OHEX;
             } else if (op == "ostr") {
-                hex_ = false;
+                outputForm_ = OSTR;
+            } else if (op == "obin") {
+                outputForm_ = OBIN;
             } else if (op == "help") {
                 myCout_ << help() << std::endl;
             } else if (op == "exit") {
+                myCerr_ << "[status] exiting... " << endl;
                 break;
             } else {
                 myCerr_ << "[status] unknown command " << op << endl;
@@ -398,9 +467,7 @@ exit
         }
     }
 
-    Domain& domain_;
     Config config_;
-    atomic<bool> hex_;
     thread stdinThread_;
     istream& myCin_;
     ostream& myCout_;
@@ -411,9 +478,7 @@ exit
     time::OneTimeTimer recordBagCloseTimer_{[this](auto&& tm, auto&& now){
         recordBag_.close();
         recordBagOpen_ = false;
-        myCerr_ << "[status] record bag ready! hit Enter to exit" << std::endl;
-        domain_.stop();
-        myCin_.setstate(std::ios::eofbit);
+        myCerr_ << "[status] record bag ready! hit ctrl-d to exit" << std::endl;
         throw 0;
     }};
 
@@ -423,7 +488,7 @@ exit
     time::ReoccuringTimer playBagFireTimer_{time::Duration::seconds(0)
         , [this](auto&& tm, auto&& firedAt) {
             if (toPlayTag_) {
-                domain_.publishJustBytes(
+                publishJustBytes(
                     toPlayTag_, toPlay_.get(), toPlayLen_, toPlayAtt_);
             }
             BagMessageHead bmh;
@@ -506,18 +571,14 @@ struct Runner {
         if (netProt != NetProt::name() || ipcCapacity != IpcCapacity) {
             return 0;
         }
-        auto bufDepth = config.template getExt<size_t>("bufDepth");
         
         pattern::SingletonGuardian<NetProt> ncGuard;
         using ConsoleDomain 
-            = Domain<std::tuple<JustBytes>, ipc_property<IpcCapacity, 0>, net_property<NetProt, 0>>;
-        using Console = ConsoleNode<ConsoleDomain>;
+            = SingleNodeDomain<ConsoleNode
+                , std::tuple<JustBytes>, ipc_property<IpcCapacity, 0>, net_property<NetProt, 0>>;
         ConsoleDomain domain{config};
-        Console console{domain, config};
-        domain.add(console
-            , bufDepth
-            , time::Duration::seconds(1)
-        );
+        ConsoleNode console{config};
+        domain.add(console);
         domain.startPumping();
         console.waitUntilFinish();
         domain.stop();
@@ -546,7 +607,6 @@ R"|(
     "netmapPort"    : "UNSPECIFIED",    "__netmapPort"  : "(rnemtap) the netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side must be specific on which tx ring to use",
     "ipcCapacity"   : 64,               "__ipcCapacity" : "See capacity in ipc_property in Domain.hpp: 4 8 ... 256  - this needs to match ipc_property's IpcCapacity value of the monitored system",
     "netProt"       : "tcpcast",        "__netProt"     : "tcpcast udpcast rmcast netmap rnetmap",
-    "bufDepth"      : 1024,             "__bufDepth"    : "console incoming buffer size",
     "bufWidth"      : 1000,             "__bufWidth"    : "max message that the console handles (excluding attachment) - this needs to match ipcMaxMessageSizeRuntime value of the monitored system",
     "logLevel"      : 3,                "__logLevel"    : "only log Warning and above by default"
 }

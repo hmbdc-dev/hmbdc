@@ -8,6 +8,7 @@
 #include "hmbdc/app/ClientWithStash.hpp"
 #include "hmbdc/app/Context.hpp"
 #include "hmbdc/app/Config.hpp"
+#include "hmbdc/time/Timers.hpp"
 #include "hmbdc/Exception.hpp"
 #include "hmbdc/pattern/GuardedSingleton.hpp"
 #include "hmbdc/MetaUtils.hpp"
@@ -96,19 +97,20 @@ struct ipc_property {
 using NoIpc = ipc_property<0, 0>;
 
 namespace domain_detail {
+struct not_timermanager{};
 
 template <typename CcNode>
 struct NodeProxy
 : std::conditional<CcNode::HasMessageStash
     , typename app::client_with_stash_using_tuple<NodeProxy<CcNode>, 0, typename CcNode::RecvMessageTuple>::type
     , typename app::client_using_tuple<NodeProxy<CcNode>, typename CcNode::RecvMessageTuple>::type
+>::type
+, std::conditional<std::is_base_of<time::TimerManagerTrait, CcNode>::value
+    , time::TimerManagerTrait
+    , not_timermanager
 >::type {
     using SendMessageTuple = typename CcNode::SendMessageTuple;
     using RecvMessageTuple = typename CcNode::RecvMessageTuple;
-
-    enum {
-        manual_subscribe = CcNode::manual_subscribe
-    };
 
     NodeProxy(CcNode& ccNode): ccNode_(ccNode){}
 
@@ -133,7 +135,7 @@ struct NodeProxy
     auto hmbdcName() const {return ccNode_.hmbdcName();}
     auto schedSpec() const {return ccNode_.schedSpec();}
     template<typename Message> auto handleMessageCb(Message&& m) {ccNode_.handleMessageCb(std::forward<Message>(m));}
-    void handleJustBytesCb(uint16_t tag, uint8_t* bytes, app::hasMemoryAttachment* att) {
+    void handleJustBytesCb(uint16_t tag, uint8_t const* bytes, app::hasMemoryAttachment* att) {
         ccNode_.handleJustBytesCb(tag, bytes, att);
     }
     void messageDispatchingStartedCb(size_t const*p) override {ccNode_.messageDispatchingStartedCb(p);}
@@ -146,6 +148,10 @@ struct NodeProxy
         }
         return res;
     }
+
+    /// forward on behalf of TimerManager
+    void checkTimers(time::SysTime t) { ccNode_.checkTimers(t); }
+    time::Duration untilNextFire() const { return ccNode_.untilNextFire(); }
 
 private:
     CcNode& ccNode_;
@@ -300,7 +306,6 @@ private:
 
     struct OneBuffer {
         ThreadCtx& threadCtx;
-        size_t dispCount = 0;
         size_t maxItemSize_;
 
         OneBuffer(ThreadCtx& threadCtx, size_t maxItemSizeIn) 
@@ -344,9 +349,7 @@ private:
             app::MessageDispacher<OneBuffer, NoAttRecv> disp;
             auto& h = *(app::MessageHead*)(item);
             h.scratchpad().desc.flag = 0;
-            if (disp(*this, h)) {
-                dispCount++;
-            }
+            disp(*this, h);
         }
 
         void putAtt(app::MessageWrap<app::hasMemoryAttachment>* item, size_t) {
@@ -355,7 +358,6 @@ private:
             app::MessageDispacher<OneBuffer, AttRecv> disp;
             item->scratchpad().desc.flag = app::hasMemoryAttachment::flag;
             if (disp(*this, *item)) {
-                dispCount++;
             } else {
                 /// MD did not release the data, do it here
                 item->payload.release();
@@ -494,7 +496,6 @@ private:
             }
 
             if constexpr (has_net_recv_eng) {
-                netBuffer_.dispCount = 0;
                 recvEng_->rotate();
             }
             if constexpr (has_net_send_eng) {
@@ -866,7 +867,7 @@ private:
             }
         }
 
-        void handleJustBytesCb(uint16_t tag, uint8_t* bytes, app::hasMemoryAttachment* att) {
+        void handleJustBytesCb(uint16_t tag, uint8_t const* bytes, app::hasMemoryAttachment* att) {
             outCtx_.sendJustBytesInPlace(tag, bytes, ipcTransport_.maxMessageSize(), att);
             if (att) {
                 att->attachment = nullptr;
@@ -974,10 +975,7 @@ public:
 
             for (auto i = 0u; i < config_.getExt<uint32_t>("pumpCount"); ++i) {
                 auto& pump = pumps_.emplace_back(*ipcTransport_, pOutboundSubscriptions_, threadCtx_, config_);
-                if (pumpRunMode == "auto") {
-                    ipcTransport_->start(pump
-                        , config_.getHex<uint64_t>("pumpCpuAffinityHex"));
-                } else if (pumpRunMode == "manual") {
+                if (pumpRunMode == "manual") {
                     ipcTransport_->registerToRun(pump
                         , config_.getHex<uint64_t>("pumpCpuAffinityHex"));
                 } else if (pumpRunMode == "delayed") {
@@ -988,11 +986,7 @@ public:
         } else if constexpr (run_pump_in_thread_ctx) {
             for (auto i = 0u; i < config_.getExt<uint32_t>("pumpCount"); ++i) {
                 auto& pump = pumps_.emplace_back(threadCtx_, config_);
-                if (pumpRunMode == "auto") {
-                    threadCtx_.start(pump, 0, 0
-                        , config_.getHex<uint64_t>("pumpCpuAffinityHex")
-                        , config_.getHex<time::Duration>("pumpMaxBlockingTimeSec"));
-                } else if (pumpRunMode == "manual") {
+                if (pumpRunMode == "manual") {
                     pump.handleInCtx = threadCtx_.registerToRun(pump, 0, 0);
                 } else if (pumpRunMode == "delayed") {
                 } else {
@@ -1017,24 +1011,25 @@ public:
     }
 
     /**
-     * @brief manually drive the domain's pumps
+     * @brief manually drive the domain's pumps one time (vs startPumping
+     *  that drives pump in dedicated threads)
      * 
      * @tparam Args the arguments used for pump
      * @param pumpIndex which pump - see pumpCount configure
-     * @param args the arguments used for pump
+     * @param args the arguments used for pump, if pump is default type:
      *  - if IPC is enabled:
-     *      empty
+     *      ignored
      *  - else
-     *      time::Duration maxBlockingTime
+     *      optional, time::Duration maxBlockingTime
      * 
      * @return true if pump runs fine
      * @return false either Domain stopped or exception thrown
      */
     template <typename... Args>
-    bool runOnce(size_t pumpIndex, Args&& ...args) {
+    bool pumpOnce(size_t pumpIndex = 0, Args&& ...args) {
         auto& pump = pumps_[pumpIndex];
-        if constexpr (run_pump_in_ipc_portal) {
-            return ipcTransport_->runOnce(pump, std::forward<Args>(args)...);
+        if constexpr (run_pump_in_ipc_portal) {     
+            return ipcTransport_->runOnce(pump);
         } else if constexpr (run_pump_in_thread_ctx) {
             return threadCtx_.runOnce(pump.handle, pump, std::forward<Args>(args)...);
         }
@@ -1088,6 +1083,7 @@ public:
      * @param maxBlockingTime The node wakes up periodically even there is no messages for it
      * so its thread can respond to Domain status change - like stopping
      * @param cpuAffinity The CPU mask that he Node thread assigned to
+     * @return the Domain itself
      */
     template <typename Node>
     Domain& add(Node& nodeIn
@@ -1101,9 +1097,7 @@ public:
                 HMBDC_THROW(std::out_of_range, "capacity cannot be 0 when receiving messages");
         }
         node.updateSubscription();
-        if constexpr (Node::manual_subscribe == false) {
-            addPubSubFor(node);
-        }
+        addPubSubFor(node);
         nodeIn.setDomain(*this);
         threadCtx_.start(node, capacity, node.maxMessageSize()
             , cpuAffinity, maxBlockingTime
@@ -1135,6 +1129,8 @@ public:
                         , config_.getHex<time::Duration>("pumpMaxBlockingTimeSec"));
                 }
             }
+        } else {
+            HMBDC_THROW(std::logic_error, "pump was not configured a delayed");
         }
     }
 
@@ -1173,9 +1169,7 @@ public:
             auto& node = *new domain_detail::NodeProxy<Node>(nodeIn);
             nodeIn.updateSubscription();
             nodeIn.setDomain(*this);
-            if constexpr (Node::manual_subscribe == false) {
-                addPubSubFor(node);
-            }
+            addPubSubFor(node);
             proxies.push_back(&node);
         }
 

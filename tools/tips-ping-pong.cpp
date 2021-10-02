@@ -7,10 +7,11 @@
 
 #include "hmbdc/tips/SingleNodeDomain.hpp"
 #include "hmbdc/tips/Tips.hpp"
-#include <boost/program_options.hpp>
 #include "hmbdc/numeric/Stat.hpp"
 #include "hmbdc/time/Rater.hpp"
 #include "hmbdc/os/Signals.hpp"
+
+#include <boost/program_options.hpp>
 
 #include <iostream>
 #include <vector>
@@ -382,7 +383,7 @@ runPingInSingleNodeDomain(Config const& config) {
     });
 
     Ping::init(domain);
-    domain.startPumpingFor(pinger);
+    domain.add(pinger).startPumping();
     if (runTime) {
         sleep(runTime);
         domain.stop();
@@ -406,7 +407,7 @@ runPongInSingleNodeDomain(Config const& config) {
         [&domain]() {
         domain.stop();
     });
-    domain.startPumpingFor(ponger);
+    domain.add(ponger).startPumping();
 
     if (runTime) {
         sleep(runTime);
@@ -462,9 +463,10 @@ main(int argc, char** argv) {
     namespace po = boost::program_options;
     po::options_description desc("Allowed options");
     auto helpStr = 
-    "Warning: hmbdc TIPS pub/sub uses multicast functions and it is imperative that multicast is enabled (stop the firewall?) on your network for this test to work."
-    "This program can be used to test round trip hmbdc TIPS pub/sub message latency among a group of Nodes(in the same process or on the same or different hosts)."
-    "Half or the round trip latency can be interpreted as the onw way latency."
+    "Warning: hmbdc TIPS pub/sub uses multicast functions and it is imperative that multicast is enabled (stop the firewall?) on your network for this test to work. "
+    "If multicast isn't avaliable in you env, please contact us for the proxy solution (tcpcast). "
+    "This program can be used to test round trip hmbdc TIPS pub/sub message latency among a group of Nodes(in the same process or on the same or different hosts). "
+    "Half or the round trip latency can be interpreted as the onw way latency. "
     "\nUsage example: \nponger1$ ./tips-ping-pong -I 192.168.2.101\nponger2$ ./tips-ping-pong -I 192.168.2.102"
     "\npinger$ ./tips-ping-pong -r ping -I 192.168.2.100"
     "\nwould start the test with two pongers on two hosts then a pinger on the third."
@@ -484,7 +486,7 @@ main(int argc, char** argv) {
     ("runTime", po::value<uint32_t>(&runTime)->default_value(0), "how many seconds does the test last before exit. By default it runs forever")
     ("pumpMaxBlockingTimeSec", po::value<double>(&pumpMaxBlockingTimeSec)->default_value(0), "for low latency results use 0 - for low CPU utilization make it bigger - like 0.00001 sec")
     ("show", po::value<string>(&showSection)->default_value("")->implicit_value(""), "empty, tx or rx, display additional configs, network config has tx and rx sections")
-    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, ""), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. see --show option")
+    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, ""), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. run --show option, or DefaultUserConfigure.hpp")
     ("logging", po::value<bool>(&logging)->default_value(false), "turn on hmbdc internal logging - to stdout")
 ;
 

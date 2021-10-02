@@ -74,7 +74,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Replace <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> template with <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> if the application just has exact one <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> We call this kind of <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a>. <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> adds <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> function into a single <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>. <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> is powered by a single pump thread. Lower latency can be achieved due to one less thread hop compared to Regular <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>.  
+<p>Replace <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> template with <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> if the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object holds exact one <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> We call this kind of <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a>. <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> is powered by a single pump thread. Lower latency can be achieved due to one less thread hop compared to Regular <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>.  
  <a href="structhmbdc_1_1tips_1_1SingleNodeDomain.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="SingleNodeDomain_8hpp_source.html">SingleNodeDomain.hpp</a>&gt;</code></p>
@@ -91,12 +91,11 @@ Inheritance diagram for hmbdc::tips::SingleNodeDomain&lt; CcNode, RecvMessageTup
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a02ff26d87f3b8c171a56bf24ef7a7e87"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html#a02ff26d87f3b8c171a56bf24ef7a7e87">SingleNodeDomain</a> (<a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> cfg)</td></tr>
-<tr class="memdesc:a02ff26d87f3b8c171a56bf24ef7a7e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> object.  <a href="#a02ff26d87f3b8c171a56bf24ef7a7e87">More...</a><br /></td></tr>
+<tr class="memdesc:a02ff26d87f3b8c171a56bf24ef7a7e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> object.  <a href="#a02ff26d87f3b8c171a56bf24ef7a7e87">More...</a><br /></td></tr>
 <tr class="separator:a02ff26d87f3b8c171a56bf24ef7a7e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9d159bc05a6b2213df4c739b714f597"><td class="memItemLeft" align="right" valign="top"><a id="ad9d159bc05a6b2213df4c739b714f597"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html#ad9d159bc05a6b2213df4c739b714f597">startPumpingFor</a> (CcNode &amp;node)</td></tr>
-<tr class="memdesc:ad9d159bc05a6b2213df4c739b714f597"><td class="mdescLeft">&#160;</td><td class="mdescRight">start this node - before this point, no thread is spawned and no message delievered or publish by this Node/Domain <br /></td></tr>
-<tr class="separator:ad9d159bc05a6b2213df4c739b714f597"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aae8e8a3c36230b2d9991002176e059dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html">SingleNodeDomain</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html#aae8e8a3c36230b2d9991002176e059dd">add</a> (CcNode &amp;node)</td></tr>
+<tr class="memdesc:aae8e8a3c36230b2d9991002176e059dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">add THE <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too  <a href="#aae8e8a3c36230b2d9991002176e059dd">More...</a><br /></td></tr>
+<tr class="separator:aae8e8a3c36230b2d9991002176e059dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -104,9 +103,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:a06d2f5c3f9d83688b1b45a0052ac4cb8 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a06d2f5c3f9d83688b1b45a0052ac4cb8">Domain</a> (<a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> const &amp;cfg, NodeContextCtorArgs &amp;&amp;...nodeCtxArgs)</td></tr>
 <tr class="memdesc:a06d2f5c3f9d83688b1b45a0052ac4cb8 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new Domain object.  <a href="structhmbdc_1_1tips_1_1Domain.html#a06d2f5c3f9d83688b1b45a0052ac4cb8">More...</a><br /></td></tr>
 <tr class="separator:a06d2f5c3f9d83688b1b45a0052ac4cb8 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a07a812f0b6c906e91cca600276bfe8c9 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a07a812f0b6c906e91cca600276bfe8c9">runOnce</a> (size_t pumpIndex, Args &amp;&amp;...args)</td></tr>
-<tr class="memdesc:a07a812f0b6c906e91cca600276bfe8c9 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="mdescLeft">&#160;</td><td class="mdescRight">manually drive the domain's pumps  <a href="structhmbdc_1_1tips_1_1Domain.html#a07a812f0b6c906e91cca600276bfe8c9">More...</a><br /></td></tr>
-<tr class="separator:a07a812f0b6c906e91cca600276bfe8c9 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbd45e042073456c25759633c85ba026 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#adbd45e042073456c25759633c85ba026">pumpOnce</a> (size_t pumpIndex=0, Args &amp;&amp;...args)</td></tr>
+<tr class="memdesc:adbd45e042073456c25759633c85ba026 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="mdescLeft">&#160;</td><td class="mdescRight">manually drive the domain's pumps one time (vs startPumping that drives pump in dedicated threads)  <a href="structhmbdc_1_1tips_1_1Domain.html#adbd45e042073456c25759633c85ba026">More...</a><br /></td></tr>
+<tr class="separator:adbd45e042073456c25759633c85ba026 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af901a275f7c033e93c9602d4f3f72fc0 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#af901a275f7c033e93c9602d4f3f72fc0">addPubSubFor</a> (CcNode const &amp;node)</td></tr>
 <tr class="memdesc:af901a275f7c033e93c9602d4f3f72fc0 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="mdescLeft">&#160;</td><td class="mdescRight">configure the subscriptions and advertisement for a Node  <a href="structhmbdc_1_1tips_1_1Domain.html#af901a275f7c033e93c9602d4f3f72fc0">More...</a><br /></td></tr>
 <tr class="separator:af901a275f7c033e93c9602d4f3f72fc0 inherit pub_methods_structhmbdc_1_1tips_1_1Domain"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -170,11 +169,11 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <div class="textblock"><h3>template&lt;typename CcNode, app::MessageTupleC RecvMessageTupleIn, typename IpcProp, typename NetProp, typename AttachmentAllocator = DefaultAttachmentAllocator&gt;<br />
 struct hmbdc::tips::SingleNodeDomain&lt; CcNode, RecvMessageTupleIn, IpcProp, NetProp, AttachmentAllocator &gt;</h3>
 
-<p>Replace <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> template with <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> if the application just has exact one <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> We call this kind of <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a>. <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> adds <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> function into a single <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>. <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> is powered by a single pump thread. Lower latency can be achieved due to one less thread hop compared to Regular <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>. </p>
+<p>Replace <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> template with <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> if the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object holds exact one <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> We call this kind of <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a>. <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> is powered by a single pump thread. Lower latency can be achieved due to one less thread hop compared to Regular <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">CcNode</td><td>see <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> documentation </td></tr>
-    <tr><td class="paramname">RecvMessageTupleIn</td><td>see <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> documentation </td></tr>
+    <tr><td class="paramname">CcNode</td><td>the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> type the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> is to hold </td></tr>
+    <tr><td class="paramname">RecvMessageTupleIn</td><td>see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> documentation </td></tr>
     <tr><td class="paramname">IpcProp</td><td>see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> documentation </td></tr>
     <tr><td class="paramname">NetProp</td><td>see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> documentation </td></tr>
     <tr><td class="paramname"><a class="el" href="structhmbdc_1_1tips_1_1DefaultAttachmentAllocator.html" title="when Domain (it&#39;s pumps) receives a hasMemoryAttachment, there is a need to allocate desired memory t...">DefaultAttachmentAllocator</a></td><td>see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> documentation </td></tr>
@@ -208,13 +207,57 @@ template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, typename Ip
 </table>
 </div><div class="memdoc">
 
-<p>Construct a new <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Node template with SingleNodeDomain if the application just has exact one Node We call this k...">SingleNodeDomain</a> object. </p>
+<p>Construct a new <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> object. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cfg</td><td>- used to construct <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>, see <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> documentation </td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="aae8e8a3c36230b2d9991002176e059dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae8e8a3c36230b2d9991002176e059dd">&#9670;&nbsp;</a></span>add()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, typename IpcProp , typename NetProp , typename AttachmentAllocator  = DefaultAttachmentAllocator&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html">SingleNodeDomain</a>&amp; <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html">hmbdc::tips::SingleNodeDomain</a>&lt; CcNode, RecvMessageTupleIn, IpcProp, NetProp, AttachmentAllocator &gt;::add </td>
+          <td>(</td>
+          <td class="paramtype">CcNode &amp;&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>add THE <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> within this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> as a thread - handles its subscribing here too </p>
+<p>should only call this once since it is a <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> </p><dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname"><a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a></td><td>a concrete <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> type that send and/or recv Messages </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>the instance of the node - the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> does not manage the object lifespan </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the <a class="el" href="structhmbdc_1_1tips_1_1SingleNodeDomain.html" title="Replace Domain template with SingleNodeDomain if the Domain object holds exact one Node We call this ...">SingleNodeDomain</a> itself </dd></dl>
 
 </div>
 </div>

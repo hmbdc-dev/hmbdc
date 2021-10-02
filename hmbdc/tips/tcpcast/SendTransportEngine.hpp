@@ -14,6 +14,7 @@
 #include <boost/circular_buffer.hpp>
 #include <memory>
 #include <tuple>
+#include <optional>
 #include <regex>
 #include <type_traits>
 #include <mutex>
@@ -133,7 +134,7 @@ protected:
     std::atomic<size_t> minRecvToStart_;
     MonoLockFreeBuffer buffer_;
 
-    std::unique_ptr<udpcast::SendTransport> mcSendTransport_;
+    std::optional<udpcast::SendTransport> mcSendTransport_;
     hmbdc::time::Rater rater_;
     hmbdc::app::Config mcConfig_;
     TypeTagSet outboundSubscriptions_;
@@ -264,10 +265,10 @@ SendTransport(hmbdc::app::Config  cfg
 , mcConfig_(config_) { 
     mcConfig_.put("loopback", true); //always allow advertising to loopback, so other process
                                      //on the same machine get them
-    mcConfig_.put("outBufferSizePower2", 3u);
+    mcConfig_.put("outBufferSizePower2", 10u);
     
-    mcSendTransport_.reset(new udpcast::SendTransport(
-        mcConfig_, sizeof(app::MessageWrap<TypeTagSource>)));
+    mcSendTransport_.emplace(
+        mcConfig_, sizeof(app::MessageWrap<TypeTagSource>));
 }
 
 inline
@@ -300,7 +301,7 @@ SendTransportEngine(hmbdc::app::Config const& cfg
             std::unique_lock<std::mutex> g(advertisedTypeTags_.lock, std::try_to_lock);
             if (!g.owns_lock()) return; 
             for (auto& ad : server_->advertisingMessages()) {
-                mcSendTransport_->queue(ad);
+                if (!mcSendTransport_->tryQueue(ad)) break;
             }
             if (!waitForSlowReceivers_) cullSlow();
         }

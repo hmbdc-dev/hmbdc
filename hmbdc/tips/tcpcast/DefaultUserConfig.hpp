@@ -36,6 +36,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
         "heartbeatPeriodSeconds"        : 1,                        "__heartbeatPeriodSeconds"        :"the recv heart beat every so often so the send side know it is alive",
         "hmbdcName"                     : "tcpcast-rx",             "__hmbdcName"                     :"thread name",
         "maxTcpReadBytes"               : 131072,                   "__maxTcpReadBytes"               :"up to how many bytes to read in each time",
+        "multicastProxies"              : "",                       "__multicastProxies"              :"when multicast is not available, one or more UDP proxies can be used to replace MC functions, list its UDP ip and port here",
         "tcpRecvBufferBytes"            : 0,                        "__tcpRecvBufferBytes"            :"OS buffer byte size for incoming tcp, 0 means OS default value",
         "udpcastListenAddr"             : "232.43.212.235",         "__udpcastListenAdd"              :"the udpcast receive engine listen to this address for messages - it can be set to ifaceAddr to listen to unicast UDP messages instead of a multicast address",
         "udpcastListenPort"             : 4321,                     "__udpcastListenPort"             :"the udpcast receive engine listen to this UDP port for messages",

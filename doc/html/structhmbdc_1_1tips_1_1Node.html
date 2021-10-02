@@ -123,6 +123,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <tr class="memitem:ac9cb6b90a31057b451d5c58cee4ad354"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#ac9cb6b90a31057b451d5c58cee4ad354">invokedCb</a> (size_t dispatched)</td></tr>
 <tr class="memdesc:ac9cb6b90a31057b451d5c58cee4ad354"><td class="mdescLeft">&#160;</td><td class="mdescRight">this callback is called all the time (frequently) - the exact timing is after a batch of messages are dispatched. After this call returns, the previously dispatched message's addresses are no longer valid, which means if you cache the event addresses in the previous handleMessageCb()s, you cannot use those after the return of the next invokeCb function.  <a href="#ac9cb6b90a31057b451d5c58cee4ad354">More...</a><br /></td></tr>
 <tr class="separator:ac9cb6b90a31057b451d5c58cee4ad354"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabddbfec69ee84273b1a3c4234bf0426"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aabddbfec69ee84273b1a3c4234bf0426">resetPubSub</a> ()</td></tr>
+<tr class="memdesc:aabddbfec69ee84273b1a3c4234bf0426"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset the pub sub egistration  <a href="#aabddbfec69ee84273b1a3c4234bf0426">More...</a><br /></td></tr>
+<tr class="separator:aabddbfec69ee84273b1a3c4234bf0426"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebe8d41969deeb5012f464916169ae24"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
 <tr class="memitem:aebe8d41969deeb5012f464916169ae24"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aebe8d41969deeb5012f464916169ae24">publish</a> (Message &amp;&amp;message)</td></tr>
 <tr class="memdesc:aebe8d41969deeb5012f464916169ae24"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#aebe8d41969deeb5012f464916169ae24">More...</a><br /></td></tr>
@@ -631,6 +634,36 @@ template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::Messag
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="aabddbfec69ee84273b1a3c4234bf0426"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabddbfec69ee84273b1a3c4234bf0426">&#9670;&nbsp;</a></span>resetPubSub()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::MessageTupleC SendMessageTupleIn = std::tuple&lt;&gt;, bool HasMessageStashIn = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::resetPubSub </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>reset the pub sub egistration </p>
+<p>can only be called after the <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is added into a <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> </p>
 
 </div>
 </div>

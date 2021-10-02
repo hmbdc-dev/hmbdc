@@ -81,12 +81,11 @@ int main(int argc, char** argv) {
             , net_property<tcpcast::Protocol>>; /// use tcpcast as network transport
         auto domain = MyDomain{config};
         Sender sender;
-        domain.add(sender
-            , 0     /// no need to have incoming buffer since only publish
-            , hmbdc::time::Duration::seconds(1));   /// max blocks for 1 second
+        domain.add(sender);                     /// start sender as a thread, by default, 
+                                                /// the thread blocks for 1 second max
                                                     /// sender.invokdeCb() is called
-                                                    /// when the 1 second expires
-        domain.startPumping();                      /// start process level message IO
+                                                    /// when the above 1 second expires
+        domain.startPumping();                      /// start process-level message IO
         sleep(10); //let the sender thread run for 10 seconds - ~10 Hellos sent out
         domain.stop();      //wrap up and exit
         domain.join();
