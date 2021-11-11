@@ -11,7 +11,7 @@
 //
 //to debug:
 //somtimes you need to reset shared memory by "rm /dev/shm/*" 
-//on each host, the shared memory is owned (create and delete) by the first chat process started
+//on each host, the shared memory is owned (create and delete) by the first chat process started on local host
 //- see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
 //
 #include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
@@ -93,7 +93,8 @@ struct Admin
     void annouce(char const* text) {
         Announcement m;
         snprintf(m.msg, sizeof(m.msg), "%s", text);
-        publish(m);
+        /// never blocking best effort publish
+        tryPublish(m);
     }
 };
 
@@ -162,7 +163,7 @@ int main(int argc, char** argv) {
     if (myId == "admin") { //as admin
         using SubMessages = typename Admin::RecvMessageTuple;
         using NetProp = net_property<tcpcast::Protocol
-            , 1400  /// big enough to hold largest message (excluding attachment - which isn't compile time 
+            , 1000  /// big enough to hold largest message (excluding attachment - which isn't compile time 
                     /// determined anyway) to send to net
                     /// compile time checked if that is the case - make it 64 bytes to see the compiling error
         >;
@@ -205,7 +206,7 @@ int main(int argc, char** argv) {
 
         while(!chatter.stopFlag && getline(cin, line)) {
             ChatMessage m(myId.c_str(), chatter.groupId, line.c_str(), domain);
-            chatter.publish(m); //now publish
+            chatter.publish(m); //now reliable publish
         }
 
         domain.stop();

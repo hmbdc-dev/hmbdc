@@ -101,7 +101,7 @@ struct hasSharedPtrAttachment {
             }
         }
 
-        Message toHmbdcUnserialized() {
+        Message fromHmbdcIpcable() {
             auto& att = (app::hasMemoryAttachment&)(*this);
             // assert(att.attachment);
             char resSpace[sizeof(Message)] = {0};
@@ -130,20 +130,20 @@ struct hasSharedPtrAttachment {
     /**
      * @brief internal use
      */
-    auto toHmbdcSerialized() const {
+    auto toHmbdcIpcable() const {
         return hmbdcSerialized{static_cast<Message const&>(*this)};
     }
 };
 
 /**
  * @brief Any non-POD Message type M can be transferred over IPC or network
- * if "S M::toHmbdcSerialized() const" is implemented and S is POD or
+ * if "S M::toHmbdcIpcable() const" is implemented and S is POD or
  * an app::hasMemoryAttachment Mesage type;
  * AND
- * M "S::toHmbdcUnserialized()"  is implemented.
+ * M "S::fromHmbdcIpcable()"  is implemented.
  */
-HMBDC_CLASS_HAS_DECLARE(toHmbdcSerialized);     /// internal use
-HMBDC_CLASS_HAS_DECLARE(toHmbdcUnserialized);   /// internal use
+HMBDC_CLASS_HAS_DECLARE(toHmbdcIpcable);     /// internal use
+HMBDC_CLASS_HAS_DECLARE(fromHmbdcIpcable);   /// internal use
 
 
 }}

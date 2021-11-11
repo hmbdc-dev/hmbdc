@@ -44,8 +44,6 @@ namespace context_property {
      * In addtion to the direct mode Clients, a Client running pool is supported 
      * with the Context - see pool related functions in Context.
      * 
-     * Implicit usage in hello-world.cpp: @snippet hello-world.cpp broadcast as default 
-     * Explicit usage in hmbdc.cpp @snippet hmbdc.cpp explicit using broadcast
      * There is no hard coded limit on how many Clients can be added into a pool
      * Also, there is no limit on when you can add a Client into a pool.
      * @tparam max_parallel_consumer max thread counts that processes messages
@@ -73,7 +71,6 @@ namespace context_property {
      * Only the direct mode Clients are supported, thread pool is NOT supported
      * by this kind of Context - the pool related functions in Context are also disabled
      * 
-     * Example in server-cluster.cpp: @snippet server-cluster.cpp declare a partition context
      */
     struct partition{};
 
@@ -104,13 +101,14 @@ namespace context_property {
      * transport creator specified. 
      * All Contexts attaching to a single ipc transport collectively are subjected to the 
      * max_parallel_consumer limits just like a sinlge local (non-ipc) Context does.
-     * Example in ipc-market-data-propagate.cpp @snippet ipc-market-data-propagate.cpp declare an ipc context
+     * Example in ipc-market-data-propagate.cpp
      */
     struct ipc_enabled{};
 
     /**
      * @class pci_ipc
-     * @brief when processes are distributed on a PCIe board and host PC, add this property
+     * @brief when processes are distributed on a PCIe board and host PC, use (or 
+     * add) this property
      * @details beta
      * 
      */
@@ -176,10 +174,15 @@ struct ThreadCommBase
      * @details this call does not block and it is transactional - send all or none
      * This function is threadsafe, which means you can call it anywhere in the code
      * 
-     * @param msgs messages
-     * @tparam Messages message types
-     * 
-     * @return true if send successfully
+     * @tparam M0 Message types
+     * @tparam M1 Message types
+     * @tparam Messages more Message types 
+     * @tparam std::enable_if<!std::is_integral<M1>::value, void>::type ignore
+     * @param m0 first message
+     * @param m1 second message
+     * @param msgs more messages
+     * @return true when sent out properly - no need to retry
+     * @return false - all not sent out properly - could send out some of them properly though
      */
     template <MessageC M0, MessageC M1, typename ... Messages, typename Enabled 
         = typename std::enable_if<!std::is_integral<M1>::value, void>::type>
@@ -401,29 +404,65 @@ struct ThreadCommBase
         static_assert(MAX_MESSAGE_SIZE == 0 || sizeof(MessageWrap<M>) <= BUFFER_VALUE_SIZE
             , "message too big");
         
-        if constexpr(!std::is_base_of<hasMemoryAttachment, typename std::decay<Message>::type>::value) {
+        if constexpr(!std::is_base_of<hasMemoryAttachment, M>::value 
+            || !cpa::ipc) {
             if (hmbdc_unlikely(MAX_MESSAGE_SIZE == 0 && sizeof(MessageWrap<M>) > buffer_.maxItemSize())) {
-                HMBDC_THROW(std::out_of_range, "message too big");
+                HMBDC_THROW(std::out_of_range, "message too big, typeTag=" << m.getTypeTag());
             }
-            return buffer_.tryPut(MessageWrap<M>(std::forward<Message>(m)));
+
+            if constexpr (has_hmbdc_ctx_queued_ts<M>::value) {
+                auto it = buffer_.tryClaim();
+                if (!it) return false;
+                auto wrap = new (*it++) MessageWrap<M>(std::forward<Message>(m));
+                wrap->template get<M>().hmbdc_ctx_queued_ts = hmbdc::time::SysTime::now();
+                buffer_.commit(it);
+                return true;
+            } else {
+        	    return buffer_.tryPut(MessageWrap<M>(std::forward<Message>(m)));
+            }
         } else {
-            if (hmbdc_unlikely(MAX_MESSAGE_SIZE == 0 && sizeof(MessageWrap<InBandHasMemoryAttachment<M>>) > buffer_.maxItemSize())) {
+            if constexpr (cpa::ipc && M::is_att_0cpyshm) {
+                if (m.template holdShmHandle<M>()) {
+                    auto it = buffer_.tryClaim(1);
+                    if (!it) {
+                        m.hasMemoryAttachment::release();
+                        return false;
+                    }
+                    auto wrap = (new (*it) MessageWrap<InBandHasMemoryAttachment<M>>(m)); (void)wrap;
+                    wrap->payload.shmConvert(*shmAttAllocator_);
+                    if constexpr (has_hmbdc_ctx_queued_ts<M>::value) {
+                        wrap->template get<Message>().hmbdc_ctx_queued_ts = hmbdc::time::SysTime::now();
+                    }
+                    buffer_.commit(it, 1);
+                    m.hasMemoryAttachment::release();
+                    return true;
+                } // else handle as regular att
+            } // else handle as regular att
+            if (hmbdc_unlikely(MAX_MESSAGE_SIZE == 0 
+                && sizeof(MessageWrap<InBandHasMemoryAttachment<M>>) > buffer_.maxItemSize())) {
                 HMBDC_THROW(std::out_of_range, "message too big, typeTag=" << m.getTypeTag());
             }
             auto att = reinterpret_cast<hasMemoryAttachment&>(m);
             size_t segSize = buffer_.maxItemSize() - sizeof(MessageHead);
             auto n = (att.len + segSize - 1) / segSize + 1;
             if (hmbdc_unlikely(n > buffer_.capacity())) {
-                HMBDC_THROW(std::out_of_range, "hasMemoryAttachment message too big, typeTag=" << m.getTypeTag());
+                HMBDC_THROW(std::out_of_range
+                    , "hasMemoryAttachment message too big, typeTag=" << m.getTypeTag());
             }
             
             auto bit = buffer_.tryClaim(n);
-            if (!bit) return false;
+            if (!bit) {
+                att.release();
+                return false;
+            }
             auto it = bit;
-            InBandHasMemoryAttachment<M> ibm{std::forward<Message>(m)};
-
-            (new (*it++) MessageWrap<InBandHasMemoryAttachment<M>>(ibm))
-                ->scratchpad().inbandUnderlyingTypeTag = m.getTypeTag();
+            // InBandHasMemoryAttachment<M> ibm{m};
+            auto wrap = (new (*it++) MessageWrap<InBandHasMemoryAttachment<M>>(m)); (void)wrap;
+            // wrap->scratchpad().ipc.hd.inbandUnderlyingTypeTag = m.getTypeTag();
+            
+            if constexpr (has_hmbdc_ctx_queued_ts<M>::value) {
+                wrap->template get<Message>().hmbdc_ctx_queued_ts = hmbdc::time::SysTime::now();
+            }
             auto segStart = (char*)att.attachment;
             auto remaining = (size_t)att.len;
             while(--n) {

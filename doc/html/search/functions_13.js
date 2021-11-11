@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['wasteafterpeek',['wasteAfterPeek',['../classhmbdc_1_1pattern_1_1memringbuffer__detail_1_1MemRingBuffer.html#a7591aa38acc7c5336d7bf9a1b5732472',1,'hmbdc::pattern::memringbuffer_detail::MemRingBuffer::wasteAfterPeek()'],['../structhmbdc_1_1pattern_1_1MonoLockFreeBuffer.html#acb51d21cdb382f47a9cbd002cb5bc7b1',1,'hmbdc::pattern::MonoLockFreeBuffer::wasteAfterPeek()']]]
+  ['unmap',['unmap',['../structhmbdc_1_1app_1_1hasMemoryAttachment.html#af71a96cb10dec92c6ffad91101b5c2c6',1,'hmbdc::app::hasMemoryAttachment']]],
+  ['updatesubscription',['updateSubscription',['../structhmbdc_1_1tips_1_1Node.html#aa3b108914951c43d7876ff0e167213ab',1,'hmbdc::tips::Node']]]
 ];

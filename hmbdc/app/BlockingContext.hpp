@@ -501,7 +501,7 @@ public:
     template <MessageC Message>
     bool trySend(Message&& m, time::Duration timeout = time::Duration::seconds(0)) {
         if constexpr (can_handle<Message>::match) {
-            if (!justBytesTrySend(m)) return false;
+            if (!justBytesTrySend(m, timeout)) return false;
             using M = typename std::decay<Message>::type;
             auto constexpr i = index_in_tuple<TransportEntries<M>, MsgConduits>::value;
             auto& entries = std::get<i>(msgConduits_);
@@ -531,7 +531,7 @@ public:
                     , std::decay<Message>::type::typeTag);)
             }
 
-            return justBytesTrySend(std::forward<Message>(m));
+            return justBytesTrySend(std::forward<Message>(m), timeout);
         }
     }
    

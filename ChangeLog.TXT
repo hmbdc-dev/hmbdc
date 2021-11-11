@@ -1,3 +1,10 @@
+* Sun Oct 31 2021 - 14.5
+- Added PCI dev pub/sub in Domain
+
+* Sun Oct 24 2021 - 14.4
+- Provided non-blocking publish interface
+- change toHmbdcSerialized to toHmbdcIpcable
+
 * Fri Oct 01 2021 - 14.3
 - provided python module tool for python usage of hmbdc/tips
 - fixed tips timer not fired bug
@@ -285,6 +292,13 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sun Oct 31 2021 - 14.5
+- Added PCI dev pub/sub in Domain
+
+* Sun Oct 24 2021 - 14.4
+- Provided non-blocking publish interface
+- change toHmbdcSerialized to toHmbdcIpcable
 
 * Fri Oct 01 2021 - 14.3
 - provided python module tool for python usage of hmbdc/tips

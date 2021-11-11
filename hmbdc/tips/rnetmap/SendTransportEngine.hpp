@@ -47,6 +47,21 @@ struct SendTransport
         buffer_.commit(it, n);
     }
 
+    template <typename Message>
+    typename std::enable_if<!std::is_base_of<app::hasMemoryAttachment
+        , typename std::decay<Message>::type>::value, bool>::type
+    tryQueue(Message&& msg) HMBDC_RESTRICT {
+        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) return true;
+        auto n = 1;
+        auto it = buffer_.tryClaim(n);
+        if (it) {
+            queue(it, std::forward<Message>(msg));
+            buffer_.commit(it, n);
+            return true;
+        }
+        return false;
+    }
+
     template <typename MemoryAttachementMessage>
     typename std::enable_if<std::is_base_of<app::hasMemoryAttachment
         , typename std::decay<MemoryAttachementMessage>::type>::value, void>::type
@@ -74,15 +89,31 @@ struct SendTransport
         buffer_.commit(it, n);
     }
 
-    template <typename Message>
-    typename std::enable_if<!std::is_base_of<app::hasMemoryAttachment
-        , typename std::decay<Message>::type>::value, bool>::type
-    tryQueue(Message&& msg) HMBDC_RESTRICT {
-        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) return true;
-        auto n = 1;
+    template <typename MemoryAttachementMessage>
+    typename std::enable_if<std::is_base_of<app::hasMemoryAttachment
+        , typename std::decay<MemoryAttachementMessage>::type>::value, bool>::type
+    tryQueue(MemoryAttachementMessage&& msg) {
+        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
+            msg.release();
+            return true;
+        }
+        using Message = typename std::decay<MemoryAttachementMessage>::type;
+        if (hmbdc_unlikely(sizeof(Message) > maxMessageSize_ 
+            || sizeof(app::MemorySeg) > maxMessageSize_
+            || sizeof(app::StartMemorySegTrain) > maxMessageSize_)) {
+            HMBDC_THROW(std::out_of_range
+                , "maxMessageSize too small to hold a message when constructing SendTransportEngine");
+        }
+
+        // + train header and actual msg
+        size_t n = (msg.app::hasMemoryAttachment::len + maxMemorySegPayloadSize_ - 1ul) / maxMemorySegPayloadSize_ + 2; 
+        if (hmbdc_unlikely(n > buffer_.capacity())) {
+            HMBDC_THROW(std::out_of_range
+                , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n);
+        }
         auto it = buffer_.tryClaim(n);
         if (it) {
-            queue(it, std::forward<Message>(msg));
+            queueMemorySegTrain(it, n, std::forward<MemoryAttachementMessage>(msg));
             buffer_.commit(it, n);
             return true;
         }

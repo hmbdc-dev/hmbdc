@@ -62,7 +62,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>hmbdc</b></li><li class="navelem"><a class="el" href="namespacehmbdc_1_1app.html">app</a></li><li class="navelem"><b>context_detail</b></li><li class="navelem"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html">ThreadCommBase</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacehmbdc.html">hmbdc</a></li><li class="navelem"><a class="el" href="namespacehmbdc_1_1app.html">app</a></li><li class="navelem"><b>context_detail</b></li><li class="navelem"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html">ThreadCommBase</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -547,19 +547,26 @@ template&lt;MessageC M0, MessageC M1, typename ... Messages, typename Enabled  =
 
 <p>try to send a batch of message to the <a class="el" href="structhmbdc_1_1app_1_1Context.html" title="A Context is like a media object that facilitates the communications for the Clients that it is holdi...">Context</a> or attached ipc Contexts </p>
 <p>this call does not block and it is transactional - send all or none This function is threadsafe, which means you can call it anywhere in the code</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">msgs</td><td>messages </td></tr>
-  </table>
-  </dd>
-</dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Messages</td><td>message types</td></tr>
+    <tr><td class="paramname">M0</td><td>Message types </td></tr>
+    <tr><td class="paramname">M1</td><td>Message types </td></tr>
+    <tr><td class="paramname">Messages</td><td>more Message types </td></tr>
+    <tr><td class="paramname">std::enable_if&lt;!std::is_integral&lt;M1&gt;::value,void&gt;::type</td><td>ignore </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if send successfully </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m0</td><td>first message </td></tr>
+    <tr><td class="paramname">m1</td><td>second message </td></tr>
+    <tr><td class="paramname">msgs</td><td>more messages </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true when sent out properly - no need to retry </dd>
+<dd>
+false - all not sent out properly - could send out some of them properly though </dd></dl>
 
 </div>
 </div>

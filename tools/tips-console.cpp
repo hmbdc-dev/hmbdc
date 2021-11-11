@@ -1,7 +1,9 @@
 #include "hmbdc/tips/Tips.hpp"
-#include "hmbdc/time/Timers.hpp"
 #include "hmbdc/tips/tcpcast/Protocol.hpp"
 #include "hmbdc/tips/rmcast/Protocol.hpp"
+#include "hmbdc/tips/Bag.hpp"
+
+#include "hmbdc/time/Timers.hpp"
 #ifndef HMBDC_NO_NETMAP
 #include "hmbdc/tips/rnetmap/Protocol.hpp"
 #endif
@@ -15,6 +17,7 @@
 #include <memory>
 #include <unistd.h>
 #include <atomic>
+#include <optional>
 
 
 using namespace std;
@@ -24,37 +27,6 @@ using namespace hmbdc::tips;
 using namespace hmbdc::app;
 
 namespace hmbdc { namespace tips {
-struct BagHead {
-    time::SysTime createdTs;
-    size_t cfgLen;
-
-    friend
-    std::ostream& operator << (std::ostream& os, BagHead const& h) {
-        return os.write((char const*)&h, sizeof(h));
-    }
-    friend
-    std::istream& operator >> (std::istream& is, BagHead& h) {
-        return is.read((char*)&h, sizeof(h));
-    }
-};
-
-struct BagMessageHead {
-    time::SysTime createdTs;
-    size_t attLen;
-    uint16_t tag;
-    uint16_t reserved;
-    uint32_t reserved2;
-
-    friend
-    std::ostream& operator << (std::ostream& os, BagMessageHead const& h) {
-        return os.write((char const*)&h, sizeof(h));
-    }
-    friend
-    std::istream& operator >> (std::istream& is, BagMessageHead& h) {
-        return is.read((char*)&h, sizeof(h));
-    }
-};
-
 /**
  * @class ConsoleNode<>
  * @brief a Node that work as a console to send and receive messages
@@ -194,13 +166,8 @@ exit
         //only handle user msgs
         if (tag <= LastSystemMessage::typeTag) return;
 
-        if (recordBagOpen_) {
-            BagMessageHead bh{time::SysTime::now(), att?att->len:0xfffffffffffffffful, tag};
-            recordBag_ << bh;
-            recordBag_.write((char const*)bytes, bufWidth_);
-            if (att) {
-                recordBag_.write((char*)att->attachment, att->len);
-            }
+        if (recordBag_) {
+            recordBag_->record(tag, bytes, att);
         } else {
             if (att) {
                 bytes += sizeof(app::hasMemoryAttachment);
@@ -409,18 +376,10 @@ exit
                 } else if (recordBagOpen_) {
                     myCerr_ << "[status] error, already recording! " << endl;
                 } else {
-                    recordBag_.open(bagName, std::ofstream::out | std::ios::binary);
-                    std::ostringstream oss; 
-                    boost::property_tree::write_json(oss, config_);
-                    auto cfgText = oss.str();
-                    size_t l = cfgText.size();
-                    BagHead bh{time::SysTime::now(), l};
-                    recordBag_ << bh;
-                    recordBag_.write(cfgText.c_str(), cfgText.size());
-                    if (!recordBag_) {
+                    recordBag_.emplace(bagName.c_str(), config_);
+                    recordBagOpen_ = *recordBag_;
+                    if (!recordBagOpen_) {
                         myCerr_ << "[status] error openning bag! " << endl;
-                    } else {
-                        recordBagOpen_ = true;
                     }
                 }
             } else if (op == "play") {
@@ -431,24 +390,17 @@ exit
                 } else if (playBagOpen_) {
                     myCerr_ << "[status] error, already playing! " << endl;
                 } else {
-                    playBag_.open(bagName, std::ofstream::in | std::ios::binary); 
-                    BagHead bh; 
-                    playBag_ >> bh; 
-                    playBagPreviousTs_ = bh.createdTs;
-                    std::ostringstream oss;
-                    char conf[bh.cfgLen + 1];
-                    playBag_.read(conf, bh.cfgLen);
-                    conf[bh.cfgLen] = 0;
-                    auto config = app::Config(conf);
-                    toPlayLen_ = config.getExt<size_t>("bufWidth");
+                    playBag_.emplace(bagName.c_str());
+                    playBagPreviousTs_ = playBag_->bagHead().createdTs;
+                    toPlayLen_ = playBag_->bufWidth();
                     if (toPlayLen_ > bufWidth_) {
                         myCerr_ << "[status] this console's bufWidth < " << toPlayLen_ 
                             << " cannot play this bag " << endl;
-                        playBag_.close();
+                        playBag_->close();
                         continue;
                     }
                     toPlay_.reset(new uint8_t[toPlayLen_]);
-                    playBagOpen_ = true;
+                    playBagOpen_ = *playBag_;
                 }
             } else if (op == "ohex") {
                 outputForm_ = OHEX;
@@ -472,17 +424,17 @@ exit
     istream& myCin_;
     ostream& myCout_;
     ostream& myCerr_;
-    ofstream recordBag_;
+    std::optional<OutputBag> recordBag_;
     time::Duration recordDuration_;
     atomic<bool> recordBagOpen_ = false;
     time::OneTimeTimer recordBagCloseTimer_{[this](auto&& tm, auto&& now){
-        recordBag_.close();
+        recordBag_->close();
         recordBagOpen_ = false;
         myCerr_ << "[status] record bag ready! hit ctrl-d to exit" << std::endl;
         throw 0;
     }};
 
-    ifstream playBag_;
+    std::optional<InputBag> playBag_;
     time::SysTime playBagPreviousTs_;
     atomic<bool> playBagOpen_ = false;
     time::ReoccuringTimer playBagFireTimer_{time::Duration::seconds(0)
@@ -491,48 +443,23 @@ exit
                 publishJustBytes(
                     toPlayTag_, toPlay_.get(), toPlayLen_, toPlayAtt_);
             }
-            BagMessageHead bmh;
-            playBag_ >> bmh;
-            if (playBag_) {
-                toPlayTag_ = bmh.tag;
+            auto bmh = playBag_->play(toPlayTag_, toPlay_.get(), toPlayAtt_);
+            if (*playBag_) {
                 playBagFireTimer_.resetInterval(bmh.createdTs - playBagPreviousTs_);
                 playBagPreviousTs_ = bmh.createdTs;
-                playBag_.read((char*)toPlay_.get(), toPlayLen_);
-                if (bmh.attLen != 0xfffffffffffffffful) {
-                    toPlayAtt_ = new (toPlay_.get()) app::hasMemoryAttachment;
-                    toPlayAtt_->len = bmh.attLen;
-                    toPlayAtt_->attachment = malloc(sizeof(size_t) + toPlayAtt_->len);
-                    auto& refCount = *(size_t*)toPlayAtt_->attachment;
+                if (toPlayAtt_) {
+                    auto& refCount = *(size_t*)toPlayAtt_->clientData[0];
                     /// based on what we know set the release called times
                     /// to be 2 or 1
                     refCount = this->subscription.check(bmh.tag) ? 2 : 1;
-                    toPlayAtt_->clientData[0] = (uint64_t)&refCount;
-                    toPlayAtt_->attachment = (char*)toPlayAtt_->attachment + sizeof(size_t);
-                    toPlayAtt_->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* att) {
-                        auto& refCount = *((size_t*)att->clientData[0]);
-                        if (0 == __atomic_sub_fetch(&refCount, 1, __ATOMIC_RELAXED)) {
-                            auto toFree = (char*)att->attachment;
-                            toFree -= sizeof(size_t);
-                            ::free(toFree);
-                        }
-                    };
-
-                    if (!playBag_.read((char*)toPlayAtt_->attachment, toPlayAtt_->len)) {
-                        myCerr_ << "[status] IO error when reading bag message" << std::endl;
-                        toPlayAtt_->release();
-                        playBag_.close();
-                        playBagOpen_ = false;
-                    }
-                } else {
-                    toPlayAtt_ = nullptr;
                 }
             } else {
-                if (playBag_.eof()) {
+                if (playBag_->eof()) {
                     myCerr_ << "[status] bag play done " << std::endl;
                 } else {
-                    myCerr_ << "[status] IO error when reading bag head " << std::endl;
+                    myCerr_ << "[status] IO error when reading message " << std::endl;
                 }
-                playBag_.close();
+                playBag_->close();
                 playBagOpen_ = false;
                 tm.cancel(playBagFireTimer_);
                 toPlayTag_ = 0;

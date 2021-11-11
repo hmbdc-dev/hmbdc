@@ -261,7 +261,6 @@ struct Config
      * setDefaultUserConfig.
      * 
      * @param param config parameter name
-     * @param throwIfMissing - true if no config found, throw an exception; otherwise return empty
      * @tparam T type of the value
      * @return result
      */

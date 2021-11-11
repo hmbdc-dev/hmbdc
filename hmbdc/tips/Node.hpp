@@ -4,6 +4,7 @@
 #include "hmbdc/MetaUtils.hpp"
 
 #include <functional>
+#include <utility>
 
 #include <unistd.h>
 
@@ -11,21 +12,26 @@ namespace hmbdc { namespace tips {
 namespace node_detail {
 template <app::MessageC Message>
 struct Publisher {
-    void operator()(Message const& m) {publisher_(m);}
+    void publish(Message const& m) {publisher_(m);}
+    bool tryPublish(Message const& m) {return tryPublisher_(m);}
     template <typename Impl>
     void set(Impl& impl) {
         publisher_ = [&impl](Message const& m) {
             impl.publish(m);
         };
+        tryPublisher_ = [&impl](Message const& m) {
+            return impl.tryPublish(m);
+        };
     }
 
 private:
     std::function<void (Message const&)> publisher_;
+    std::function<bool (Message const&)> tryPublisher_;
 };
 
 template <>
 struct Publisher<app::JustBytes> {
-    void operator()(uint16_t tag, void const* bytes, size_t len
+    void publishJustBytes(uint16_t tag, void const* bytes, size_t len
         , app::hasMemoryAttachment* att) {
             publisher_(tag, bytes, len, att);
     }
@@ -300,7 +306,20 @@ struct Node {
     void publish(Message&& message) {
         using M = typename std::decay<Message>::type;
         node_detail::Publisher<M>& publisher = publishers_;
-        publisher(message);
+        publisher.publish(std::forward<Message>(message));
+    }
+
+    /**
+     * @brief try to publish a message in the Domain that start (own) this Node
+     * @details see Domain tryPublish
+     * @tparam Message TIPS message type with tag > 1000
+     * @param message the message
+     */
+    template <app::MessageC Message>
+    void tryPublish(Message&& message) {
+        using M = typename std::decay<Message>::type;
+        node_detail::Publisher<M>& publisher = publishers_;
+        publisher.tryPublish(std::forward<Message>(message));
     }
 
     /**
@@ -313,7 +332,8 @@ struct Node {
      */
     void publishJustBytes(uint16_t tag, void const* bytes, size_t len
         , app::hasMemoryAttachment* att) {
-            publishers_(tag, bytes, len, att);
+            node_detail::Publisher<app::JustBytes>& publisher = publishers_;
+            publisher.publishJustBytes(tag, bytes, len, att);
     }
 
     virtual ~Node(){}

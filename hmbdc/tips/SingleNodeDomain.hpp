@@ -18,6 +18,17 @@ struct ContextCallForwarder {
             node->handleMessageCb(std::forward<Message>(message));
         }
     }
+
+    template <app::MessageC Message>
+    bool trySend(Message&& message) {
+        if constexpr (index_in_tuple<
+            typename std::decay<Message>::type, RecvMessageTuple>::value
+                != std::tuple_size<RecvMessageTuple>::value) {
+            node->handleMessageCb(std::forward<Message>(message));
+        }
+        return true;
+    }
+
     void sendJustBytesInPlace(uint16_t tag, void const* bytes, size_t, app::hasMemoryAttachment* att) {
         if constexpr (index_in_tuple<app::JustBytes, RecvMessageTuple>::value
                 != std::tuple_size<RecvMessageTuple>::value) {
@@ -101,6 +112,7 @@ public:
     using SingleNodeDomain::Domain::netSubscribingPartyCount;
     using SingleNodeDomain::Domain::ownIpcTransport;
     using SingleNodeDomain::Domain::publish;
+    using SingleNodeDomain::Domain::tryPublish;
     using SingleNodeDomain::Domain::publishJustBytes;
     using SingleNodeDomain::Domain::allocateInShmFor0cpy;
     using SingleNodeDomain::Domain::stop;

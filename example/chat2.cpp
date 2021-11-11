@@ -1,5 +1,5 @@
 //this is an additon to chat.cpp example to introduce:
-//serialization, thread pool, timer and logger usage of HMBDC TIPS
+//never blocking publish, serialization, thread pool, timer and logger usage of HMBDC TIPS
 //
 //the additional assumption here is that a single Admin (thread) cannot monitor all the conversations
 //we need a pool of Admins to collectively monitor all the Chatters
@@ -16,7 +16,7 @@
 //
 //to debug:
 //somtimes you need to reset shared memory by "rm /dev/shm/*" 
-//on each host, the shared memory is owned (create and delete) by the first chat process started
+//on each host, the shared memory is owned (create and delete) by the first chat process started on local host
 //- see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
 //
 #include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
@@ -42,13 +42,18 @@ using namespace hmbdc::tips;
 //
 struct Announcement
 : hasTag<1001> {
+    /// it is recommended to externalize serilization/deserialization (flatbuf or protobuf)
+    /// and use hasSharedPtrAttachment to send the already serilized data
+    /// if you need to go lightweight, here we show the built-in ser/des mechanism
     std::string msg;        /// this needs serialization to go out of process,          // <=====
                             /// if not provided, the pub/sub only happens within 
                             /// local process
     /// provide serialization logic here
-    /// toHmbdcSerialized and toHmbdcUnserialized are the entrances
+    /// toHmbdcIpcable and fromHmbdcIpcable are the entrances
     /// for TIPS to call
-
+    /// toHmbdcIpcable converts the message into a POD type or a hasMemoryAttachment derived
+    /// message for transfer
+    /// fromHmbdcIpcable converts the above message back
     struct Serialized
     : hasMemoryAttachment  /// make the message contains an attachment to hold std::string's content
     , hasTag<1001> {       /// the serialized message must have the same tag number as original
@@ -62,8 +67,8 @@ struct Announcement
             };
         }
 
-        /// how to convert it back to Announcement - unserialize
-        Announcement toHmbdcUnserialized() {
+        /// how to convert it back to Announcement - deserialize
+        Announcement fromHmbdcIpcable() {
             auto& att = (hasMemoryAttachment&)(*this);
             Announcement res;
             res.msg = std::string((char*)att.attachment, att.len);
@@ -72,7 +77,7 @@ struct Announcement
     };
 
     /// entrance to serilize Announcement
-    auto toHmbdcSerialized() const {
+    auto toHmbdcIpcable() const {
         return Serialized{*this};
     }
 };
@@ -127,7 +132,8 @@ struct Admin
     void annouce(std::string&& text) {
         Announcement m;
         m.msg = std::move(text);
-        publish(m);
+        /// never blocking best effort publish                                          // <======
+        tryPublish(m);
     }
 
     private:
@@ -192,7 +198,7 @@ int main(int argc, char** argv) {
     /// hmbdc uses shared memory with very efficient algorithm for inter process commnunication on the same host
     /// to avoid unnecessary copying
     /// here we declare some properties for the shared memory config
-    using IpcProp = ipc_property<4  /// up to 4 chatters on the SAME host to do IPC, largest number is 256
+    using IpcProp = ipc_property<4  /// up to 4 chatters (PROCESSES) on the SAME host to do IPC, largest number is 256
         , 1000                      /// largest message size to send to IPC - ok to set a big enough value
                                     /// all IPC parties needs to match on this
     >;  
@@ -204,7 +210,7 @@ int main(int argc, char** argv) {
         SyncLogger::instance().setMinLogLevel(SyncLogger::L_NOTICE);    /// hide debug messages
         using SubMessages = typename Admin::RecvMessageTuple;
         using NetProp = net_property<tcpcast::Protocol
-            , 1400
+            , 1000
         >;
 
         using ChatDomain = Domain<SubMessages, IpcProp, NetProp>;
@@ -214,7 +220,7 @@ int main(int argc, char** argv) {
         /// a thread pool of 3 Admins - they collectively handle its messages           // <======
         vector<unique_ptr<Admin>> admins;                                               // <======
         for (auto i = 0; i < 3; ++i) {                                                  // <======
-            admins.emplace_back(new Admin);                         // <======
+            admins.emplace_back(new Admin);                                             // <======
         }                                                                               // <======
         domain.addPool(admins.data(), admins.data() + 3).startPumping(); // start pool of 3 threads  // <======
 
@@ -251,7 +257,7 @@ int main(int argc, char** argv) {
 
         while(!chatter.stopFlag && getline(cin, line)) {
             ChatMessage m(myId.c_str(), chatter.groupId, line.c_str());
-            chatter.publish(m); //now publish
+            chatter.publish(m); //now reliable publish
         }
 
         domain.stop();

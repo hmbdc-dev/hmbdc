@@ -1,5 +1,5 @@
-//this is to show how to use hmbdc/tips to write a simple IPC / network group chat application
-//the app is design with an Admin who initializes chat groups, monitor every conversation in
+//this is to show how to use hmbdc/tips to write a simple group chat application
+//the app is designed with an Admin who initializes chat groups, monitor every conversation in
 //all group, and can publish announcements to all the groups
 //
 //the app join a chat group and start to have group chat
@@ -11,7 +11,7 @@
 //
 //to debug:
 //somtimes you need to reset shared memory by "rm /dev/shm/*" 
-//on each host, the shared memory is owned (create and delete) by the first chat process started
+//on each host, the shared memory is owned (create and delete) by the first chat process started on local host
 //- see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
 // 
 
@@ -46,7 +46,7 @@ struct Announcement
 //
 struct ChatMessage 
 : hasSharedPtrAttachment<ChatMessage, char[]>   //message text is saved in a shared_ptr<char[]>
-                                                //recipients even in a differt host gets valid shared_ptr to use
+                                                //recipients even in a different host gets valid shared_ptr to use
 , inTagRange<1002, 100> {                       //up to 100 chat groups; only configured 3 in the example
     ChatMessage(char const* myId, uint16_t grouId, char const* msg)
     : hasSharedPtrAttachment(std::shared_ptr<char[]>(new char[strlen(msg) + 1]), strlen(msg) + 1)
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
     if (myId == "admin") { //as admin
         using SubMessages = typename Admin::RecvMessageTuple;
         using NetProp = net_property<tcpcast::Protocol
-            , 1400  /// big enough to hold largest message (excluding attachment - which isn't compile time 
+            , 1000  /// big enough to hold largest message (excluding attachment - which isn't compile time 
                     /// determined anyway) to send to net
                     /// compile time checked if that is the case - make it 64 bytes to see the compiling error
         >;
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
         while(!chatter.stopFlag && getline(cin, line)) {
             ChatMessage m(myId.c_str(), chatter.groupId, line.c_str());
-            chatter.publish(m); //now publish
+            chatter.publish(m); //now reliable publish
         }
 
         domain.stop();

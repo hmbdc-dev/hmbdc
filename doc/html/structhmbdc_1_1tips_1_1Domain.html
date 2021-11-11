@@ -62,7 +62,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>hmbdc</b></li><li class="navelem"><b>tips</b></li><li class="navelem"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespacehmbdc.html">hmbdc</a></li><li class="navelem"><b>tips</b></li><li class="navelem"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -142,6 +142,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <tr class="memitem:aadc80e92504d9bc58f628600a6b7a364"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aadc80e92504d9bc58f628600a6b7a364">publish</a> (Message &amp;&amp;m)</td></tr>
 <tr class="memdesc:aadc80e92504d9bc58f628600a6b7a364"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message through this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>, all the Nodes in the TIPS domain could get it if it subscribed to the Message type  <a href="#aadc80e92504d9bc58f628600a6b7a364">More...</a><br /></td></tr>
 <tr class="separator:aadc80e92504d9bc58f628600a6b7a364"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb75c57d52f03f57336ebf3ccce77beb"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
+<tr class="memitem:adb75c57d52f03f57336ebf3ccce77beb"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#adb75c57d52f03f57336ebf3ccce77beb">tryPublish</a> (Message &amp;&amp;m)</td></tr>
+<tr class="memdesc:adb75c57d52f03f57336ebf3ccce77beb"><td class="mdescLeft">&#160;</td><td class="mdescRight">non-blokcing version of publish - best effort publish IPC or network paths.  <a href="#adb75c57d52f03f57336ebf3ccce77beb">More...</a><br /></td></tr>
+<tr class="separator:adb75c57d52f03f57336ebf3ccce77beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6ee7c6a7d7b3e4cc9c1816604d4b203"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#ac6ee7c6a7d7b3e4cc9c1816604d4b203">publishJustBytes</a> (uint16_t tag, void const *bytes, size_t len, <a class="el" href="structhmbdc_1_1app_1_1hasMemoryAttachment.html">app::hasMemoryAttachment</a> *att)</td></tr>
 <tr class="memdesc:ac6ee7c6a7d7b3e4cc9c1816604d4b203"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message using byte format on this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> - not recommended  <a href="#ac6ee7c6a7d7b3e4cc9c1816604d4b203">More...</a><br /></td></tr>
 <tr class="separator:ac6ee7c6a7d7b3e4cc9c1816604d4b203"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -228,9 +232,16 @@ template&lt;typename ... NodeContextCtorArgs&gt; </div>
 </div><div class="memdoc">
 
 <p>Construct a new <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">NodeContextCtorArgs</td><td>Args for NodeContext's ctor </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">cfg</td><td>The Jason configuration to specify the IPC and network transport details See the DefaultUserConfiguration.hpp files for each transport type </td></tr>
+    <tr><td class="paramname">cfg</td><td>configuration for <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> </td></tr>
+    <tr><td class="paramname">nodeCtxArgs</td><td>leave it empty unless user customizes NodeContext then it is decided by the passed in NodeContext type </td></tr>
   </table>
   </dd>
 </dl>
@@ -297,7 +308,7 @@ template&lt;typename Node &gt; </div>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">node</td><td>the instance of the node - the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> does not manage the object lifespan </td></tr>
+    <tr><td class="paramname">nodeIn</td><td>the instance of the node - the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> does not manage the object lifespan </td></tr>
     <tr><td class="paramname">capacity</td><td>the inbound message buffer depth - if the buffer is full the delivery mechanism is blocked until the buffer becomes available </td></tr>
     <tr><td class="paramname">maxBlockingTime</td><td>The node wakes up periodically even there is no messages for it so its thread can respond to <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> status change - like stopping </td></tr>
     <tr><td class="paramname">cpuAffinity</td><td>The CPU mask that he <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> thread assigned to </td></tr>
@@ -765,7 +776,7 @@ template&lt;app::MessageC Message&gt; </div>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">m</td><td></td></tr>
+    <tr><td class="paramname">m</td><td>message </td></tr>
   </table>
   </dd>
 </dl>
@@ -811,16 +822,17 @@ template&lt;app::MessageForwardIterC ForwardIt&gt; </div>
 </div><div class="memdoc">
 
 <p>publish a sequence of message of the same type through this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>, all the Nodes in the TIPS domain could get it if it subscribed to the Message type </p>
-<p>It is recommended to use this method if publishing an array of Messages (particularly to a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> pool - see startPool() above) for performance Messages that are not trivially destructable are not deliverred outside of this process (No IPC and network paths). They are tried to be deliverred amoung the Nodes within local process though</p>
+<p>It is recommended to use this method if publishing an array of Messages (particularly to a <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> pool - see startPool() above) for performance Messages that are not trivially destructable are not deliverred outside of this process (No IPC and network paths). They are tried to be deliverred among the Nodes within local process though</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Message</td><td></td></tr>
+    <tr><td class="paramname">ForwardIt</td><td>a forward iterator type - dereferenced to be a Message </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">m</td><td></td></tr>
+    <tr><td class="paramname">begin</td><td>starting iterator </td></tr>
+    <tr><td class="paramname">n</td><td>range length </td></tr>
   </table>
   </dd>
 </dl>
@@ -980,6 +992,51 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 
 <p>stop the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> and its Message delivery functions </p>
 <p>a Async operation - expected to use the join to see the effects </p>
+
+</div>
+</div>
+<a id="adb75c57d52f03f57336ebf3ccce77beb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb75c57d52f03f57336ebf3ccce77beb">&#9670;&nbsp;</a></span>tryPublish()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<div class="memtemplate">
+template&lt;app::MessageC Message&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::tryPublish </td>
+          <td>(</td>
+          <td class="paramtype">Message &amp;&amp;&#160;</td>
+          <td class="paramname"><em>m</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>non-blokcing version of publish - best effort publish IPC or network paths. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Message</td><td>The type that need to fit into the max_message_size specified by the <a class="el" href="structhmbdc_1_1tips_1_1ipc__property.html" title="template that Domain uses for the IPC communication properties ">ipc_property</a> and <a class="el" href="structhmbdc_1_1tips_1_1net__property.html" title="template that Domain uses for the network communication properties ">net_property</a>. Its copy ctor is used to push it to the outgoing buffer. With that in mind, the user can do partial copy using the copy ctor to implement just publish the starting N bytes </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>message </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if published successfully; false if failed or partially failed (reach some recipients) </dd></dl>
 
 </div>
 </div>

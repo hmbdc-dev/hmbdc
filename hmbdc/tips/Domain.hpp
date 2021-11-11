@@ -81,12 +81,16 @@ using NoNet = net_property<NoProtocol, 0>;
  * message, this does not include the attachment size, it could be simply set to be 
  * something like hmbdc::max_size_in_tuple<AllSendMessagesTuple>
  * If set to be 0, the value becomes runtime configured.
+ * @tparam UseDevMem set this to true if using the PCI dev shared memory (beta)
+ * This is useful when doing pub/sub between processes distributed on both 
+ * PCI dev and its host
  */
-template <uint16_t IpcCapacity = 64, size_t MaxMessageSize = 1000>
+template <uint16_t IpcCapacity = 64, size_t MaxMessageSize = 1000, bool UseDevMem = false>
 struct ipc_property {
     enum {
         capacity = IpcCapacity,
-        max_message_size = MaxMessageSize
+        max_message_size = MaxMessageSize,
+        useDevMem = UseDevMem
     };
 };
 
@@ -101,14 +105,14 @@ struct not_timermanager{};
 
 template <typename CcNode>
 struct NodeProxy
-: std::conditional<CcNode::HasMessageStash
+: std::conditional_t<CcNode::HasMessageStash
     , typename app::client_with_stash_using_tuple<NodeProxy<CcNode>, 0, typename CcNode::RecvMessageTuple>::type
     , typename app::client_using_tuple<NodeProxy<CcNode>, typename CcNode::RecvMessageTuple>::type
->::type
-, std::conditional<std::is_base_of<time::TimerManagerTrait, CcNode>::value
+>
+, std::conditional_t<std::is_base_of<time::TimerManagerTrait, CcNode>::value
     , time::TimerManagerTrait
     , not_timermanager
->::type {
+> {
     using SendMessageTuple = typename CcNode::SendMessageTuple;
     using RecvMessageTuple = typename CcNode::RecvMessageTuple;
 
@@ -162,9 +166,9 @@ HMBDC_CLASS_HAS_DECLARE(stoppedCb);
 HMBDC_CLASS_HAS_DECLARE(invokedCb);
 HMBDC_CLASS_HAS_DECLARE(messageDispatchingStartedCb);
 
-template <app::MessageC Message, bool canSerialize = has_toHmbdcSerialized<Message>::value>
+template <app::MessageC Message, bool canSerialize = has_toHmbdcIpcable<Message>::value>
 struct matching_ipcable {
-    using type = std::result_of_t<decltype(&Message::toHmbdcSerialized)(Message)>;
+    using type = std::result_of_t<decltype(&Message::toHmbdcIpcable)(Message)>;
 };
 
 template <app::MessageC Message>
@@ -184,17 +188,17 @@ template <app::MessageC Message>
 struct is_ipcable {
     enum {
         value = (std::is_trivially_destructible<Message>::value
-            || has_toHmbdcSerialized<Message>::value) ? 1:0,
+            || has_toHmbdcIpcable<Message>::value) ? 1:0,
     };
 };
 
 template <app::MessageC Message, app::MessageC ...Messages>
 struct recv_ipc_converted<std::tuple<Message, Messages...>> {
     using next = typename recv_ipc_converted<std::tuple<Messages...>>::type;
-    using type = typename std::conditional<is_ipcable<Message>::value
+    using type = std::conditional_t<is_ipcable<Message>::value
         , typename add_if_not_in_tuple<typename matching_ipcable<Message>::type, next>::type
         , next
-    >::type;
+    >;
 };
 
 template <app::MessageC Message>
@@ -290,15 +294,18 @@ private:
     template <app::MessageC Message> using ipc_from = domain_detail::ipc_from<Message>;
 
     using IpcSubscribeMessagesPossible = IpcableRecvMessages;
-    using IpcTransport = typename std::conditional<
+    using IpcTransport = std::conditional_t<
         IpcProperty::capacity != 0
         , app::Context<
             IpcProperty::max_message_size
             , app::context_property::broadcast<IpcProperty::capacity>
             , app::context_property::ipc_enabled
+            , std::conditional_t<IpcProperty::useDevMem
+                , app::context_property::ipc_enabled
+                , app::context_property::pci_ipc>
         >
         , void*
-    >::type;
+    >;
 
     std::optional<IpcTransport> ipcTransport_;
     std::optional<os::ShmBasePtrAllocator> allocator_;
@@ -319,11 +326,11 @@ private:
         template <app::MessageC Message>
         void handleMessageCb(Message& msg) {
             using hasMemoryAttachment = app::hasMemoryAttachment;
-            if constexpr (has_toHmbdcUnserialized<Message>::value) {
+            if constexpr (has_fromHmbdcIpcable<Message>::value) {
                 static_assert(std::is_same<Message
-                    , decltype(msg.toHmbdcUnserialized().toHmbdcSerialized())>::value
-                    , "mising or wrong toHmbdcSerialized() func - cannot serialize");
-                threadCtx.send(msg.toHmbdcUnserialized());
+                    , decltype(msg.fromHmbdcIpcable().toHmbdcIpcable())>::value
+                    , "mising or wrong toHmbdcIpcable() func - cannot serialize");
+                threadCtx.send(msg.fromHmbdcIpcable());
             } else {
                 threadCtx.send(msg);
             }
@@ -448,7 +455,7 @@ private:
         }
         
         template <app::MessageC Message>
-        void send(Message&& message) {
+        void send(Message const & message) {
             using M = typename std::decay<Message>::type;
             using Mnet = typename domain_detail::matching_ipcable<M>::type;
 
@@ -457,19 +464,47 @@ private:
                     if (M::tipsDisableSendMask() & OVER_NETWORK) return;
                 }
                 if constexpr (has_net_send_eng) {
-                    if constexpr(has_toHmbdcSerialized<M>::value) {
+                    if constexpr(has_toHmbdcIpcable<M>::value) {
                         static_assert(std::is_same<M
-                            , decltype(message.toHmbdcSerialized().toHmbdcUnserialized())>::value
-                            , "mising or wrong toHmbdcUnserialized() func - cannot convertback");
+                            , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                            , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
                         static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(decltype(message.toHmbdcSerialized())) <= NetProperty::max_message_size
+                            || sizeof(decltype(message.toHmbdcIpcable())) <= NetProperty::max_message_size
                             , "NetProperty::max_message_size is too small"); 
-                        sendEng_->queue(message.toHmbdcSerialized());
+                        sendEng_->queue(message.toHmbdcIpcable());
                     } else {
                         static_assert(NetProperty::max_message_size == 0 
                             || sizeof(message) <= NetProperty::max_message_size
                             , "NetProperty::max_message_size is too small"); 
                         sendEng_->queue(message);
+                    }
+                }
+            }
+        }
+
+        template <app::MessageC Message>
+        bool trySend(Message const & message) {
+            using M = typename std::decay<Message>::type;
+            using Mnet = typename domain_detail::matching_ipcable<M>::type;
+
+            if constexpr (std::is_trivially_destructible<Mnet>::value) {
+                if constexpr (has_tipsDisableSendMask<M>::value) {
+                    if (M::tipsDisableSendMask() & OVER_NETWORK) return true;
+                }
+                if constexpr (has_net_send_eng) {
+                    if constexpr(has_toHmbdcIpcable<M>::value) {
+                        static_assert(std::is_same<M
+                            , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                            , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                        static_assert(NetProperty::max_message_size == 0 
+                            || sizeof(decltype(message.toHmbdcIpcable())) <= NetProperty::max_message_size
+                            , "NetProperty::max_message_size is too small"); 
+                        return sendEng_->tryQueue(message.toHmbdcIpcable());
+                    } else {
+                        static_assert(NetProperty::max_message_size == 0 
+                            || sizeof(message) <= NetProperty::max_message_size
+                            , "NetProperty::max_message_size is too small"); 
+                        return sendEng_->tryQueue(message);
                     }
                 }
             }
@@ -705,19 +740,21 @@ private:
                     if (intDiff) {
                         //ipc message should not come back based on hmbdcAvoidIpcFrom
                         using ToSendType = ipc_from<Mipc>;
-                        if constexpr (has_toHmbdcSerialized<M>::value) {
+                        if constexpr (has_toHmbdcIpcable<M>::value) {
                             static_assert(std::is_same<M
-                                , decltype(message.toHmbdcSerialized().toHmbdcUnserialized())>::value
-                                , "mising or wrong toHmbdcUnserialized() func - cannot convertback");
-                            serializedCached.emplace(message.toHmbdcSerialized());
+                                , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                                , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                            serializedCached.emplace(message.toHmbdcIpcable());
                             if (!disableNet) {
-                                //keep the att around
-                                std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                                if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
+                                    //keep the att around
+                                    std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                                }
                             }
                             auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
 
-                            // if (ToSendType::is_att_0cpyshm && toSend.app::hasMemoryAttachment::attachment) {
                             if constexpr (ToSendType::is_att_0cpyshm) {
+                                static_assert(!IpcProperty::useDevMem, "not implemented");
                                 if (toSend.template holdShmHandle<ToSendType>()) {
                                     toSend.hmbdcIsAttInShm = true;
                                     auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
@@ -745,17 +782,19 @@ private:
                 if (disableNet) return;
                 
                 if constexpr (has_net_send_eng) {
-                    if constexpr(has_toHmbdcSerialized<M>::value) {
+                    if constexpr(has_toHmbdcIpcable<M>::value) {
 
                         static_assert(NetProperty::max_message_size == 0 
                             || sizeof(Mipc) <= NetProperty::max_message_size
                             , "NetProperty::max_message_size is too small"); 
                         if (serializedCached) {
-                            // restore
-                            std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                            if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
+                                // restore
+                                std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                            }
                             sendEng_->queue(*serializedCached);
                         } else {
-                            sendEng_->queue(message.toHmbdcSerialized());
+                            sendEng_->queue(message.toHmbdcIpcable());
                         }
                     } else {
                         static_assert(NetProperty::max_message_size == 0 
@@ -765,6 +804,99 @@ private:
                     }
                 }
             }
+        }
+
+        template <app::MessageC Message>
+        bool trySend(Message&& message) {
+            using M = typename std::decay<Message>::type;
+            using Mipc = typename domain_detail::matching_ipcable<M>::type;
+
+            auto res = true;
+
+            if constexpr (std::is_trivially_destructible<Mipc>::value) {
+                bool disableInterProcess = false;
+                if constexpr (has_tipsDisableSendMask<M>::value) {
+                    if (M::tipsDisableSendMask() & INTER_PROCESS) {
+                        disableInterProcess = true;
+                    }
+                }
+                bool disableNet = false;
+                if constexpr (!has_net_send_eng) {
+                    disableNet = true;
+                } else if constexpr (has_tipsDisableSendMask<M>::value) {
+                    if (M::tipsDisableSendMask() & OVER_NETWORK) disableNet = true;
+                }
+
+                std::optional<Mipc> serializedCached;
+                app::hasMemoryAttachment::AfterConsumedCleanupFunc afterConsumedCleanupFuncKept = nullptr;
+                (void)afterConsumedCleanupFuncKept;
+                if (!disableInterProcess) {
+                    //only send when others have interests
+                    auto intDiff = pOutboundSubscriptions_->check(message.getTypeTag())
+                        - inboundSubscriptions_.check(message.getTypeTag());
+                    if (intDiff) {
+                        //ipc message should not come back based on hmbdcAvoidIpcFrom
+                        using ToSendType = ipc_from<Mipc>;
+                        if constexpr (has_toHmbdcIpcable<M>::value) {
+                            static_assert(std::is_same<M
+                                , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                                , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                            serializedCached.emplace(message.toHmbdcIpcable());
+                            if (!disableNet) {
+                                //keep the att around
+                                std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                            }
+                            auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
+                            if constexpr (ToSendType::is_att_0cpyshm) {
+                                if (toSend.template holdShmHandle<ToSendType>()) {
+                                    toSend.hmbdcIsAttInShm = true;
+                                    auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
+                                    __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                }
+                            }
+                            res = ipcTransport_.trySend(std::move(toSend));
+                            if (!res) {
+                                if constexpr (ToSendType::is_att_0cpyshm) {
+                                    if (toSend.template holdShmHandle<ToSendType>()) {
+                                        toSend.hmbdcIsAttInShm = true;
+                                        auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
+                                        __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                    }
+                                }
+                            }
+                        } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
+                            auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
+                            res = ipcTransport_.trySend(std::move(toSend));
+                        } else {
+                            res = ipcTransport_.template trySendInPlace<ToSendType>(hmbdcAvoidIpcFrom, message);
+                        }
+                    }
+                }
+
+                if (disableNet) return res;
+                
+                if constexpr (has_net_send_eng) {
+                    if constexpr(has_toHmbdcIpcable<M>::value) {
+
+                        static_assert(NetProperty::max_message_size == 0 
+                            || sizeof(Mipc) <= NetProperty::max_message_size
+                            , "NetProperty::max_message_size is too small"); 
+                        if (serializedCached) {
+                            // restore
+                            std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                            res = sendEng_->tryQueue(*serializedCached) && res;
+                        } else {
+                            res = sendEng_->tryQueue(message.toHmbdcIpcable()) && res;
+                        }
+                    } else {
+                        static_assert(NetProperty::max_message_size == 0 
+                            || sizeof(Mipc) <= NetProperty::max_message_size
+                            , "NetProperty::max_message_size is too small"); 
+                        res = sendEng_->tryQueue(message) && res;
+                    }
+                }
+            }
+            return res;
         }
 
         void sendJustBytes(uint16_t tag, void const* bytes, size_t len
@@ -853,11 +985,11 @@ private:
         void handleMessageCb(Message& m) {
             Message& msg = m;
             using hasMemoryAttachment = app::hasMemoryAttachment;
-            if constexpr (has_toHmbdcUnserialized<Message>::value) {
+            if constexpr (has_fromHmbdcIpcable<Message>::value) {
                 static_assert(std::is_same<Message
-                    , decltype(msg.toHmbdcUnserialized().toHmbdcSerialized())>::value
-                    , "mising or wrong toHmbdcSerialized() func - cannot serialize");
-                outCtx_.send(msg.toHmbdcUnserialized());
+                    , decltype(msg.fromHmbdcIpcable().toHmbdcIpcable())>::value
+                    , "mising or wrong toHmbdcIpcable() func - cannot serialize");
+                outCtx_.send(msg.fromHmbdcIpcable());
             } else {
                 outCtx_.send(msg);
             }
@@ -899,15 +1031,15 @@ private:
     }; //end of Pumps
 
     app::Config config_;
-    using Pump = typename std::conditional<
+    using Pump = std::conditional_t<
         run_pump_in_ipc_portal
         , PumpInIpcPortal
-        , typename std::conditional<
+        , std::conditional_t<
             run_pump_in_thread_ctx
             , PumpInThreadCtx
             , void*
-        >::type
-    >::type;
+        >
+    >;
     std::deque<Pump> pumps_;
 
     bool ownIpcTransport_ = false;
@@ -916,8 +1048,10 @@ public:
     /**
      * @brief Construct a new Domain object
      * 
-     * @param cfg The Jason configuration to specify the IPC and network transport details
-     * See the DefaultUserConfiguration.hpp files for each transport type
+     * @tparam NodeContextCtorArgs Args for NodeContext's ctor
+     * @param cfg configuration for Domain
+     * @param nodeCtxArgs leave it empty unless user customizes NodeContext
+     * then it is decided by the passed in NodeContext type
      */
     template <typename ...NodeContextCtorArgs>
     Domain(app::Config const& cfg, NodeContextCtorArgs&& ...nodeCtxArgs)
@@ -1077,7 +1211,7 @@ public:
      * in one thread (main thread) to ensure there is no race condition between messages
      * arriving and Node starting
      * @tparam Node a concrete Node type that send and/or recv Messages
-     * @param node the instance of the node - the Domain does not manage the object lifespan
+     * @param nodeIn the instance of the node - the Domain does not manage the object lifespan
      * @param capacity the inbound message buffer depth - if the buffer is full the delivery mechanism 
      * is blocked until the buffer becomes available
      * @param maxBlockingTime The node wakes up periodically even there is no messages for it
@@ -1260,7 +1394,7 @@ public:
      * ipc_property and net_property. Its copy ctor is used to push it to the outgoing buffer.
      * With that in mind, the user can do partial copy using the copy ctor to implement just publish
      * the starting N bytes
-     * @param m 
+     * @param m message
      */
     template <app::MessageC Message>
     void publish(Message&& m) {
@@ -1277,6 +1411,35 @@ public:
         if constexpr (run_pump_in_ipc_portal || run_pump_in_thread_ctx) {
             pumps_[m.getTypeTag() % pumps_.size()].send(std::forward<Message>(m));
         }
+    }
+
+    /**
+     * @brief non-blokcing version of publish - best effort publish IPC or network paths.
+     * 
+     * @tparam Message The type that need to fit into the max_message_size specified by the
+     * ipc_property and net_property. Its copy ctor is used to push it to the outgoing buffer.
+     * With that in mind, the user can do partial copy using the copy ctor to implement just publish
+     * the starting N bytes
+     * @param m message
+     * @return true if published successfully; false if failed or partially failed (reach some recipients)
+     */
+    template <app::MessageC Message>
+    bool tryPublish(Message&& m) {
+        bool disableInterThread = false;
+        using M = typename std::decay<Message>::type;
+        static_assert((int)M::typeSortIndex > (int)app::LastSystemMessage::typeTag);
+        
+        if constexpr (has_tipsDisableSendMask<M>::value) {
+            disableInterThread = M::tipsDisableSendMask() & INTER_THREAD;
+        }
+        auto res = true;
+        if (!disableInterThread) {
+            res = threadCtx_.trySend(m);
+        }
+        if constexpr (run_pump_in_ipc_portal || run_pump_in_thread_ctx) {
+            res = pumps_[m.getTypeTag() % pumps_.size()].trySend(std::forward<Message>(m)) && res;
+        }
+        return res;
     }
 
     /**
@@ -1313,11 +1476,12 @@ public:
      * @details It is recommended to use this method if publishing an array
      * of Messages (particularly to a Node pool - see startPool() above) for performance
      * Messages that are not trivially destructable are not deliverred outside
-     * of this process (No IPC and network paths). They are tried to be deliverred amoung 
+     * of this process (No IPC and network paths). They are tried to be deliverred among
      * the Nodes within local process though
      * 
-     * @tparam Message 
-     * @param m 
+     * @tparam ForwardIt a forward iterator type - dereferenced to be a Message
+     * @param begin starting iterator
+     * @param n range length
      */
     template <app::MessageForwardIterC ForwardIt>
     void publish(ForwardIt begin, size_t n) {
