@@ -12,26 +12,21 @@ struct ContextCallForwarder {
     CcNode* node = nullptr;
     template <app::MessageC Message>
     void send(Message&& message) {
-        if constexpr (index_in_tuple<
-            typename std::decay<Message>::type, RecvMessageTuple>::value
-                != std::tuple_size<RecvMessageTuple>::value) {
+        if constexpr (is_in_tuple_v<typename std::decay<Message>::type, RecvMessageTuple>) {
             node->handleMessageCb(std::forward<Message>(message));
         }
     }
 
     template <app::MessageC Message>
     bool trySend(Message&& message) {
-        if constexpr (index_in_tuple<
-            typename std::decay<Message>::type, RecvMessageTuple>::value
-                != std::tuple_size<RecvMessageTuple>::value) {
+        if constexpr (is_in_tuple_v<typename std::decay<Message>::type, RecvMessageTuple>) {
             node->handleMessageCb(std::forward<Message>(message));
         }
         return true;
     }
 
     void sendJustBytesInPlace(uint16_t tag, void const* bytes, size_t, app::hasMemoryAttachment* att) {
-        if constexpr (index_in_tuple<app::JustBytes, RecvMessageTuple>::value
-                != std::tuple_size<RecvMessageTuple>::value) {
+        if constexpr (is_in_tuple_v<app::JustBytes, RecvMessageTuple>) {
             node->handleJustBytesCb(tag, (uint8_t const*)bytes, att);
         }
     }

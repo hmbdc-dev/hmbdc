@@ -106,13 +106,13 @@ namespace context_property {
     struct ipc_enabled{};
 
     /**
-     * @class pci_ipc
-     * @brief when processes are distributed on a PCIe board and host PC, use (or 
-     * add) this property
+     * @class dev_ipc
+     * @brief when processes are distributed on a PCIe board and host PC, use this property
+     * instead of ipc_enabled -specify the dev name in localDomainName config param
      * @details beta
      * 
      */
-    struct pci_ipc{};
+    struct dev_ipc{};
 }
 }}
 
@@ -146,9 +146,22 @@ struct ThreadCommBase
 		BUFFER_VALUE_SIZE = MaxMessageSize + sizeof(MessageHead), //8bytes for wrap
 	};
 
+    /**
+     * @brief max message in bytes (excluding attachment) can handle
+     * 
+     * @return size_t 
+     */
     size_t maxMessageSize() const {
         if (MaxMessageSize == 0) return maxMessageSizeRuntime_;
         return MaxMessageSize;
+    }
+
+    /**
+     * @brief memory footprint
+     * @return size_t - always in multiple of 4K
+     */
+    size_t footprint() const {
+        return footprint_;
     }
 
     /**
@@ -291,7 +304,7 @@ struct ThreadCommBase
         	    buffer_.put(MessageWrap<M>(std::forward<Message>(m)));
             }
         } else {
-            if constexpr (cpa::ipc && M::is_att_0cpyshm) {
+            if constexpr (cpa::ipc && !cpa::dev_mem && M::att_via_shm_pool) {
                 if (m.template holdShmHandle<M>()) {
                     auto it = buffer_.claim(1);
                     auto wrap = (new (*it) MessageWrap<InBandHasMemoryAttachment<M>>(m)); (void)wrap;
@@ -421,7 +434,7 @@ struct ThreadCommBase
         	    return buffer_.tryPut(MessageWrap<M>(std::forward<Message>(m)));
             }
         } else {
-            if constexpr (cpa::ipc && M::is_att_0cpyshm) {
+            if constexpr (cpa::ipc && !cpa::dev_mem && M::att_via_shm_pool) {
                 if (m.template holdShmHandle<M>()) {
                     auto it = buffer_.tryClaim(1);
                     if (!it) {
@@ -590,22 +603,21 @@ struct ThreadCommBase
         return *pDispStartCount_;
     }
 
-    template <typename T, typename ...Args>
-    std::shared_ptr<T> allocateInShm(size_t actualSize, Args&& ...args) {
-        static_assert(std::is_trivially_destructible<T>::value);
+    std::shared_ptr<uint8_t[]> allocateInShm(size_t actualSize) {
+        static_assert(!cpa::dev_mem, "no shm");
         auto ptr = shmAttAllocator_->allocate(actualSize);
         if (ptr) {
-            auto ptrT = new (ptr) T{std::forward<Args>(args)...};
             // HMBDC_LOG_N(shmAttAllocator_->getHandle(ptr));
-            return std::shared_ptr<T>(
-                ptrT
-                , [this](T* t) {
-                    if (0 == __atomic_sub_fetch(&t->hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
-                        shmAttAllocator_->deallocate((uint8_t*)t);
+            return std::shared_ptr<uint8_t[]>(
+                ptr
+                , [this](uint8_t* t) {
+                    auto hmbdc0cpyShmRefCount = &shmAttAllocator_->getHmbdc0cpyShmRefCount(t);
+                    if (0 == __atomic_sub_fetch(hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
+                        shmAttAllocator_->deallocate(t);
                     }
             });
         }
-        return std::shared_ptr<T>{};
+        return std::shared_ptr<uint8_t[]>{};
     }
 
 protected:
@@ -616,11 +628,10 @@ protected:
         , size_t offset
         , IntLvOrRv&& ownership
         , size_t ipcShmForAttPoolSize)
-    : allocator_(shmName
-        , offset
-        , Buffer::footprint(maxMessageSizeRuntime + sizeof(MessageHead)
-            , messageQueueSizePower2Num) + SMP_CACHE_BYTES + sizeof(*pDispStartCount_)
-        , ownership)
+    : footprint_((Buffer::footprint(maxMessageSizeRuntime + sizeof(MessageHead)
+            , messageQueueSizePower2Num) + sizeof(*pDispStartCount_) + 4096 -1)
+            / 4096 * 4096)
+    , allocator_(shmName, offset, footprint_, ownership)
     , pDispStartCount_(allocator_.template allocate<size_t>(SMP_CACHE_BYTES, 0)) 
     , bufferptr_(allocator_.template allocate<Buffer>(SMP_CACHE_BYTES
         , maxMessageSizeRuntime + sizeof(MessageHead), messageQueueSizePower2Num
@@ -641,7 +652,7 @@ protected:
             markDeadFrom(buffer_, 0);
         }
 
-        if (cpa::ipc && ipcShmForAttPoolSize) {
+        if (cpa::ipc && ipcShmForAttPoolSize && !cpa::dev_mem) {
             size_t retry = 3;
             while (true) {
                 try {
@@ -700,13 +711,17 @@ protected:
             buffer.markDead(s);
         }
     }
-
+    size_t footprint_;
     Allocator allocator_;
     size_t* pDispStartCount_;
     Buffer* HMBDC_RESTRICT bufferptr_;
     Buffer& HMBDC_RESTRICT buffer_;
     
     struct ShmAttAllocator {
+        enum {
+            hmbdc0cpyShmRefCountSize = sizeof(size_t),
+        };
+
         template <typename Arg, typename ...Args>
         ShmAttAllocator(bool own, Arg&& arg, char const* name, Args&& ... args)
         : managedShm_(std::forward<Arg>(arg), name, std::forward<Args>(args)...) {
@@ -723,26 +738,34 @@ protected:
 
         boost::interprocess::managed_shared_memory::handle_t
         getHandle(void* localAddr) const {
-            return managedShm_.get_handle_from_address(localAddr);
+            return managedShm_.get_handle_from_address((uint8_t*)localAddr - hmbdc0cpyShmRefCountSize);
         }
 
         uint8_t*
         getAddr(boost::interprocess::managed_shared_memory::handle_t h) const {
-            return (uint8_t*)managedShm_.get_address_from_handle(h);
+            return (uint8_t*)managedShm_.get_address_from_handle(h) + hmbdc0cpyShmRefCountSize;
         }
-
+       
+        static size_t& getHmbdc0cpyShmRefCount(void* attached) {
+            auto addr = (size_t*)attached;
+            addr -= 1;
+            return *addr;
+        }
+        
         uint8_t* allocate(size_t len) {
             auto res = (uint8_t*)nullptr;
+            len += hmbdc0cpyShmRefCountSize;
             while (!(res = (uint8_t*)managedShm_.allocate(len, std::nothrow))) {
                 std::this_thread::yield();
             };
+            *(size_t*)res = 1;  /// prime the ref count
             // HMBDC_LOG_N(getHandle(res));
-            return res;
+            return res + hmbdc0cpyShmRefCountSize;
         }
 
         auto deallocate(uint8_t* p) {
             // HMBDC_LOG_N(getHandle(p));
-            return managedShm_.deallocate(p);
+            return managedShm_.deallocate(p - hmbdc0cpyShmRefCountSize);
         }
 
         private:

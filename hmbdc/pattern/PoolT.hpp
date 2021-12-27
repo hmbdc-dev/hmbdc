@@ -11,6 +11,7 @@ template <typename Buffer = void*>
 struct PoolT {
     PoolT(PoolT const&) = delete;
     PoolT& operator = (PoolT const&) = delete;
+    ~PoolT();
     using ptr = std::shared_ptr<PoolT>;
     void addConsumer(PoolConsumer&, uint64_t = 0xfffffffffffffffful);
     uint32_t consumerSize() const;
@@ -27,7 +28,6 @@ struct PoolT {
                 new PoolT(lfb, maxConsumerSize)
         );
     }
-    ~PoolT();
 
 private:
     PoolT(Buffer&, uint32_t);

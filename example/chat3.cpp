@@ -2,6 +2,10 @@
 //communication - with minimum programming
 //search for <====== mark in the code where the key additions related to timer and thread pool
 //
+//Additionally it demonstrates how to write ChatterInterface as Node interface classes that 
+//diff concrete Chatter Nodes can derived from. Since it involves virtual functions and it could be
+//slightly slower than the previous Chatter that do not use this technique
+//
 //the app join a chat group and start to have group chat
 //to run:
 //./chat3 <local-ip> admin admin                  # start the groups by admin, and keep it running
@@ -42,30 +46,18 @@ struct Announcement
 //we make all the chat groups use the same ChatMessage type, but each group will
 //be assigned a unique tag number ranging from 1002 - (1002 + 100)
 //
-
-struct TextInShm {                      ///                                     <======
-    size_t hmbdc0cpyShmRefCount = 0;    /// as the first field inidicating 
-                                        /// this is potentially allocated and/or transferred
-                                        /// via 0cpy shared memory - avoid changing its value
-                                        /// the above is compile time checked if not true
-    char text[1];                       /// openended - do not know the length
-};
-
 struct ChatMessage 
-: hasSharedPtrAttachment<ChatMessage, TextInShm>    /// message text is saved in a shared_ptr<TextInShm> <======
-                                                    /// recipients even in a differt host gets the same type
-                                                    /// valid shared_ptr to use
+: hasSharedPtrAttachment<ChatMessage, char[], true>         /// true means using shm pool for IPC transfer <======
 , inTagRange<1002, 100> {           //up to 100 chat groups; only configured 3 in the example
-    template <typename Domain>
-    ChatMessage(char const* myId, uint16_t grouId, char const* msg, Domain& domain)
+    template <typename Node>
+    ChatMessage(char const* myId, uint16_t grouId, char const* msg, Node& node)
     : inTagRange(grouId) {
         /// allocate memory from shm - and it is managed by TIPS                <======
         /// no need to worry about deallocate afterwards on local machine
         /// or on other processes or remote hosts, the message type works everywhere
-        domain.allocateInShmFor0cpy(*this
-            , sizeof(TextInShm::hmbdc0cpyShmRefCount) + strlen(msg) + 1); ///   <===== that's it! fill and send it away
+        node.allocateInShmFor0cpy(*this, strlen(msg) + 1); ///   <===== that's it! fill and send it away
         snprintf(id, sizeof(id), "%s", myId);
-        snprintf(hasSharedPtrAttachment::attachmentSp->text, strlen(msg) + 1
+        snprintf(hasSharedPtrAttachment::attachmentSp.get(), strlen(msg) + 1
             , "%s", msg);
     }
 
@@ -87,7 +79,7 @@ struct Admin
 : Node<Admin, std::tuple<ChatMessage>, std::tuple<Announcement>> {
     /// message callback - won't compile if missing
     void handleMessageCb(ChatMessage const& m) {
-        cout << m.id << ": " << m.attachmentSp->text << endl;
+        cout << m.id << ": " << m.attachmentSp.get() << endl;
     }
 
     void annouce(char const* text) {
@@ -99,8 +91,16 @@ struct Admin
 };
 
 /// Chatter node
-struct Chatter 
-: Node<Chatter, std::tuple<Announcement, ChatMessage>, std::tuple<ChatMessage>> {
+struct ChatterInterface
+: Node<ChatterInterface, std::tuple<Announcement, ChatMessage>, std::tuple<ChatMessage>> {
+    virtual void addTypeTagRangeSubsForCfg(ChatMessage*, std::function<void(uint16_t)> addOffsetInRange) const  = 0;
+    virtual void handleMessageCb(Announcement const& m) = 0;
+    virtual void handleMessageCb(ChatMessage const& m) = 0;
+    virtual void say(std::string const& something) = 0;
+    virtual bool stopped() const = 0;
+};
+
+struct Chatter : ChatterInterface {
     Chatter(std::string id, std::string group)
     : id(id)
     , groupId(ChatMessage::getGroupId(group)) {
@@ -112,28 +112,40 @@ struct Chatter
     /// here we tell the framework what the tag offset is for ChatMessage
     /// Note Admin does not implemet this function and all ChatMessage
     /// are delivered to Admin regardles of the tag offset of each message
-    void addTypeTagRangeSubsFor(ChatMessage*, std::function<void(uint16_t)> addOffsetInRange) const {
+    void addTypeTagRangeSubsForCfg(ChatMessage*, std::function<void(uint16_t)> addOffsetInRange) const override {
         addOffsetInRange(groupId);
     }
 
-    void handleMessageCb(Announcement const& m) {
+    void handleMessageCb(Announcement const& m) override {
         cout << "ADMIN ANNOUCEMENT: " << m.msg << endl;
         if (std::string(m.msg) == "TERM") {
             cout << "Press Enter to exit" << endl;
-            stopFlag = true;
+            stopFlag_ = true;
             throw 0; //any exception in callback signal end of messaging
         }
     }
 
-    void handleMessageCb(ChatMessage const& m) {
+    void handleMessageCb(ChatMessage const& m) override {
         if (id != m.id) { //do not reprint myself
-            cout << m.id << ": " << m.attachmentSp->text << endl;
+            cout << m.id << ": " << m.attachmentSp.get() << endl;
         }
+    }
+
+    /// thread safe function
+    void say(std::string const& something) override {
+        ChatMessage m(id.c_str(), groupId, something.c_str(), *this);
+        publish(m); /// can publish from any thread
+    }
+
+    bool stopped() const override {
+        return stopFlag_;
     }
 
     string const id;
     uint16_t const groupId;
-    std::atomic<bool> stopFlag{false};
+
+    private:
+        std::atomic<bool> stopFlag_{false};
 };
 
 int main(int argc, char** argv) {
@@ -196,17 +208,19 @@ int main(int argc, char** argv) {
         if (domain.ownIpcTransport()) {
             cout << "You own the IPC transport now!" << endl;
         }
-        Chatter chatter(myId, chatGroup);
+        Chatter concreteChatter(myId, chatGroup);
+        ChatterInterface& chatter{concreteChatter};
+
+        // use the interface not the concrete
         domain.add(chatter).startPumping();
 
         //we can read the user's input and send messages out now
         string line;
-        cout << "start type a message" << endl;
+        cout << "start typing a message" << endl;
         cout << "ctrl-d to terminate" << endl;
 
-        while(!chatter.stopFlag && getline(cin, line)) {
-            ChatMessage m(myId.c_str(), chatter.groupId, line.c_str(), domain);
-            chatter.publish(m); //now reliable publish
+        while(!chatter.stopped() && getline(cin, line)) {
+            chatter.say(line); //now reliable publish
         }
 
         domain.stop();

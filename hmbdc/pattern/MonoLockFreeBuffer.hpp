@@ -24,6 +24,9 @@ namespace hmbdc { namespace pattern {
 
     template <typename Allocator = os::DefaultAllocator>
     MonoLockFreeBuffer(size_t, uint32_t, Allocator& allocator = os::DefaultAllocator::instance());
+
+    MonoLockFreeBuffer(MonoLockFreeBuffer const&) = delete;
+    MonoLockFreeBuffer* operator = (MonoLockFreeBuffer const&) = delete;
     ~MonoLockFreeBuffer();
     
     size_t maxItemSize() const;

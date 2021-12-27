@@ -83,6 +83,8 @@ struct BackupSendSessionT {
         h->messagePayloadLen = 0;
     }
 
+    BackupSendSessionT(BackupSendSessionT const&) = delete;
+    BackupSendSessionT& operator = (BackupSendSessionT const&) = delete;
     virtual ~BackupSendSessionT() {
         clientSubscriptions_.exportTo([this](uint16_t tag, auto&&) {
             outboundSubscriptions_.sub(tag);

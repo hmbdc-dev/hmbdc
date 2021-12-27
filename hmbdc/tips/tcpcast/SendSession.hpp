@@ -67,6 +67,9 @@ struct SendSession {
         HMBDC_LOG_N("SendSession started: ", id());
     }
 
+
+    SendSession(SendSession const&) = delete;
+    SendSession& operator = (SendSession const&) = delete;
     ~SendSession() {
         clientSubscriptions_.exportTo([this](uint16_t tag, auto&&) {
             outboundSubscriptions_.sub(tag);

@@ -28,6 +28,8 @@ struct ExecutionIo {
 	ExecutionIo(const char* const argv[]
 		, bool captureStderr = false);
 
+	ExecutionIo(ExecutionIo const&) = delete;
+	ExecutionIo& operator = (ExecutionIo const&) = delete;
 	~ExecutionIo();
 
 	/**

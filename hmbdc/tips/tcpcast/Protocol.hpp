@@ -24,7 +24,9 @@ struct Protocol
     std::string getTipsDomainName(app::Config cfg) {
         cfg.resetSection("tx", false);
         cfg.setAdditionalFallbackConfig(app::Config(DefaultUserConfig));
-        auto res = cfg.getExt<std::string>("ifaceAddr") + '-' + cfg.getExt<std::string>("udpcastDests");
+        auto res = cfg.getExt<std::string>("localDomainName");
+        if (res != "tips-auto") return res;
+        res = cfg.getExt<std::string>("ifaceAddr") + '-' + cfg.getExt<std::string>("udpcastDests");
         std::replace(res.begin(), res.end(), '/', ':');
         return res;
     }

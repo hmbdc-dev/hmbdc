@@ -61,6 +61,10 @@ struct Transport : EpollFd {
         return &config_ < &other.config_;
     }
 
+    Transport (Transport const&) = delete;
+    Transport& operator = (Transport const&) = delete;
+    virtual ~Transport() = default;
+
 protected:
     char const* hmbdcName() const { 
         return this->hmbdcName_.c_str();

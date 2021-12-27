@@ -58,7 +58,7 @@ struct NoProtocol
      * @return std::string 
      */
     std::string getTipsDomainName(app::Config const& cfg) {
-        return cfg.getExt<std::string>("tipsDomainNonNet");
+        return cfg.getExt<std::string>("localDomainName");
     }
 
     private:
@@ -90,7 +90,7 @@ struct ipc_property {
     enum {
         capacity = IpcCapacity,
         max_message_size = MaxMessageSize,
-        useDevMem = UseDevMem
+        use_dev_mem = UseDevMem
     };
 };
 
@@ -120,20 +120,20 @@ struct NodeProxy
 
     /// forward on behalf of Node
     auto maxMessageSize() const {return ccNode_.maxMessageSize();}
-    void addJustBytesSubsFor(std::function<void(uint16_t)> addTag) const {ccNode_.addJustBytesSubsFor(addTag);}
-    void addJustBytesPubsFor(std::function<void(uint16_t)> addTag) const {ccNode_.addJustBytesPubsFor(addTag);}
+    void addJustBytesSubsForCfg(std::function<void(uint16_t)> addTag) const {ccNode_.addJustBytesSubsForCfg(addTag);}
+    void addJustBytesPubsForCfg(std::function<void(uint16_t)> addTag) const {ccNode_.addJustBytesPubsForCfg(addTag);}
     template <app::MessageC Message>
-    void addTypeTagRangeSubsFor(Message* pm, std::function<void(uint16_t)> addOffsetInRange) const {
-        ccNode_.addTypeTagRangeSubsFor(pm, addOffsetInRange);
+    void addTypeTagRangeSubsForCfg(Message* pm, std::function<void(uint16_t)> addOffsetInRange) const {
+        ccNode_.addTypeTagRangeSubsForCfg(pm, addOffsetInRange);
     }
     template <app::MessageC Message>
-    void addTypeTagRangePubsFor(Message* pm, std::function<void(uint16_t)> addOffsetInRange) const {
-        ccNode_.addTypeTagRangePubsFor(pm, addOffsetInRange);
+    void addTypeTagRangePubsForCfg(Message* pm, std::function<void(uint16_t)> addOffsetInRange) const {
+        ccNode_.addTypeTagRangePubsForCfg(pm, addOffsetInRange);
     }
     void updateSubscription() {ccNode_.updateSubscription();}
     template<app::MessageC Message>
-    auto ifDeliver(Message const& message) const {return ccNode_.ifDeliver(message);}
-    auto ifDeliver(uint16_t tag, uint8_t const* bytes) const {return ccNode_.ifDeliver(tag, bytes);}
+    auto ifDeliverCfg(Message const& message) const {return ccNode_.ifDeliverCfg(message);}
+    auto ifDeliverCfg(uint16_t tag, uint8_t const* bytes) const {return ccNode_.ifDeliverCfg(tag, bytes);}
 
     /// forward on behalf of Client
     auto hmbdcName() const {return ccNode_.hmbdcName();}
@@ -184,11 +184,47 @@ struct recv_ipc_converted<std::tuple<>> {
     using type = std::tuple<>;
 };
 
+
+template <app::MessageC Message>
+struct is_threadable {
+    enum {
+        value = [](){
+            if constexpr (is_derived_from_non_type_template_v<int, do_not_send_via, Message>) {
+                auto mask = Message::do_not_send_via::mask;
+                return (mask & INTER_THREAD) ? 0 : 1;
+            }
+            return 1;
+        }(),
+    };
+};
+
 template <app::MessageC Message>
 struct is_ipcable {
     enum {
-        value = (std::is_trivially_destructible<Message>::value
-            || has_toHmbdcIpcable<Message>::value) ? 1:0,
+        value = [](){
+            constexpr int res = std::is_trivially_destructible<
+                typename matching_ipcable<Message>::type>::value;
+            if constexpr (res && is_derived_from_non_type_template_v<int, do_not_send_via, Message>) {
+                auto mask = Message::do_not_send_via::mask;
+                return (mask & INTER_PROCESS) ? 0 : 1;
+            }
+            return res;
+        }(),
+    };
+};
+
+template <app::MessageC Message>
+struct is_netable {
+    enum {
+        value = [](){
+            constexpr int res = std::is_trivially_destructible<
+                typename matching_ipcable<Message>::type>::value;
+            if constexpr (res && is_derived_from_non_type_template_v<int, do_not_send_via, Message>) {
+                auto mask = Message::do_not_send_via::mask;
+                return (mask & OVER_NETWORK) ? 0 : 1;
+            }
+            return res;
+        }(),
     };
 };
 
@@ -299,16 +335,19 @@ private:
         , app::Context<
             IpcProperty::max_message_size
             , app::context_property::broadcast<IpcProperty::capacity>
-            , app::context_property::ipc_enabled
-            , std::conditional_t<IpcProperty::useDevMem
-                , app::context_property::ipc_enabled
-                , app::context_property::pci_ipc>
+            , std::conditional_t<IpcProperty::use_dev_mem
+                , app::context_property::dev_ipc
+                , app::context_property::ipc_enabled>
         >
         , void*
     >;
 
     std::optional<IpcTransport> ipcTransport_;
-    std::optional<os::ShmBasePtrAllocator> allocator_;
+    std::optional<
+        std::conditional_t<IpcProperty::use_dev_mem
+            , os::DevMemBasePtrAllocator
+            , os::ShmBasePtrAllocator>
+    > allocator_;
     TypeTagSet* pOutboundSubscriptions_ = nullptr;
 
     struct OneBuffer {
@@ -413,7 +452,7 @@ private:
         template <typename CcNode>
         void subscribeFor(CcNode const& node, uint16_t mod, uint16_t res) {
             if constexpr (has_net_recv_eng) {
-                using Messages = typename filter_in_tuple<domain_detail::is_ipcable
+                using Messages = typename filter_in_tuple<domain_detail::is_netable
                     , typename CcNode::RecvMessageTuple>::type;
                 recvEng_->template subscribeFor<Messages>(node, mod, res);
             }
@@ -434,7 +473,7 @@ private:
         template <typename CcNode>
         void advertiseFor(CcNode const& node, uint16_t mod, uint16_t res) {
             if constexpr (has_net_send_eng) {
-                using Messages = typename filter_in_tuple<domain_detail::is_ipcable
+                using Messages = typename filter_in_tuple<domain_detail::is_netable
                     , typename CcNode::SendMessageTuple>::type;
                 sendEng_->template advertiseFor<Messages>(node, mod, res);
             }
@@ -457,27 +496,20 @@ private:
         template <app::MessageC Message>
         void send(Message const & message) {
             using M = typename std::decay<Message>::type;
-            using Mnet = typename domain_detail::matching_ipcable<M>::type;
-
-            if constexpr (std::is_trivially_destructible<Mnet>::value) {
-                if constexpr (has_tipsDisableSendMask<M>::value) {
-                    if (M::tipsDisableSendMask() & OVER_NETWORK) return;
-                }
-                if constexpr (has_net_send_eng) {
-                    if constexpr(has_toHmbdcIpcable<M>::value) {
-                        static_assert(std::is_same<M
-                            , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
-                            , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(decltype(message.toHmbdcIpcable())) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        sendEng_->queue(message.toHmbdcIpcable());
-                    } else {
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(message) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        sendEng_->queue(message);
-                    }
+            if constexpr (has_net_send_eng && domain_detail::is_netable<M>::value) {
+                if constexpr(has_toHmbdcIpcable<M>::value) {
+                    static_assert(std::is_same<M
+                        , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                        , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(decltype(message.toHmbdcIpcable())) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    sendEng_->queue(message.toHmbdcIpcable());
+                } else {
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(message) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    sendEng_->queue(message);
                 }
             }
         }
@@ -485,29 +517,23 @@ private:
         template <app::MessageC Message>
         bool trySend(Message const & message) {
             using M = typename std::decay<Message>::type;
-            using Mnet = typename domain_detail::matching_ipcable<M>::type;
-
-            if constexpr (std::is_trivially_destructible<Mnet>::value) {
-                if constexpr (has_tipsDisableSendMask<M>::value) {
-                    if (M::tipsDisableSendMask() & OVER_NETWORK) return true;
-                }
-                if constexpr (has_net_send_eng) {
-                    if constexpr(has_toHmbdcIpcable<M>::value) {
-                        static_assert(std::is_same<M
-                            , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
-                            , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(decltype(message.toHmbdcIpcable())) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        return sendEng_->tryQueue(message.toHmbdcIpcable());
-                    } else {
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(message) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        return sendEng_->tryQueue(message);
-                    }
+            if constexpr (has_net_send_eng && domain_detail::is_netable<M>::value) {
+                if constexpr(has_toHmbdcIpcable<M>::value) {
+                    static_assert(std::is_same<M
+                        , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                        , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(decltype(message.toHmbdcIpcable())) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    return sendEng_->tryQueue(message.toHmbdcIpcable());
+                } else {
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(message) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    return sendEng_->tryQueue(message);
                 }
             }
+            return true;
         }
 
         void sendJustBytes(uint16_t tag, void const* bytes, size_t len
@@ -576,7 +602,7 @@ private:
                     att->attachment = shmAddr;
                     att->clientData[0] = (uint64_t)&hmbdcShmDeallocator;
                     att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* h) {
-                        auto hmbdc0cpyShmRefCount = (size_t*)h->attachment;
+                        auto hmbdc0cpyShmRefCount = &Message::getHmbdc0cpyShmRefCount(*h);
                         if (h->attachment 
                             && 0 == __atomic_sub_fetch(hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
                             auto& hmbdcShmDeallocator
@@ -671,6 +697,8 @@ private:
                 });
             
             if constexpr (has_net_recv_eng) {
+                using Messages = typename filter_in_tuple<domain_detail::is_netable
+                    , typename CcNode::RecvMessageTuple>::type;
                 recvEng_->template subscribeFor<Messages>(node, mod, res);
             }
         }
@@ -689,7 +717,7 @@ private:
 
         template <typename CcNode>
         void advertiseFor(CcNode const& node, uint16_t mod, uint16_t res) {
-            using Messages = typename filter_in_tuple<domain_detail::is_ipcable
+            using Messages = typename filter_in_tuple<domain_detail::is_netable
                 , typename CcNode::SendMessageTuple>::type;
             if constexpr (has_net_send_eng) {
                 sendEng_->template advertiseFor<Messages>(node, mod, res);
@@ -716,92 +744,74 @@ private:
             using M = typename std::decay<Message>::type;
             using Mipc = typename domain_detail::matching_ipcable<M>::type;
 
-            if constexpr (std::is_trivially_destructible<Mipc>::value) {
-                bool disableInterProcess = false;
-                if constexpr (has_tipsDisableSendMask<M>::value) {
-                    if (M::tipsDisableSendMask() & INTER_PROCESS) {
-                        disableInterProcess = true;
-                    }
-                }
-                bool disableNet = false;
-                if constexpr (!has_net_send_eng) {
-                    disableNet = true;
-                } else if constexpr (has_tipsDisableSendMask<M>::value) {
-                    if (M::tipsDisableSendMask() & OVER_NETWORK) disableNet = true;
-                }
-
-                std::optional<Mipc> serializedCached;
-                app::hasMemoryAttachment::AfterConsumedCleanupFunc afterConsumedCleanupFuncKept = nullptr;
-                (void)afterConsumedCleanupFuncKept;
-                if (!disableInterProcess) {
-                    //only send when others have interests
-                    auto intDiff = pOutboundSubscriptions_->check(message.getTypeTag())
-                        - inboundSubscriptions_.check(message.getTypeTag());
-                    if (intDiff) {
-                        //ipc message should not come back based on hmbdcAvoidIpcFrom
-                        using ToSendType = ipc_from<Mipc>;
-                        if constexpr (has_toHmbdcIpcable<M>::value) {
-                            static_assert(std::is_same<M
-                                , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
-                                , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
-                            serializedCached.emplace(message.toHmbdcIpcable());
-                            if (!disableNet) {
-                                if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
-                                    //keep the att around
-                                    std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
-                                }
-                            }
-                            auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
-
-                            if constexpr (ToSendType::is_att_0cpyshm) {
-                                static_assert(!IpcProperty::useDevMem, "not implemented");
-                                if (toSend.template holdShmHandle<ToSendType>()) {
-                                    toSend.hmbdcIsAttInShm = true;
-                                    auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
-                                    __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
-                                }
-                            }
-                            ipcTransport_.send(std::move(toSend));
-                        } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
-                            auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
-                            if constexpr (ToSendType::is_att_0cpyshm) {
-                                // if (ToSendType::is_att_0cpyshm && toSend.app::hasMemoryAttachment::attachment) {
-                                if (toSend.template holdShmHandle<ToSendType>()) {
-                                    toSend.hmbdcIsAttInShm = true;
-                                    auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
-                                    __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
-                                }
-                            }
-                            ipcTransport_.send(std::move(toSend));
-                        } else {
-                            ipcTransport_.template sendInPlace<ToSendType>(hmbdcAvoidIpcFrom, message);
-                        }
-                    }
-                }
-
-                if (disableNet) return;
-                
-                if constexpr (has_net_send_eng) {
-                    if constexpr(has_toHmbdcIpcable<M>::value) {
-
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(Mipc) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        if (serializedCached) {
+            constexpr bool disableInterProcess = !domain_detail::is_ipcable<M>::value;
+            constexpr bool disableNet = !(domain_detail::is_netable<M>::value && has_net_send_eng);
+            std::optional<Mipc> serializedCached;
+            app::hasMemoryAttachment::AfterConsumedCleanupFunc afterConsumedCleanupFuncKept = nullptr;
+            (void)afterConsumedCleanupFuncKept;
+            if constexpr (!disableInterProcess) {
+                //only send when others have interests
+                auto intDiff = pOutboundSubscriptions_->check(message.getTypeTag())
+                    - inboundSubscriptions_.check(message.getTypeTag());
+                if (intDiff) {
+                    //ipc message should not come back based on hmbdcAvoidIpcFrom
+                    using ToSendType = ipc_from<Mipc>;
+                    if constexpr (has_toHmbdcIpcable<M>::value) {
+                        static_assert(std::is_same<M
+                            , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                            , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                        serializedCached.emplace(message.toHmbdcIpcable());
+                        if (!disableNet) {
                             if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
-                                // restore
+                                //keep the att around
                                 std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
                             }
-                            sendEng_->queue(*serializedCached);
-                        } else {
-                            sendEng_->queue(message.toHmbdcIpcable());
                         }
+                        auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
+
+                        if constexpr (ToSendType::att_via_shm_pool) {
+                            static_assert(!IpcProperty::use_dev_mem, "not implemented");
+                            if (toSend.template holdShmHandle<ToSendType>()) {
+                                toSend.hmbdcIsAttInShm = true;
+                                auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
+                                __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                            }
+                        }
+                        ipcTransport_.send(std::move(toSend));
+                    } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
+                        auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
+                        if constexpr (ToSendType::att_via_shm_pool) {
+                            if (toSend.template holdShmHandle<ToSendType>()) {
+                                toSend.hmbdcIsAttInShm = true;
+                                auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
+                                __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                            }
+                        }
+                        ipcTransport_.send(std::move(toSend));
                     } else {
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(Mipc) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        sendEng_->queue(message);
+                        ipcTransport_.template sendInPlace<ToSendType>(hmbdcAvoidIpcFrom, message);
                     }
+                }
+            }
+            if constexpr (!disableNet) {
+                if constexpr(has_toHmbdcIpcable<M>::value) {
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(Mipc) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    if (serializedCached) {
+                        if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
+                            // restore
+                            std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                        }
+                        sendEng_->queue(*serializedCached);
+                    } else {
+                        sendEng_->queue(message.toHmbdcIpcable());
+                    }
+                } else {
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(Mipc) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    sendEng_->queue(message);
                 }
             }
         }
@@ -811,73 +821,57 @@ private:
             using M = typename std::decay<Message>::type;
             using Mipc = typename domain_detail::matching_ipcable<M>::type;
 
+            constexpr bool disableInterProcess = !domain_detail::is_ipcable<M>::value;
+            constexpr bool disableNet = !(domain_detail::is_netable<M>::value && has_net_send_eng);
             auto res = true;
 
-            if constexpr (std::is_trivially_destructible<Mipc>::value) {
-                bool disableInterProcess = false;
-                if constexpr (has_tipsDisableSendMask<M>::value) {
-                    if (M::tipsDisableSendMask() & INTER_PROCESS) {
-                        disableInterProcess = true;
-                    }
-                }
-                bool disableNet = false;
-                if constexpr (!has_net_send_eng) {
-                    disableNet = true;
-                } else if constexpr (has_tipsDisableSendMask<M>::value) {
-                    if (M::tipsDisableSendMask() & OVER_NETWORK) disableNet = true;
-                }
-
-                std::optional<Mipc> serializedCached;
-                app::hasMemoryAttachment::AfterConsumedCleanupFunc afterConsumedCleanupFuncKept = nullptr;
-                (void)afterConsumedCleanupFuncKept;
-                if (!disableInterProcess) {
-                    //only send when others have interests
-                    auto intDiff = pOutboundSubscriptions_->check(message.getTypeTag())
-                        - inboundSubscriptions_.check(message.getTypeTag());
-                    if (intDiff) {
-                        //ipc message should not come back based on hmbdcAvoidIpcFrom
-                        using ToSendType = ipc_from<Mipc>;
-                        if constexpr (has_toHmbdcIpcable<M>::value) {
-                            static_assert(std::is_same<M
-                                , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
-                                , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
-                            serializedCached.emplace(message.toHmbdcIpcable());
-                            if (!disableNet) {
-                                //keep the att around
-                                std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+            std::optional<Mipc> serializedCached;
+            app::hasMemoryAttachment::AfterConsumedCleanupFunc afterConsumedCleanupFuncKept = nullptr;
+            (void)afterConsumedCleanupFuncKept;
+            if constexpr (!disableInterProcess) {
+                //only send when others have interests
+                auto intDiff = pOutboundSubscriptions_->check(message.getTypeTag())
+                    - inboundSubscriptions_.check(message.getTypeTag());
+                if (intDiff) {
+                    //ipc message should not come back based on hmbdcAvoidIpcFrom
+                    using ToSendType = ipc_from<Mipc>;
+                    if constexpr (has_toHmbdcIpcable<M>::value) {
+                        static_assert(std::is_same<M
+                            , decltype(message.toHmbdcIpcable().fromHmbdcIpcable())>::value
+                            , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
+                        serializedCached.emplace(message.toHmbdcIpcable());
+                        if (!disableNet) {
+                            //keep the att around
+                            std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                        }
+                        auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
+                        if constexpr (ToSendType::att_via_shm_pool) {
+                            if (toSend.template holdShmHandle<ToSendType>()) {
+                                toSend.hmbdcIsAttInShm = true;
+                                auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();;
+                                __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
                             }
-                            auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
-                            if constexpr (ToSendType::is_att_0cpyshm) {
+                        }
+                        res = ipcTransport_.trySend(std::move(toSend));
+                        if (!res) {
+                            if constexpr (ToSendType::att_via_shm_pool) {
                                 if (toSend.template holdShmHandle<ToSendType>()) {
                                     toSend.hmbdcIsAttInShm = true;
-                                    auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
-                                    __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                    auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();;
+                                    __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
                                 }
                             }
-                            res = ipcTransport_.trySend(std::move(toSend));
-                            if (!res) {
-                                if constexpr (ToSendType::is_att_0cpyshm) {
-                                    if (toSend.template holdShmHandle<ToSendType>()) {
-                                        toSend.hmbdcIsAttInShm = true;
-                                        auto hmbdc0cpyShmRefCount = (size_t*)toSend.app::hasMemoryAttachment::attachment;
-                                        __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
-                                    }
-                                }
-                            }
-                        } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
-                            auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
-                            res = ipcTransport_.trySend(std::move(toSend));
-                        } else {
-                            res = ipcTransport_.template trySendInPlace<ToSendType>(hmbdcAvoidIpcFrom, message);
                         }
+                    } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
+                        auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
+                        res = ipcTransport_.trySend(std::move(toSend));
+                    } else {
+                        res = ipcTransport_.template trySendInPlace<ToSendType>(hmbdcAvoidIpcFrom, message);
                     }
                 }
 
-                if (disableNet) return res;
-                
-                if constexpr (has_net_send_eng) {
+                if constexpr (!disableNet) {
                     if constexpr(has_toHmbdcIpcable<M>::value) {
-
                         static_assert(NetProperty::max_message_size == 0 
                             || sizeof(Mipc) <= NetProperty::max_message_size
                             , "NetProperty::max_message_size is too small"); 
@@ -1046,6 +1040,23 @@ private:
     
 public:
     /**
+     * @brief Get a specific Pump Configs
+     * 
+     * @param index the pump index
+     * @return app::Config 
+     */
+    app::Config getPumpConfig(auto index) const {
+        app::Config res = config_;
+        for (auto const& pc : config_.getChildExt("pumpConfigs")) {
+            if (index--) continue;
+            for (auto const& setting : pc.second) {
+                res.push_back(setting);
+            }
+        }
+        return res;
+    }
+
+    /**
      * @brief Construct a new Domain object
      * 
      * @tparam NodeContextCtorArgs Args for NodeContext's ctor
@@ -1077,38 +1088,36 @@ public:
                 , 0 //no pool
                 , IpcTransport::MAX_MESSAGE_SIZE != 0
                     ? IpcTransport::MAX_MESSAGE_SIZE
-                    : config_.getExt<size_t>("ipcMaxMessageSizeRuntime")
-                
+                    : config_.getExt<size_t>("ipcMaxMessageSizeRuntime")                
                 , 0xfffffffffffffffful
                 , 0
                 , config_.getExt<size_t>("ipcShmForAttPoolSize")
             );
             ownIpcTransport_ = ownership > 0;
-
-            allocator_.emplace((NetProtocol::instance().getTipsDomainName(config_) + "-ipcsubs").c_str()
-                , 0
+            if constexpr (IpcProperty::use_dev_mem) {
+                allocator_.emplace(NetProtocol::instance().getTipsDomainName(config_).c_str()
+                , ipcTransport_->footprint()
                 , sizeof(*pOutboundSubscriptions_)
                 , ownership);
+            } else {
+                allocator_.emplace((NetProtocol::instance().getTipsDomainName(config_) + "-ipcsubs").c_str()
+                    , 0
+                    , sizeof(*pOutboundSubscriptions_)
+                    , ownership);
+            }
             pOutboundSubscriptions_ = allocator_->template allocate<TypeTagSet>(SMP_CACHE_BYTES);
 
             ipcTransport_->setSecondsBetweenPurge(
                 config_.getExt<uint32_t>("ipcPurgeIntervalSeconds"));
             
-            auto pumpCount = config_.getExt<uint32_t>("pumpCount");
+            auto pumpCount = config_.getChildExt("pumpConfigs").size();
             if (pumpCount > 64) {
                 HMBDC_THROW(std::out_of_range, "pumpCount > 64 is not suppported");
             }
-            auto ownIpcTransport = ownIpcTransport_;
 
-            allocator_.emplace((NetProtocol::instance().getTipsDomainName(config_) + "-ipcsubs").c_str()
-                , 0
-                , sizeof(*pOutboundSubscriptions_)
-                , ownIpcTransport);
-            
-            pOutboundSubscriptions_ = allocator_->template allocate<TypeTagSet>(SMP_CACHE_BYTES);
-
-            for (auto i = 0u; i < config_.getExt<uint32_t>("pumpCount"); ++i) {
-                auto& pump = pumps_.emplace_back(*ipcTransport_, pOutboundSubscriptions_, threadCtx_, config_);
+            for (auto i = 0u; i < pumpCount; ++i) {
+                auto config = getPumpConfig(i);
+                auto& pump = pumps_.emplace_back(*ipcTransport_, pOutboundSubscriptions_, threadCtx_, config);
                 if (pumpRunMode == "manual") {
                     ipcTransport_->registerToRun(pump
                         , config_.getHex<uint64_t>("pumpCpuAffinityHex"));
@@ -1118,8 +1127,10 @@ public:
                 }
             }
         } else if constexpr (run_pump_in_thread_ctx) {
-            for (auto i = 0u; i < config_.getExt<uint32_t>("pumpCount"); ++i) {
-                auto& pump = pumps_.emplace_back(threadCtx_, config_);
+            auto pumpCount = config_.getChildExt("pumpConfigs").size();
+            for (auto i = 0u; i < pumpCount; ++i) {
+                auto config = getPumpConfig(i);
+                auto& pump = pumps_.emplace_back(threadCtx_, config);
                 if (pumpRunMode == "manual") {
                     pump.handleInCtx = threadCtx_.registerToRun(pump, 0, 0);
                 } else if (pumpRunMode == "delayed") {
@@ -1236,7 +1247,7 @@ public:
         threadCtx_.start(node, capacity, node.maxMessageSize()
             , cpuAffinity, maxBlockingTime
              , [&node](auto && ...args) {
-                return node.ifDeliver(std::forward<decltype(args)>(args)...);
+                return node.ifDeliverCfg(std::forward<decltype(args)>(args)...);
             }
         );
         return *this;
@@ -1309,7 +1320,7 @@ public:
 
         threadCtx_.start(proxies.begin(), proxies.end(), capacity, maxItemSize, cpuAffinity, maxBlockingTime
             , [&node = **proxies.begin()](auto && ...args) {
-                return node.ifDeliver(std::forward<decltype(args)>(args)...);
+                return node.ifDeliverCfg(std::forward<decltype(args)>(args)...);
         });
         return *this;
     }
@@ -1398,14 +1409,11 @@ public:
      */
     template <app::MessageC Message>
     void publish(Message&& m) {
-        bool disableInterThread = false;
         using M = typename std::decay<Message>::type;
         static_assert((int)M::typeSortIndex > (int)app::LastSystemMessage::typeTag);
+        constexpr bool disableInterThread = !domain_detail::is_threadable<M>::value;
         
-        if constexpr (has_tipsDisableSendMask<M>::value) {
-            disableInterThread = M::tipsDisableSendMask() & INTER_THREAD;
-        }
-        if (!disableInterThread) {
+        if constexpr (!disableInterThread) {
             threadCtx_.send(m);
         }
         if constexpr (run_pump_in_ipc_portal || run_pump_in_thread_ctx) {
@@ -1425,15 +1433,12 @@ public:
      */
     template <app::MessageC Message>
     bool tryPublish(Message&& m) {
-        bool disableInterThread = false;
         using M = typename std::decay<Message>::type;
         static_assert((int)M::typeSortIndex > (int)app::LastSystemMessage::typeTag);
+        constexpr bool disableInterThread = !domain_detail::is_threadable<M>::value;
         
-        if constexpr (has_tipsDisableSendMask<M>::value) {
-            disableInterThread = M::tipsDisableSendMask() & INTER_THREAD;
-        }
         auto res = true;
-        if (!disableInterThread) {
+        if constexpr (!disableInterThread) {
             res = threadCtx_.trySend(m);
         }
         if constexpr (run_pump_in_ipc_portal || run_pump_in_thread_ctx) {
@@ -1486,11 +1491,8 @@ public:
     template <app::MessageForwardIterC ForwardIt>
     void publish(ForwardIt begin, size_t n) {
         using M = typename std::decay<decltype(*(ForwardIt()))>::type;
-        bool disableInterThread = false;
-        if constexpr (has_tipsDisableSendMask<M>::value) {
-            disableInterThread = M::tipsDisableSendMask() & INTER_THREAD;
-        }
-        if (!disableInterThread) {
+        constexpr bool disableInterThread = !domain_detail::is_threadable<M>::value;
+        if constexpr (!disableInterThread) {
             threadCtx_.send(begin, n);
         }
         if constexpr (run_pump_in_ipc_portal || run_pump_in_thread_ctx) {
@@ -1502,29 +1504,40 @@ public:
     }
 
     /**
+     * @brief allocate in shm to be hold in a hasSharedPtrAttachment to be published later
+     * The release of it is auto handled in TIPS after being published
+     * Will block if the shm is out of mem
+     * @param actualSize the byte size of the shm segment
+     * @return std::shared_ptr<uint8_t[]> 
+     */
+    std::shared_ptr<uint8_t[]> allocateInShmFor0cpy(size_t actualSize) {
+        if constexpr (run_pump_in_ipc_portal && !IpcProperty::use_dev_mem) {
+            return ipcTransport_->allocateInShm(actualSize);
+        } else {
+            HMBDC_THROW(std::logic_error, "Domain not support shm IPC");
+        }
+    }
+
+    /**
      * @brief allocate in shm for a hasSharedPtrAttachment to be published later
      * The release of it is auto handled in TIPS
+     * a stronger typed than the previous version
+     * Will block if the shm is out of mem
      * 
      * @tparam Message hasSharedPtrAttachment tparam
-     * @tparam T hasSharedPtrAttachment tparam - it needs to contain "size_t hmbdc0cpyShmRefCount"
-     * as the first data member - won't compile otherwise
+     * @tparam T hasSharedPtrAttachment tparam - it needs to be trivial destructable
      * @tparam Args args for T's ctor
      * @param att the message holds the shared memory
      * @param actualSize T's actual size in bytes - could be > sizeof(T) for open ended struct
      * @param args args for T's ctor
      */
     template <app::MessageC Message, typename T, typename ...Args>
-    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T> & att
+    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T, true> & att
         , size_t actualSize, Args&& ...args) {
-        static_assert(offsetof(T, hmbdc0cpyShmRefCount) == 0);
-        static_assert(std::is_same<decltype(T::hmbdc0cpyShmRefCount), size_t>::value);
-        if (actualSize < sizeof(T)) {
-            HMBDC_THROW(std::out_of_range, "too small size for type " << actualSize);
-        }
-        att.attachmentSp = ipcTransport_->template allocateInShm<T>(
-            actualSize, std::forward<Args>(args)...);
-        att.attachmentSp->hmbdc0cpyShmRefCount = 1; /// sender
-        att.len = actualSize;
+        auto p = ipcTransport_->allocateInShm(actualSize);
+        using ELE_T = typename std::shared_ptr<T>::element_type;
+        new (p.get()) ELE_T{std::forward<Args>(args)...};
+        att.reset(true, std::reinterpret_pointer_cast<T>(p), actualSize);
     }
 
     /**

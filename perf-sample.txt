@@ -42,7 +42,8 @@ multicast           as scalable as UDP multicast
 --------------------------------------------------------------------------------------------------------------------
 commands and notes when obtaining the above performance data
 0.1)
-[a] for s in 100 1000 10000 100000 1000000 10000000; do ./tips-ping-pong -r ping --cpuIndex 2 --msgPerSec 50 --netprot nonet --msgSize=$s --runTime 30 --use0cpy=0; done
+[a] qperf
+[a] for s in 100 1000 10000 100000 1000000 10000000; do qperf -v -m $s 127.0.0.1  tcp_lat; done
 0.2)
 [b] qperf
 [a] for s in 100 1000 10000 100000 1000000 10000000; do qperf -v -m $s 192.168.2.100  tcp_lat; done
@@ -53,6 +54,7 @@ commands and notes when obtaining the above performance data
 2.1)
 [b] ./tips-ping-pong -r pong --cpuIndex 4 --netprot nonet
 [a] for s in 100 1000 10000 100000 1000000 10000000; do ./tips-ping-pong -r ping --cpuIndex 2 --msgPerSec 5000 --netprot nonet --msgSize=$s --runTime 30; done
+
 2.2)
 [b] ./tips-ping-pong -r pong --cpuIndex 4 --netprot nonet --use0cpy=0
 [a] for s in 100 1000 10000 100000 1000000 10000000; do ./tips-ping-pong -r ping --cpuIndex 2 --msgPerSec 50 --netprot nonet --msgSize=$s --runTime 30 --use0cpy=0; done

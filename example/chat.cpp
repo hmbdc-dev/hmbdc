@@ -47,6 +47,7 @@ struct Announcement
 struct ChatMessage 
 : hasSharedPtrAttachment<ChatMessage, char[]>   //message text is saved in a shared_ptr<char[]>
                                                 //recipients even in a different host gets valid shared_ptr to use
+                                                //no limit on the attachment length
 , inTagRange<1002, 100> {                       //up to 100 chat groups; only configured 3 in the example
     ChatMessage(char const* myId, uint16_t grouId, char const* msg)
     : hasSharedPtrAttachment(std::shared_ptr<char[]>(new char[strlen(msg) + 1]), strlen(msg) + 1)
@@ -105,7 +106,7 @@ struct Chatter
     /// here we tell the framework what the tag offset is for ChatMessage
     /// Note Admin does not implemet this function and all ChatMessage
     /// are delivered to Admin regardles of the tag offset of each message
-    void addTypeTagRangeSubsFor(ChatMessage*, std::function<void(uint16_t)> addOffsetInRange) const {
+    void addTypeTagRangeSubsForCfg(ChatMessage*, std::function<void(uint16_t)> addOffsetInRange) const {
         addOffsetInRange(groupId);
     }
 
@@ -122,6 +123,12 @@ struct Chatter
         if (id != m.id) { //do not reprint myself
             cout << m.id << ": " << m.attachmentSp.get() << endl;
         }
+    }
+    
+    /// thread safe function
+    void say(std::string const& something) {
+        ChatMessage m(id.c_str(), groupId, something.c_str());
+        publish(m); /// can publish from any thread
     }
 
     string const id;
@@ -169,7 +176,7 @@ int main(int argc, char** argv) {
         domain.add(admin).startPumping();
         //we can read the admin's input and send messages out now
         string line;
-        cout << "start type a message" << endl;
+        cout << "start typing a message" << endl;
         cout << "ctrl-d to terminate" << endl;
 
         while(getline(cin, line)) {
@@ -199,8 +206,7 @@ int main(int argc, char** argv) {
         cout << "ctrl-d to terminate" << endl;
 
         while(!chatter.stopFlag && getline(cin, line)) {
-            ChatMessage m(myId.c_str(), chatter.groupId, line.c_str());
-            chatter.publish(m); //now reliable publish
+            chatter.say(line);
         }
 
         domain.stop();

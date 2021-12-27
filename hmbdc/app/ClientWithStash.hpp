@@ -43,7 +43,7 @@ protected:
  */
     template <MessageC Message>
     void stash(Message const& message) {
-        static_assert(index_in_tuple<Message, std::tuple<Messages...>>::value != sizeof...(Messages)
+        static_assert(is_in_tuple_v<Message, std::tuple<Messages...>>
             , "cannot stash uninterested message");
         stash_.push_back(typename decltype(stash_)::value_type{});
         new (stash_.back().data()) MessageWrap<Message>(message);

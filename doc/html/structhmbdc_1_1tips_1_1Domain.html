@@ -94,6 +94,9 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a047c594f379d568c02925bf2833c7807"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a047c594f379d568c02925bf2833c7807">getPumpConfig</a> (auto index) const</td></tr>
+<tr class="memdesc:a047c594f379d568c02925bf2833c7807"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a specific Pump Configs.  <a href="#a047c594f379d568c02925bf2833c7807">More...</a><br /></td></tr>
+<tr class="separator:a047c594f379d568c02925bf2833c7807"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memTemplParams" colspan="2">template&lt;typename ... NodeContextCtorArgs&gt; </td></tr>
 <tr class="memitem:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a06d2f5c3f9d83688b1b45a0052ac4cb8">Domain</a> (<a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> const &amp;cfg, NodeContextCtorArgs &amp;&amp;...nodeCtxArgs)</td></tr>
 <tr class="memdesc:a06d2f5c3f9d83688b1b45a0052ac4cb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object.  <a href="#a06d2f5c3f9d83688b1b45a0052ac4cb8">More...</a><br /></td></tr>
@@ -153,10 +156,13 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <tr class="memitem:ac6d8fb734dd8f360dca95ad730dc73b8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#ac6d8fb734dd8f360dca95ad730dc73b8">publish</a> (ForwardIt begin, size_t n)</td></tr>
 <tr class="memdesc:ac6d8fb734dd8f360dca95ad730dc73b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a sequence of message of the same type through this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>, all the Nodes in the TIPS domain could get it if it subscribed to the Message type  <a href="#ac6d8fb734dd8f360dca95ad730dc73b8">More...</a><br /></td></tr>
 <tr class="separator:ac6d8fb734dd8f360dca95ad730dc73b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb67a2cae828f52c8fb07b67788ff510"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message, typename T , typename ... Args&gt; </td></tr>
-<tr class="memitem:aeb67a2cae828f52c8fb07b67788ff510"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aeb67a2cae828f52c8fb07b67788ff510">allocateInShmFor0cpy</a> (<a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a>&lt; Message, T &gt; &amp;att, size_t actualSize, Args &amp;&amp;...args)</td></tr>
-<tr class="memdesc:aeb67a2cae828f52c8fb07b67788ff510"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS  <a href="#aeb67a2cae828f52c8fb07b67788ff510">More...</a><br /></td></tr>
-<tr class="separator:aeb67a2cae828f52c8fb07b67788ff510"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27321f9b446bdac2520d57279a09291f"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; uint8_t[]&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a27321f9b446bdac2520d57279a09291f">allocateInShmFor0cpy</a> (size_t actualSize)</td></tr>
+<tr class="memdesc:a27321f9b446bdac2520d57279a09291f"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate in shm to be hold in a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS after being published Will block if the shm is out of mem  <a href="#a27321f9b446bdac2520d57279a09291f">More...</a><br /></td></tr>
+<tr class="separator:a27321f9b446bdac2520d57279a09291f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaec2dc9bd5272e43aff37e0d2f965ae1"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message, typename T , typename ... Args&gt; </td></tr>
+<tr class="memitem:aaec2dc9bd5272e43aff37e0d2f965ae1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aaec2dc9bd5272e43aff37e0d2f965ae1">allocateInShmFor0cpy</a> (<a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a>&lt; Message, T, true &gt; &amp;att, size_t actualSize, Args &amp;&amp;...args)</td></tr>
+<tr class="memdesc:aaec2dc9bd5272e43aff37e0d2f965ae1"><td class="mdescLeft">&#160;</td><td class="mdescRight">allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS a stronger typed than the previous version Will block if the shm is out of mem  <a href="#aaec2dc9bd5272e43aff37e0d2f965ae1">More...</a><br /></td></tr>
+<tr class="separator:aaec2dc9bd5272e43aff37e0d2f965ae1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2f430d091559dbe5af3e4b7510c0966"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aa2f430d091559dbe5af3e4b7510c0966">ownIpcTransport</a> () const</td></tr>
 <tr class="memdesc:aa2f430d091559dbe5af3e4b7510c0966"><td class="mdescLeft">&#160;</td><td class="mdescRight">if the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> object owns the IPC transport  <a href="#aa2f430d091559dbe5af3e4b7510c0966">More...</a><br /></td></tr>
 <tr class="separator:aa2f430d091559dbe5af3e4b7510c0966"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -440,8 +446,45 @@ template&lt;typename CcNode &gt; </div>
 
 </div>
 </div>
-<a id="aeb67a2cae828f52c8fb07b67788ff510"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeb67a2cae828f52c8fb07b67788ff510">&#9670;&nbsp;</a></span>allocateInShmFor0cpy()</h2>
+<a id="a27321f9b446bdac2520d57279a09291f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a27321f9b446bdac2520d57279a09291f">&#9670;&nbsp;</a></span>allocateInShmFor0cpy() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;uint8_t[]&gt; <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::allocateInShmFor0cpy </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>actualSize</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>allocate in shm to be hold in a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS after being published Will block if the shm is out of mem </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">actualSize</td><td>the byte size of the shm segment </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>std::shared_ptr&lt;uint8_t[]&gt; </dd></dl>
+
+</div>
+</div>
+<a id="aaec2dc9bd5272e43aff37e0d2f965ae1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaec2dc9bd5272e43aff37e0d2f965ae1">&#9670;&nbsp;</a></span>allocateInShmFor0cpy() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -456,7 +499,7 @@ template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
         <tr>
           <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::allocateInShmFor0cpy </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a>&lt; Message, T &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a>&lt; Message, T, true &gt; &amp;&#160;</td>
           <td class="paramname"><em>att</em>, </td>
         </tr>
         <tr>
@@ -484,11 +527,11 @@ template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS </p>
+<p>allocate in shm for a <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> to be published later The release of it is auto handled in TIPS a stronger typed than the previous version Will block if the shm is out of mem </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Message</td><td><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> tparam </td></tr>
-    <tr><td class="paramname">T</td><td><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> tparam - it needs to contain "size_t hmbdc0cpyShmRefCount" as the first data member - won't compile otherwise </td></tr>
+    <tr><td class="paramname">Message</td><td><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> tparam </td></tr>
+    <tr><td class="paramname">T</td><td><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> tparam - it needs to be trivial destructable </td></tr>
     <tr><td class="paramname">Args</td><td>args for T's ctor </td></tr>
   </table>
   </dd>
@@ -501,7 +544,6 @@ template&lt;app::MessageC Message, typename T , typename ... Args&gt; </div>
   </table>
   </dd>
 </dl>
-<p>sender </p>
 
 </div>
 </div>
@@ -535,6 +577,43 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">section</td><td>nullptr, "tx", "rx" network configuration have fallback, tx and rx sections </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>app::Config </dd></dl>
+
+</div>
+</div>
+<a id="a047c594f379d568c02925bf2833c7807"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a047c594f379d568c02925bf2833c7807">&#9670;&nbsp;</a></span>getPumpConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structhmbdc_1_1app_1_1config__detail_1_1Config.html">app::Config</a> <a class="el" href="structhmbdc_1_1tips_1_1Domain.html">hmbdc::tips::Domain</a>&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::getPumpConfig </td>
+          <td>(</td>
+          <td class="paramtype">auto&#160;</td>
+          <td class="paramname"><em>index</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get a specific Pump Configs. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">index</td><td>the pump index </td></tr>
   </table>
   </dd>
 </dl>
@@ -888,7 +967,7 @@ template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typ
 </div><div class="memdoc">
 
 <p>publish a message using byte format on this <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> - not recommended </p>
-<p>Messages MUST be trivially destructable - no type based delivery features such as DisableSendMask are supported. It is not recommended to publish with att while the tag is also subscribed locally due to the complexity of att-&gt;release() will be called for each local recipient and 1 additonal time in <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>. publish via <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="internal use ">hasSharedPtrAttachment</a> is always prefered </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Messages MUST be trivially destructable - no type based delivery features such as DisableSendMask are supported. It is not recommended to publish with att while the tag is also subscribed locally due to the complexity of att-&gt;release() will be called for each local recipient and 1 additonal time in <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a>. publish via <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html" title="Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and...">hasSharedPtrAttachment</a> is always prefered </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">tag</td><td>- type tag </td></tr>
     <tr><td class="paramname">bytes</td><td>- bytes of the message contents - must match the message already constructed binary wise (hasMemoryAttachment, inTagRange must be considered<ul>

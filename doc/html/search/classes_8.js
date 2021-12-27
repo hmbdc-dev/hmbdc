@@ -18,8 +18,12 @@ var searchData=
   ['ipc_5fenabled',['ipc_enabled',['../structhmbdc_1_1app_1_1context__property_1_1ipc__enabled.html',1,'hmbdc::app::context_property']]],
   ['ipc_5ffrom',['ipc_from',['../structhmbdc_1_1tips_1_1domain__detail_1_1ipc__from.html',1,'hmbdc::tips::domain_detail']]],
   ['ipc_5fproperty',['ipc_property',['../structhmbdc_1_1tips_1_1ipc__property.html',1,'hmbdc::tips']]],
+  ['is_5fderived_5ffrom_5fnon_5ftype_5ftemplate',['is_derived_from_non_type_template',['../classhmbdc_1_1is__derived__from__non__type__template.html',1,'hmbdc']]],
+  ['is_5fderived_5ffrom_5ftype_5ftemplate',['is_derived_from_type_template',['../classhmbdc_1_1is__derived__from__type__template.html',1,'hmbdc']]],
   ['is_5fhasmemoryattachment_5ffirst_5fbase_5fof',['is_hasMemoryAttachment_first_base_of',['../structhmbdc_1_1app_1_1is__hasMemoryAttachment__first__base__of.html',1,'hmbdc::app']]],
   ['is_5fipcable',['is_ipcable',['../structhmbdc_1_1tips_1_1domain__detail_1_1is__ipcable.html',1,'hmbdc::tips::domain_detail']]],
+  ['is_5fnetable',['is_netable',['../structhmbdc_1_1tips_1_1domain__detail_1_1is__netable.html',1,'hmbdc::tips::domain_detail']]],
   ['is_5fsubset',['is_subset',['../structhmbdc_1_1is__subset.html',1,'hmbdc']]],
-  ['iterator',['iterator',['../structhmbdc_1_1pattern_1_1blocking__buffer__detail_1_1iterator.html',1,'hmbdc::pattern::blocking_buffer_detail::iterator'],['../structhmbdc_1_1pattern_1_1lf__misc_1_1iterator.html',1,'hmbdc::pattern::lf_misc::iterator&lt; Seq &gt;'],['../structhmbdc_1_1pattern_1_1RingBuffer_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, parallel_consumer_count &gt;::iterator'],['../structhmbdc_1_1pattern_1_1RingBuffer_3_01T_00_010_01_4_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, 0 &gt;::iterator']]]
+  ['is_5fthreadable',['is_threadable',['../structhmbdc_1_1tips_1_1domain__detail_1_1is__threadable.html',1,'hmbdc::tips::domain_detail']]],
+  ['iterator',['iterator',['../structhmbdc_1_1pattern_1_1RingBuffer_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, parallel_consumer_count &gt;::iterator'],['../structhmbdc_1_1pattern_1_1lf__misc_1_1iterator.html',1,'hmbdc::pattern::lf_misc::iterator&lt; Seq &gt;'],['../structhmbdc_1_1pattern_1_1RingBuffer_3_01T_00_010_01_4_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, 0 &gt;::iterator'],['../structhmbdc_1_1pattern_1_1blocking__buffer__detail_1_1iterator.html',1,'hmbdc::pattern::blocking_buffer_detail::iterator']]]
 ];

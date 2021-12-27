@@ -45,6 +45,8 @@ struct RecvSession {
         ->get<hmbdc::app::hasMemoryAttachment>()){
     }
 
+    RecvSession(RecvSession const&) = delete;
+    RecvSession& operator = (RecvSession const&) = delete;
     ~RecvSession() {
         free(buf_);
         hasMemoryAttachment_->release();

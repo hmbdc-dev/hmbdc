@@ -21,8 +21,7 @@
 
 #include <netinet/ether.h>      /* ether_aton */
 #include <linux/if_packet.h>    /* sockaddr_ll */
-#include <sys/sysctl.h> /* sysctl */
-#include <ifaddrs.h>    /* getifaddrs */
+#include <ifaddrs.h>            /* getifaddrs */
 
 #include <poll.h>    
 

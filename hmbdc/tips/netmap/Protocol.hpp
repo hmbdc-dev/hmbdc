@@ -22,7 +22,9 @@ struct Protocol
         cfg.resetSection("tx", false);
         cfg.setAdditionalFallbackConfig(app::Config(DefaultUserConfig));
 
-        auto res= cfg.getExt<std::string>("ifaceAddr") + '-' + cfg.getExt<std::string>("netmapPort");
+        auto res = cfg.getExt<std::string>("localDomainName");
+        if (res != "tips-auto") return res; 
+        res= cfg.getExt<std::string>("ifaceAddr") + '-' + cfg.getExt<std::string>("netmapPort");
         std::replace(res.begin(), res.end(), '/', ':');
         return res;
     }

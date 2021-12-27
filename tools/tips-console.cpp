@@ -139,13 +139,13 @@ exit
         myCerr_ << "[status] " << (e.what()) << endl;
     };
 
-    void addJustBytesPubsFor(std::function<void(uint16_t)> addTag) const {
+    void addJustBytesPubsForCfg(std::function<void(uint16_t)> addTag) const {
         for (auto tag : pubTags_) {
             addTag(tag);
         }
     }
 
-    void addJustBytesSubsFor(std::function<void(uint16_t)> addTag) const {
+    void addJustBytesSubsForCfg(std::function<void(uint16_t)> addTag) const {
         for (auto tag : subTags_) {
             addTag(tag);
         }

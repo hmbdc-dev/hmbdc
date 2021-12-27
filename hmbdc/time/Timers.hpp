@@ -47,7 +47,9 @@ public:
         return armed;
     }
 
-    virtual ~Timer(){}
+    Timer(Timer const&) = delete;
+    Timer& operator = (Timer const&) = delete;
+    virtual ~Timer() = default;
 
 private:
     friend struct TimerManager;

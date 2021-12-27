@@ -27,6 +27,8 @@ struct LockFreeBufferT {
     template <typename Allocator = os::DefaultAllocator>
     LockFreeBufferT(size_t, uint32_t, Allocator& allocator = os::DefaultAllocator::instance());
     
+    LockFreeBufferT(LockFreeBufferT const&) = delete;
+    LockFreeBufferT& operator = (LockFreeBufferT const&) = delete;
     ~LockFreeBufferT();
     size_t capacity() const;
     size_t maxItemSize() const;

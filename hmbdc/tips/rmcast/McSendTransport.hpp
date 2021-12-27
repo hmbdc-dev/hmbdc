@@ -81,9 +81,6 @@ struct McSendTransport
                 | hmbdc::app::utils::EpollTask::EPOLLET, mcFd_);
     }
 
-    ~McSendTransport(){
-    }
-
     void startSend(){
         startSending_ = true;
     }

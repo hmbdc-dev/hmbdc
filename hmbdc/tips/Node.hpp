@@ -73,12 +73,22 @@ struct DomainNonPubFuncForwarder {
         addPubSubFor_ = [&node, &domain]() {
             domain.addPubSubFor(node);
         };
+        allocateInShmFor0cpy_ = [&domain](size_t actualSize) {
+            return domain.allocateInShmFor0cpy(actualSize);
+        };
     }
 
     void addPubSub() { addPubSubFor_(); }
+    auto allocateInShmFor0cpy(size_t actualSize) {
+        return allocateInShmFor0cpy_(actualSize);
+    }
 
 private:
     std::function<void()> addPubSubFor_;
+    std::function<std::shared_ptr<uint8_t[]>(size_t actualSize)> allocateInShmFor0cpy_ 
+        = [](size_t) -> std::shared_ptr<uint8_t[]> {
+            HMBDC_THROW(std::runtime_error, "Node not added into a Domain yet");
+        };
 };
 
 }
@@ -109,9 +119,13 @@ struct aggregate_send_msgs<Node, Nodes ...> {
 
 /**
  * @brief a Node is a thread of execution that can suscribe and receive Messages
- * @details All messages are received through callback function. All callback functions
- * are called in this Node thread sequentially, so there is no data protection needs
+ * @details There are two categories of callback functions "Cb" and "Cfg" and 
+ * they are called from different threads.
+ * All messages are received through "Cb" callback functions. All "Cb"callback functions
+ * are called in this Node's thread sequentially, so there is no data protection needs
  * within a Node from this perspective.
+ * The framework uses "Cfg" callback functions mostly at the initialization stage to set up
+ * pub/sub configurations before message dispatching
  * @tparam CcNode The concrete Node type
  * @tparam RecvMessageTuple The std tuple list all the received Message types.
  * The matching handleMessageCb for the above type needs to be provided for each type
@@ -152,7 +166,7 @@ struct Node {
      */
     size_t maxMessageSize() const {
         using I = typename CcNode::Interests;
-        static_assert(index_in_tuple<app::JustBytes, I>::value == std::tuple_size<I>::value
+        static_assert(!is_in_tuple_v<app::JustBytes, I>
             , "need to override this function since JustBytes is used");
         return max_size_in_tuple<typename CcNode::Interests>::value;
     }
@@ -173,9 +187,9 @@ struct Node {
      * 
      * @param addTag functor used to addd a tag value (NOT tag offset)
      */
-    void addJustBytesSubsFor(std::function<void(uint16_t)> addTag) const {
+    void addJustBytesSubsForCfg(std::function<void(uint16_t)> addTag) const {
         using I = typename CcNode::Interests;
-        static_assert(index_in_tuple<app::JustBytes, I>::value == std::tuple_size<I>::value
+        static_assert(!is_in_tuple_v<app::JustBytes, I>
             , "need to override this function since JustBytes is used");
         // addTag(aTag);
     }
@@ -185,9 +199,9 @@ struct Node {
      * 
      * @param addTag functor used to addd a tag value (NOT tag offset)
      */
-    void addJustBytesPubsFor(std::function<void(uint16_t)> addTag) const {
+    void addJustBytesPubsForCfg(std::function<void(uint16_t)> addTag) const {
         using I = typename CcNode::Interests;
-        static_assert(index_in_tuple<app::JustBytes, I>::value == std::tuple_size<I>::value
+        static_assert(!is_in_tuple_v<app::JustBytes, I>
             , "need to override this function since JustBytes is used");
         // addTag(aTag);
     }
@@ -203,7 +217,7 @@ struct Node {
      * within the range
      */
     template <app::MessageC Message>
-    void addTypeTagRangeSubsFor(Message*, std::function<void(uint16_t)> addOffsetInRange) const {
+    void addTypeTagRangeSubsForCfg(Message*, std::function<void(uint16_t)> addOffsetInRange) const {
         for (auto i = 0; i < Message::typeTagRange; ++i) {
             addOffsetInRange(i);
         }
@@ -220,7 +234,7 @@ struct Node {
      * within the range
      */
     template <app::MessageC Message>
-    void addTypeTagRangePubsFor(Message*, std::function<void(uint16_t)> addOffsetInRange) const {
+    void addTypeTagRangePubsForCfg(Message*, std::function<void(uint16_t)> addOffsetInRange) const {
         for (auto i = 0; i < Message::typeTagRange; ++i) {
             addOffsetInRange(i);
         }
@@ -247,7 +261,7 @@ struct Node {
      * @return false if not
      */
     template<app::MessageC Message>
-    bool ifDeliver(Message const& message) const {
+    bool ifDeliverCfg(Message const& message) const {
         if constexpr(!Message::hasRange) {
             return true;
         } else {
@@ -268,7 +282,7 @@ struct Node {
      * @return true if proceed to deliever it
      * @return false if not
      */
-    bool ifDeliver(uint16_t tag, uint8_t const* bytes) const {
+    bool ifDeliverCfg(uint16_t tag, uint8_t const* bytes) const {
         return subscription.check(tag);
     }
 
@@ -288,11 +302,12 @@ struct Node {
     }
 
     /**
-     * @brief reset the pub sub egistration
+     * @brief reset the pub sub registration
      * @details can only be called after the Node is added into a Domain
      * 
      */
     void resetPubSub() {
+        /// can only add right now
         domainNonPubFuncForwarder_.addPubSub();
     }
 
@@ -336,7 +351,31 @@ struct Node {
             publisher.publishJustBytes(tag, bytes, len, att);
     }
 
-    virtual ~Node(){}
+    /**
+     * @brief allocate in shm for a hasSharedPtrAttachment to be published later
+     * The release of it is auto handled in TIPS
+     * Note: the node needs to be already added to a Domain to be able to call this
+     * Will block if the shm is out of mem
+     * throw exception if shm is not supported
+     * 
+     * @tparam Message hasSharedPtrAttachment tparam
+     * @tparam T hasSharedPtrAttachment tparam - it needs to be trivial destructable
+     * @tparam Args args for T's ctor
+     * @param att the message holds the shared memory
+     * @param actualSize T's actual size in bytes - could be > sizeof(T) for open ended struct
+     * @param args args for T's ctor
+     */
+    template <app::MessageC Message, typename T, typename ...Args>
+    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T, true> & att
+        , size_t actualSize, Args&& ...args) {
+        static_assert(is_in_tuple_v<Message, SendMessageTuple>, "not a publishable Message type");
+        auto p = domainNonPubFuncForwarder_.allocateInShmFor0cpy(actualSize);
+        using ELE_T = typename std::shared_ptr<T>::element_type;
+        new (p.get()) ELE_T{std::forward<Args>(args)...};
+        att.reset(true, std::reinterpret_pointer_cast<T>(p), actualSize);
+    }
+
+    virtual ~Node() = default;
 
 protected:
     TypeTagSet subscription;

@@ -25,13 +25,12 @@ struct BlockingBuffer {
         store_ = (char*)memalign(SMP_CACHE_BYTES, capacity*maxItemSize);
     }
 
+    BlockingBuffer(BlockingBuffer const&) = delete;
+    BlockingBuffer& operator = (BlockingBuffer const&) = delete;
     ~BlockingBuffer() {
         ::free(store_);
     }
     
-    BlockingBuffer(BlockingBuffer const&) = delete;
-    BlockingBuffer& operator = (BlockingBuffer const&) = delete;
-
     value_type getItem(size_t seq) {
         return store_ + seq % capacity_ * maxItemSize_;
     }

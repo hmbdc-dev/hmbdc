@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.14"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>hmbdc: hmbdc::tips::hasSharedPtrAttachment&lt; Message, T &gt; Struct Template Reference</title>
+<title>hmbdc: hmbdc::tips::hasSharedPtrAttachment&lt; Message, T, use_shm_pool &gt; Struct Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -72,11 +72,11 @@ $(function() {
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">hmbdc::tips::hasSharedPtrAttachment&lt; Message, T &gt; Struct Template Reference</div>  </div>
+<div class="title">hmbdc::tips::hasSharedPtrAttachment&lt; Message, T, use_shm_pool &gt; Struct Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>internal use  
+<p>Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and only 1) shared ptr to an already serilized POD type.  
  <a href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="Messages_8hpp_source.html">Messages.hpp</a>&gt;</code></p>
@@ -89,91 +89,78 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad76ff0393cffc9c6c3943c3ac9502238"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#ad76ff0393cffc9c6c3943c3ac9502238">hasSharedPtrAttachment</a> ()</td></tr>
-<tr class="memdesc:ad76ff0393cffc9c6c3943c3ac9502238"><td class="mdescLeft">&#160;</td><td class="mdescRight">the length of the POD data  <a href="#ad76ff0393cffc9c6c3943c3ac9502238">More...</a><br /></td></tr>
-<tr class="separator:ad76ff0393cffc9c6c3943c3ac9502238"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae11bc8d1b1b9e2a396c671af956c5a26"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#ae11bc8d1b1b9e2a396c671af956c5a26">hasSharedPtrAttachment</a> (SP attachmentIn, size_t <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#ab8852e13bf08f43e2cfbe9170a21a4ba">len</a>=sizeof(T))</td></tr>
-<tr class="memdesc:ae11bc8d1b1b9e2a396c671af956c5a26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new has Shared Ptr Attachment object.  <a href="#ae11bc8d1b1b9e2a396c671af956c5a26">More...</a><br /></td></tr>
-<tr class="separator:ae11bc8d1b1b9e2a396c671af956c5a26"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb9d4da8bc4fcc88439d0107fba09029"><td class="memItemLeft" align="right" valign="top"><a id="aeb9d4da8bc4fcc88439d0107fba09029"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#aeb9d4da8bc4fcc88439d0107fba09029">toHmbdcIpcable</a> () const</td></tr>
-<tr class="memdesc:aeb9d4da8bc4fcc88439d0107fba09029"><td class="mdescLeft">&#160;</td><td class="mdescRight">internal use <br /></td></tr>
-<tr class="separator:aeb9d4da8bc4fcc88439d0107fba09029"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae77d4aab6a5f6bffaa054b2deebdfb01"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#ae77d4aab6a5f6bffaa054b2deebdfb01">hasSharedPtrAttachment</a> (SP attachmentSpIn=SP{}, size_t lenIn=sizeof(typename SP::element_type), bool isAttInShmIn=false)</td></tr>
+<tr class="memdesc:ae77d4aab6a5f6bffaa054b2deebdfb01"><td class="mdescLeft">&#160;</td><td class="mdescRight">ctor  <a href="#ae77d4aab6a5f6bffaa054b2deebdfb01">More...</a><br /></td></tr>
+<tr class="separator:ae77d4aab6a5f6bffaa054b2deebdfb01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a726f2b435c532dda60751579d26ea365"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#a726f2b435c532dda60751579d26ea365">reset</a> (bool isAttInShmIn=false, SP attachmentSpIn=SP{}, size_t lenIn=sizeof(T))</td></tr>
+<tr class="memdesc:a726f2b435c532dda60751579d26ea365"><td class="mdescLeft">&#160;</td><td class="mdescRight">reset to a new state  <a href="#a726f2b435c532dda60751579d26ea365">More...</a><br /></td></tr>
+<tr class="separator:a726f2b435c532dda60751579d26ea365"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a738822a8b4043523a1b15b89f439a127"><td class="memItemLeft" align="right" valign="top"><a id="a738822a8b4043523a1b15b89f439a127"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#a738822a8b4043523a1b15b89f439a127">toHmbdcIpcable</a> () const</td></tr>
+<tr class="memdesc:a738822a8b4043523a1b15b89f439a127"><td class="mdescLeft">&#160;</td><td class="mdescRight">internal use <br /></td></tr>
+<tr class="separator:a738822a8b4043523a1b15b89f439a127"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ab8852e13bf08f43e2cfbe9170a21a4ba"><td class="memItemLeft" align="right" valign="top"><a id="ab8852e13bf08f43e2cfbe9170a21a4ba"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#ab8852e13bf08f43e2cfbe9170a21a4ba">len</a> = 0</td></tr>
-<tr class="memdesc:ab8852e13bf08f43e2cfbe9170a21a4ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">the attachment <br /></td></tr>
-<tr class="separator:ab8852e13bf08f43e2cfbe9170a21a4ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc2852607247058b98615c52a59bd66a"><td class="memItemLeft" align="right" valign="top"><a id="abc2852607247058b98615c52a59bd66a"></a>
+const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#abc2852607247058b98615c52a59bd66a">len</a></td></tr>
+<tr class="memdesc:abc2852607247058b98615c52a59bd66a"><td class="mdescLeft">&#160;</td><td class="mdescRight">the attachment <br /></td></tr>
+<tr class="separator:abc2852607247058b98615c52a59bd66a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb514fc2f218fe287fd42d9030163995"><td class="memItemLeft" align="right" valign="top"><a id="acb514fc2f218fe287fd42d9030163995"></a>
+const bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#acb514fc2f218fe287fd42d9030163995">isAttInShm</a></td></tr>
+<tr class="memdesc:acb514fc2f218fe287fd42d9030163995"><td class="mdescLeft">&#160;</td><td class="mdescRight">the length of the POD data <br /></td></tr>
+<tr class="separator:acb514fc2f218fe287fd42d9030163995"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a741d1f51f1eb3e2865c11d899e705a5a"><td class="memItemLeft" align="right" valign="top"><a id="a741d1f51f1eb3e2865c11d899e705a5a"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#a741d1f51f1eb3e2865c11d899e705a5a">reserved</a> [7] = {0}</td></tr>
+<tr class="memdesc:a741d1f51f1eb3e2865c11d899e705a5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">the attachment is in the shm pool alreadyq <br /></td></tr>
+<tr class="separator:a741d1f51f1eb3e2865c11d899e705a5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename Message, typename T&gt;<br />
-struct hmbdc::tips::hasSharedPtrAttachment&lt; Message, T &gt;</h3>
+<div class="textblock"><h3>template&lt;typename Message, typename T, bool use_shm_pool = false&gt;<br />
+struct hmbdc::tips::hasSharedPtrAttachment&lt; Message, T, use_shm_pool &gt;</h3>
 
-<p>internal use </p>
-<p>Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and only 1) shared ptr to an already serilized POD type</p>
+<p>Message that need to be IPCed and/or go through Network can derived from this type if it holds 1 (and only 1) shared ptr to an already serilized POD type. </p>
 <p>use this instead of <a class="el" href="structhmbdc_1_1app_1_1hasMemoryAttachment.html" title="if a specific hmbdc network transport (for example tcpcast, rmcast, and rnetmap) supports message wit...">app::hasMemoryAttachment</a> directly to avoid the complication of releasing the attachment</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Mesasge</td><td>the concrete Message type thatderived from this tmeplate </td></tr>
     <tr><td class="paramname">T</td><td>the underlying POD data type </td></tr>
+    <tr><td class="paramname">use_shm_pool</td><td>Use the shm pool to hold the attachment for the IPC transfer<ul>
+<li>see ipcShmForAttPoolSize config. If the attachment is allocated via <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a27321f9b446bdac2520d57279a09291f" title="allocate in shm to be hold in a hasSharedPtrAttachment to be published later The release of it is aut...">Domain::allocateInShmFor0cpy</a>, no extra copy will happen in IPC transfer; If not, exact 1 copy will happen to copy the attachment to shm pool </li>
+</ul>
+</td></tr>
   </table>
   </dd>
 </dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ad76ff0393cffc9c6c3943c3ac9502238"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad76ff0393cffc9c6c3943c3ac9502238">&#9670;&nbsp;</a></span>hasSharedPtrAttachment() <span class="overload">[1/2]</span></h2>
+<a id="ae77d4aab6a5f6bffaa054b2deebdfb01"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae77d4aab6a5f6bffaa054b2deebdfb01">&#9670;&nbsp;</a></span>hasSharedPtrAttachment()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;typename Message, typename T&gt; </div>
+template&lt;typename Message, typename T, bool use_shm_pool = false&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hmbdc::tips::hasSharedPtrAttachment</a>&lt; Message, T &gt;::<a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a> </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>the length of the POD data </p>
-<p>empty ctor </p>
-
-</div>
-</div>
-<a id="ae11bc8d1b1b9e2a396c671af956c5a26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae11bc8d1b1b9e2a396c671af956c5a26">&#9670;&nbsp;</a></span>hasSharedPtrAttachment() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Message, typename T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hmbdc::tips::hasSharedPtrAttachment</a>&lt; Message, T &gt;::<a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a> </td>
+          <td class="memname"><a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hmbdc::tips::hasSharedPtrAttachment</a>&lt; Message, T, use_shm_pool &gt;::<a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hasSharedPtrAttachment</a> </td>
           <td>(</td>
           <td class="paramtype">SP&#160;</td>
-          <td class="paramname"><em>attachmentIn</em>, </td>
+          <td class="paramname"><em>attachmentSpIn</em> = <code>SP{}</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>len</em> = <code>sizeof(T)</code>&#160;</td>
+          <td class="paramname"><em>lenIn</em> = <code>sizeof(typename&#160;SP::element_type)</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>isAttInShmIn</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -188,11 +175,74 @@ template&lt;typename Message, typename T&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Construct a new has Shared Ptr Attachment object. </p>
+<p>ctor </p>
+<p>it is imperative for the struct to have a multiple of 8 as its size so the inheritance packing is not wierd <br />
+</p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">isAttInShmIn</td><td>if the attachment is allocated in the shm pool<ul>
+<li>via <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a27321f9b446bdac2520d57279a09291f" title="allocate in shm to be hold in a hasSharedPtrAttachment to be published later The release of it is aut...">Domain::allocateInShmFor0cpy</a> or <a class="el" href="structhmbdc_1_1tips_1_1Node.html#a7e63609ee3647b97db0c05cb4c981c80" title="allocate in shm for a hasSharedPtrAttachment to be published later The release of it is auto handled ...">Node::allocateInShmFor0cpy</a> </li>
+</ul>
+</td></tr>
+    <tr><td class="paramname">attachmentSpIn</td><td>input shared_ptr </td></tr>
+    <tr><td class="paramname">lenIn</td><td>byte size of the attachment </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a726f2b435c532dda60751579d26ea365"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a726f2b435c532dda60751579d26ea365">&#9670;&nbsp;</a></span>reset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Message, typename T, bool use_shm_pool = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html">hmbdc::tips::hasSharedPtrAttachment</a>&lt; Message, T, use_shm_pool &gt;::reset </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>isAttInShmIn</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">SP&#160;</td>
+          <td class="paramname"><em>attachmentSpIn</em> = <code>SP{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>lenIn</em> = <code>sizeof(T)</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>reset to a new state </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">attachmentIn</td><td>input shared_ptr </td></tr>
-    <tr><td class="paramname">len</td><td>byte size of the attachment </td></tr>
+    <tr><td class="paramname">isAttInShmIn</td><td>if the attachment is allocated in the shm pool<ul>
+<li>via <a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a27321f9b446bdac2520d57279a09291f" title="allocate in shm to be hold in a hasSharedPtrAttachment to be published later The release of it is aut...">Domain::allocateInShmFor0cpy</a> or <a class="el" href="structhmbdc_1_1tips_1_1Node.html#a7e63609ee3647b97db0c05cb4c981c80" title="allocate in shm for a hasSharedPtrAttachment to be published later The release of it is auto handled ...">Node::allocateInShmFor0cpy</a> </li>
+</ul>
+</td></tr>
+    <tr><td class="paramname">attachmentSpIn</td><td>input shared_ptr </td></tr>
+    <tr><td class="paramname">lenIn</td><td>byte size of the attachment </td></tr>
   </table>
   </dd>
 </dl>

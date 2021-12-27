@@ -209,7 +209,11 @@ struct Client {
     /**
      * @brief trivial
      */
-    virtual ~Client(){}
+    Client() = default;
+    Client(Client const&) = delete;
+    Client& operator = (Client const&) = delete;
+    virtual ~Client() = default;
+
 
 protected:
     /**

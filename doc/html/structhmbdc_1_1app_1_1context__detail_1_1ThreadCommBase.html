@@ -96,6 +96,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a02fad0bd040554b518e196997360dafd"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#a02fad0bd040554b518e196997360dafd">maxMessageSize</a> () const</td></tr>
+<tr class="memdesc:a02fad0bd040554b518e196997360dafd"><td class="mdescLeft">&#160;</td><td class="mdescRight">max message in bytes (excluding attachment) can handle  <a href="#a02fad0bd040554b518e196997360dafd">More...</a><br /></td></tr>
+<tr class="separator:a02fad0bd040554b518e196997360dafd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ca4c39324b977d5a70f2bf8220493fb"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#a0ca4c39324b977d5a70f2bf8220493fb">footprint</a> () const</td></tr>
+<tr class="memdesc:a0ca4c39324b977d5a70f2bf8220493fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">memory footprint  <a href="#a0ca4c39324b977d5a70f2bf8220493fb">More...</a><br /></td></tr>
+<tr class="separator:a0ca4c39324b977d5a70f2bf8220493fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e27b701264386f252400fe2d6341f69"><td class="memTemplParams" colspan="2">template&lt;MessageC M0, MessageC M1, typename ... Messages, typename Enabled  = typename std::enable_if&lt;!std::is_integral&lt;M1&gt;::value, void&gt;::type&gt; </td></tr>
 <tr class="memitem:a6e27b701264386f252400fe2d6341f69"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#a6e27b701264386f252400fe2d6341f69">send</a> (M0 &amp;&amp;m0, M1 &amp;&amp;m1, Messages &amp;&amp;... msgs)</td></tr>
 <tr class="memdesc:a6e27b701264386f252400fe2d6341f69"><td class="mdescLeft">&#160;</td><td class="mdescRight">try send a batch of messages to the <a class="el" href="structhmbdc_1_1app_1_1Context.html" title="A Context is like a media object that facilitates the communications for the Clients that it is holdi...">Context</a> or attached ipc Contexts  <a href="#a6e27b701264386f252400fe2d6341f69">More...</a><br /></td></tr>
@@ -296,6 +302,66 @@ template&lt;size_t MaxMessageSize, typename... ContextProperties&gt; </div>
 
 <p>return how many IPC parties (processes) is managed by this <a class="el" href="structhmbdc_1_1app_1_1Context.html" title="A Context is like a media object that facilitates the communications for the Clients that it is holdi...">Context</a> - including itself </p>
 <dl class="section return"><dt>Returns</dt><dd>size_t (&gt;= 1) </dd></dl>
+
+</div>
+</div>
+<a id="a0ca4c39324b977d5a70f2bf8220493fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ca4c39324b977d5a70f2bf8220493fb">&#9670;&nbsp;</a></span>footprint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;size_t MaxMessageSize, typename... ContextProperties&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t <a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html">hmbdc::app::context_detail::ThreadCommBase</a>&lt; MaxMessageSize, ContextProperties &gt;::footprint </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>memory footprint </p>
+<dl class="section return"><dt>Returns</dt><dd>size_t - always in multiple of 4K </dd></dl>
+
+</div>
+</div>
+<a id="a02fad0bd040554b518e196997360dafd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02fad0bd040554b518e196997360dafd">&#9670;&nbsp;</a></span>maxMessageSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;size_t MaxMessageSize, typename... ContextProperties&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t <a class="el" href="structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html">hmbdc::app::context_detail::ThreadCommBase</a>&lt; MaxMessageSize, ContextProperties &gt;::maxMessageSize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>max message in bytes (excluding attachment) can handle </p>
+<dl class="section return"><dt>Returns</dt><dd>size_t </dd></dl>
 
 </div>
 </div>

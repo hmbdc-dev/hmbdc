@@ -72,9 +72,6 @@ struct McRecvTransport
         }
     }
 
-    ~McRecvTransport() {
-    }
-
 /**
  * @brief start the show by schedule the mesage recv
  */

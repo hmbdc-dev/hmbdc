@@ -20,6 +20,8 @@ struct PoolConsumer {
     friend struct PoolTImpl;
     friend struct PoolMinusImpl;
     PoolConsumer(bool interestedInMessages, time::TimerManager* tmPtr, size_t* pDispStartCount);
+    PoolConsumer(PoolConsumer const&) = delete;
+    PoolConsumer& operator = (PoolConsumer const&) = delete;
     virtual ~PoolConsumer();
     void stopped(std::exception const&) noexcept;
     bool dropped() noexcept;

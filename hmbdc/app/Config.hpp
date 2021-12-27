@@ -206,7 +206,7 @@ struct Config
      *
      * @return     ptree reference to the child.
      */
-    boost::property_tree::ptree const& getChildExt(const path_type& param) {
+    boost::property_tree::ptree const& getChildExt(const path_type& param) const {
         auto sec = section_;
         auto res = get_child_optional(sec/=param);
         if (!res) {

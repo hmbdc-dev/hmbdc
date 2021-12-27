@@ -3,6 +3,7 @@ var searchData=
   ['cache',['cache',['../structhmbdc_1_1tips_1_1Domain_1_1InBandMemoryAttachmentProcessor.html#aa32a2275abea2bad008050c02b03d24e',1,'hmbdc::tips::Domain::InBandMemoryAttachmentProcessor']]],
   ['cancel',['cancel',['../structhmbdc_1_1time_1_1TimerManager.html#afc28d262a4e9e77be6920d339502c2a8',1,'hmbdc::time::TimerManager']]],
   ['checktimers',['checkTimers',['../structhmbdc_1_1tips_1_1domain__detail_1_1NodeProxy.html#a488e3aaf66dd1d334eeabbdee23297a7',1,'hmbdc::tips::domain_detail::NodeProxy']]],
+  ['client',['Client',['../structhmbdc_1_1app_1_1Client.html#ad7ce5546d718168f2df7e7c05502a108',1,'hmbdc::app::Client']]],
   ['clientcountinpool',['clientCountInPool',['../structhmbdc_1_1app_1_1Context.html#ad6369f18c1f6540ff718db56d3e90fac',1,'hmbdc::app::Context']]],
   ['close',['close',['../structhmbdc_1_1tips_1_1OutputBag.html#ae3b214e6c4403db6bb6124fb6cbb4e91',1,'hmbdc::tips::OutputBag::close()'],['../structhmbdc_1_1tips_1_1InputBag.html#a59fbb4eb3cc1c19d2a8014b289520249',1,'hmbdc::tips::InputBag::close()']]],
   ['commitforsend',['commitForSend',['../structhmbdc_1_1app_1_1context__detail_1_1ThreadCommBase.html#ae4c1c4163fff4262115ad8b420427083',1,'hmbdc::app::context_detail::ThreadCommBase']]],

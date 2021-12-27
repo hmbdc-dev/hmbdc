@@ -49,11 +49,8 @@ concept MessageForwardIterC = MessageC<decltype(*(MIter{}))>
  * @tparam tag 16 bit unsigned tag
  */
 template <uint16_t tag>
-struct hasTag {    
-    struct tagBase {
-        using type = hasTag<tag>;
-        enum { size = 0 };
-    };
+struct hasTag {
+    using hmbdc_tag_type = hasTag;
     enum {
         typeTag = tag,
         typeSortIndex = tag,
@@ -73,11 +70,7 @@ struct hasTag {
 
 template <uint16_t tagStart, uint16_t rangeSize>
 struct inTagRange {
-    struct tagBase {
-        using type = inTagRange<tagStart, rangeSize>;
-        enum { size =  sizeof(type)};
-    };
-    
+    using hmbdc_tag_type = inTagRange;
     enum {
         typeSortIndex = tagStart,
         hasRange = 1,
@@ -124,7 +117,7 @@ struct hasMemoryAttachment {
     }
     enum {
         flag = 1,
-        is_att_0cpyshm = 0,
+        att_via_shm_pool = 0,
     };
 
     /**
@@ -428,8 +421,8 @@ struct InBandHasMemoryAttachment
     void shmConvert(ShmAllocator&& allocator) {
         hasMemoryAttachment& att = underlyingMessage;
         assert(att.holdShmHandle<Message>());
-        if constexpr (Message::is_att_0cpyshm) {
-            if (att.len >= sizeof(size_t) && *(size_t*)att.attachment) {
+        if constexpr (Message::att_via_shm_pool) {
+            if (underlyingMessage.hmbdcIsAttInShm) {
                 /// already in shm
                 att.shmHandle = allocator.getHandle(att.attachment);
                 return;

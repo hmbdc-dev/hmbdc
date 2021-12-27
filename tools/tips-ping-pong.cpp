@@ -88,15 +88,14 @@ struct Payload0cpy {
             meat[i] = (i & 0xff);
         }
     }
-    size_t hmbdc0cpyShmRefCount = 0;
     char meat[1];               /// open ended
 };
 
 struct Ping0cpy
-: hasSharedPtrAttachment<Ping0cpy, Payload0cpy>
+: hasSharedPtrAttachment<Ping0cpy, Payload0cpy, true>
 , hasTag<1003> {
     Ping0cpy(size_t payloadLen) {
-        assert(payloadLen == toSend_s.len - sizeof(size_t));
+        assert(payloadLen == toSend_s.len);
         *this = toSend_s;
         ts = SysTime::now();
     }
@@ -106,13 +105,13 @@ struct Ping0cpy
 
     template<typename Alloc> 
     static void init(Alloc& alloc) {
-        alloc.allocateInShmFor0cpy(toSend_s, msgSize + sizeof(size_t), msgSize);
+        alloc.allocateInShmFor0cpy(toSend_s, msgSize, msgSize);
     }
 
     static void fini() {
         /// this is needed because when alloc is out of scope, all the allocated mmeory is freed
         /// need to explictly call this before that
-        toSend_s.attachmentSp.reset();
+        toSend_s.reset();
     }
 
 private:
@@ -121,11 +120,10 @@ private:
 Ping0cpy Ping0cpy::toSend_s;
 
 struct Pong0cpy
-: hasSharedPtrAttachment<Pong0cpy, Payload0cpy>
+: hasSharedPtrAttachment<Pong0cpy, Payload0cpy, true>
 , hasTag<1004> {
     Pong0cpy(Ping0cpy const& ping) {
-        attachmentSp = ping.attachmentSp;
-        len = ping.len;
+        reset(ping.isAttInShm, ping.attachmentSp, ping.len);
         ts = ping.ts;
     }
     SysTime ts;
@@ -135,8 +133,8 @@ struct PingGT1K
 : hasSharedPtrAttachment<PingGT1K, uint8_t[]>
 , hasTag<1005> {
     PingGT1K(size_t payloadLen)
-    : PingGT1K::hasSharedPtrAttachment(attachment_s, payloadLen)
-    , ts(SysTime::now()) {
+    : ts(SysTime::now()) {
+        hasSharedPtrAttachment::reset(false, attachment_s, payloadLen);
     }
     SysTime ts;
     static std::shared_ptr<uint8_t[]> attachment_s;
@@ -159,8 +157,8 @@ struct PongGT1K
 : hasSharedPtrAttachment<PongGT1K, uint8_t[]>
 , hasTag<1006> {
     PongGT1K(PingGT1K const& ping)
-    : PongGT1K::hasSharedPtrAttachment(ping.attachmentSp, ping.len)
-    , ts(ping.ts) {
+    : ts(ping.ts) {
+        hasSharedPtrAttachment::reset(false, ping.attachmentSp, ping.len);
     }
     SysTime ts;
 };
@@ -298,7 +296,7 @@ void printAdditionalConfig(Config const& config) {
     string noUse;
     for (auto it = content.begin(); it != content.end();) {
         auto paramIt = it;
-        auto commentIt = ++it; 
+        auto commentIt = ++it;
         desc.add_options()(paramIt->first.c_str()
             , po::value<string>(&noUse)->default_value(paramIt->second), commentIt->second.c_str());
         it++;

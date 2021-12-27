@@ -70,6 +70,8 @@ struct BackupRecvSessionT
         );
     }
 
+    BackupRecvSessionT(BackupRecvSessionT const&) = delete;
+    BackupRecvSessionT& operator = (BackupRecvSessionT const&) = delete;
     virtual ~BackupRecvSessionT() {
         ::free(buf_);
         HMBDC_LOG_N("BackupRecvSession retired: ", id(), " lifetime recved:", recvBackupMessageCount_);

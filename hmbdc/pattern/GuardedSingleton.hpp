@@ -20,6 +20,9 @@ template <typename Singleton>
 struct SingletonGuardian {
     template <typename...Args>
     SingletonGuardian(Args&&...);
+
+    SingletonGuardian(SingletonGuardian const&) = delete;
+    SingletonGuardian& operator = (SingletonGuardian const&) = delete;
     virtual ~SingletonGuardian();
 };
 
@@ -38,6 +41,9 @@ struct SingletonPlacementGuardian {
     SingletonPlacementGuardian(void* address, Args&&...);
 
     SingletonPlacementGuardian(void* address);
+
+    SingletonPlacementGuardian(SingletonPlacementGuardian const&) = delete;
+    SingletonPlacementGuardian& operator = (SingletonPlacementGuardian const&) = delete;
     virtual ~SingletonPlacementGuardian();
 };
 
@@ -56,6 +62,9 @@ struct GuardedSingleton {
     static Singleton& instance() {return *pInstance_s;}
     static bool initialized() {return pInstance_s;}
     using element_type = Singleton;
+
+    GuardedSingleton(GuardedSingleton const&) = delete;
+    GuardedSingleton& operator = (GuardedSingleton const&) = delete;
 
 protected:
     GuardedSingleton() = default;

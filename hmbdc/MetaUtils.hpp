@@ -62,6 +62,9 @@ struct index_in_tuple<T, std::tuple<U, Types...>> {
     static constexpr std::size_t value = 1 + index_in_tuple<T, std::tuple<Types...>>::value;
 };
 
+template <typename T, typename Tuple>
+constexpr bool is_in_tuple_v = index_in_tuple<T, Tuple>::value < std::tuple_size_v<Tuple>;
+
 
 template <typename T, typename Tuple>
 struct add_if_not_in_tuple {
@@ -179,10 +182,53 @@ struct bsearch_tuple<std::tuple<Ts...>, from, to> {
 };
 
 template <template <class> class target_template, typename M>
-constexpr bool is_template = false;
+constexpr bool is_template_v = false;
 
 template <template <class> class target_template, typename N>
-constexpr bool is_template<target_template, target_template<N>> = true;
+constexpr bool is_template_v<target_template, target_template<N>> = true;
+
+template<template<class...> class T, class U>
+class is_derived_from_type_template
+{
+private:
+    template<class ...V>
+    static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::true_type{})
+    test(const T<V...>&);    
+    
+    template<class ...V>
+    static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::declval<T<V...>>())
+    base(const T<V...>&);
+
+    static std::false_type test(...);
+    static std::false_type& base(...);
+public:
+    static constexpr bool value = decltype(is_derived_from_type_template::test(std::declval<U>()))::value;
+    using base_type = std::remove_reference_t<decltype(is_derived_from_type_template::base(std::declval<U>()))>;
+};
+template<template<class...> class T, class U>
+constexpr bool is_derived_from_type_template_v = is_derived_from_type_template<T, U>::value;
+
+template<typename N, template<N...> class T, class U>
+class is_derived_from_non_type_template
+{
+private:
+    template<N ...v>
+    static decltype(static_cast<const T<v...>&>(std::declval<U>()), std::true_type{})
+    test(const T<v...>&);
+
+    template<N ...v>
+    static decltype(static_cast<const T<v...>&>(std::declval<U>()), std::declval<T<v...>>())
+    base(const T<v...>&);
+
+    static std::false_type test(...);
+    static std::false_type& base(...);
+public:
+    static constexpr bool value = decltype(is_derived_from_non_type_template::test(std::declval<U>()))::value;
+    using base_type = std::remove_reference_t<decltype(is_derived_from_non_type_template::base(std::declval<U>()))>;
+};
+
+template<typename N, template<N...> class T, class U>
+constexpr bool is_derived_from_non_type_template_v = is_derived_from_non_type_template<N, T, U>::value;
 
 template <template <class> class target_template, typename Tuple>
 struct templatized_aggregator {

@@ -21,6 +21,8 @@ struct Protocol
     std::string getTipsDomainName(app::Config cfg) {
         cfg.resetSection("tx", false);
         cfg.setAdditionalFallbackConfig(app::Config(DefaultUserConfig));
+        auto res = cfg.getExt<std::string>("localDomainName");
+        if (res != "tips-auto") return res;
         return cfg.getExt<std::string>("ifaceAddr") + '-' + cfg.getExt<std::string>("netmapPort");
     }
 

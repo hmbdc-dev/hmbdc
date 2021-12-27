@@ -32,7 +32,6 @@ char const g_LogLevelStr[][12] = {
  * @class AsyncLoggerT<>
  * @brief a high performance async logger that doesn't penalize logging threads as much
  * when the logging load is heavy
- * @details see @example hmbdc-log.cpp
  * 
  */
 template <typename Ctx>

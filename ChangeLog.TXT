@@ -1,3 +1,7 @@
+* Sat Dec 25 2021 - 15.2
+- improved the design on the following features
+  0cpy, PCI dev memory, multiple pump config, sending mask, support virtual function callbacks
+
 * Sun Oct 31 2021 - 14.5
 - Added PCI dev pub/sub in Domain
 
@@ -292,6 +296,10 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sat Dec 25 2021 - 15.2
+- improved the design on the following features
+  0cpy, PCI dev memory, multiple pump config, sending mask, support virtual function callbacks
 
 * Sun Oct 31 2021 - 14.5
 - Added PCI dev pub/sub in Domain

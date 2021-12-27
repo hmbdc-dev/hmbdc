@@ -22,7 +22,10 @@ struct Protocol
     std::string getTipsDomainName(app::Config cfg) {
         cfg.resetSection("tx", false);
         cfg.setAdditionalFallbackConfig(app::Config(DefaultUserConfig));
-        auto res = cfg.getExt<std::string>("ifaceAddr") + '-' 
+        auto res = cfg.getExt<std::string>("localDomainName");
+        if (res != "tips-auto") return res; 
+        
+        res = cfg.getExt<std::string>("ifaceAddr") + '-' 
             + cfg.getExt<std::string>("mcastAddr") + ":" + cfg.getExt<std::string>("mcastPort");
         std::replace(res.begin(), res.end(), '/', ':');
         return res;

@@ -56,6 +56,8 @@ struct DownloadMemory {
         len_ = 0;
     }
 
+    DownloadMemory(DownloadMemory const&) = delete;
+    DownloadMemory& operator = (DownloadMemory const&) = delete;
     ~DownloadMemory() {
         free(addr_);
     }

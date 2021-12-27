@@ -71,6 +71,7 @@ struct context_property_aggregator{
         has_pool = 1,
         pool_msgless = 0,
         ipc = 0,
+        dev_mem = 0,
         dispatch_reverse = 0,
     };
 };
@@ -119,12 +120,13 @@ struct context_property_aggregator<context_property::ipc_enabled
 };
 
 template <typename... ContextProperties>
-struct context_property_aggregator<context_property::pci_ipc
+struct context_property_aggregator<context_property::dev_ipc
     , ContextProperties...> 
 : context_property_aggregator<ContextProperties...> {
     using Allocator = os::DevMemBasePtrAllocator;
     enum {
         ipc = 1,
+        dev_mem = 1,
     };
 };
 

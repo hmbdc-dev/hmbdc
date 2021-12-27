@@ -14,7 +14,7 @@ namespace lfb_stream {
 
 struct Streamable{
     virtual void dump(std::ostream& os) const = 0;
-    virtual ~Streamable(){}
+    virtual ~Streamable() = default;
 } __attribute__ ((__may_alias__));
 
 namespace lfbstream_detail {
@@ -22,10 +22,13 @@ namespace lfbstream_detail {
 template <uint32_t SIZE_LIMIT, typename T>
 struct TypedStreamable
 : Streamable {
-    TypedStreamable(T&& m) 
-    : payload(std::forward<T>(m)){}
-    typename std::remove_reference<T>::type payload;
-    virtual void dump(std::ostream& os) const {os << payload;}
+    using RT = std::decay_t<T>;
+    TypedStreamable(RT const& m)
+    : payload(m){}
+    TypedStreamable(RT&& m)
+    : payload(std::move(m)){}
+    RT payload;
+    virtual void dump(std::ostream& os) const override {os << payload;}
 }__attribute__ ((__may_alias__));
 
 template<uint32_t SIZE_LIMIT, std::size_t N >
@@ -36,18 +39,20 @@ private:
 public:
     TypedStreamable(char const* s) 
     : payload(s){}
-    virtual void dump(std::ostream& os) const {os << payload;}
+    virtual void dump(std::ostream& os) const override {os << payload;}
 }__attribute__ ((__may_alias__));
 
-template<uint32_t SIZE_LIMIT, std::size_t N >
-struct TypedStreamable<SIZE_LIMIT, const char [N]>
+template<uint32_t SIZE_LIMIT>
+struct TypedStreamable<SIZE_LIMIT, const char* &>
 : Streamable {
 private:
-    const char * payload;
+    char payload[SIZE_LIMIT - sizeof(Streamable)];
 public:
-    TypedStreamable(char const* s) 
-    : payload(s){}
-    virtual void dump(std::ostream& os) const {os << payload;}
+    TypedStreamable(char const* s) {
+        strncpy(payload, s, sizeof(payload));
+        payload[sizeof(payload) - 1] = 0;
+    }
+    virtual void dump(std::ostream& os) const override {os << payload;}
 }__attribute__ ((__may_alias__));
 
 template<uint32_t SIZE_LIMIT, std::size_t N >
@@ -60,7 +65,7 @@ public:
         strncpy(payload, s, sizeof(payload));
         payload[sizeof(payload) - 1] = 0;
     }
-    virtual void dump(std::ostream& os) const {os << payload;}
+    virtual void dump(std::ostream& os) const override {os << payload;}
 }__attribute__ ((__may_alias__));
 
 template <uint32_t SIZE_LIMIT>
@@ -73,7 +78,7 @@ public:
         strncpy(payload, m, sizeof(payload));
         payload[sizeof(payload) - 1] = 0;
     }
-    virtual void dump(std::ostream& os) const {os << payload;}
+    virtual void dump(std::ostream& os) const override {os << payload;}
 }__attribute__ ((__may_alias__));
 
 } // lfbstream_detail
@@ -86,6 +91,7 @@ private:
     enum {
         PAYLOAD_SIZE = sizeof(BufferItem::payload),
     };
+    static_assert(PAYLOAD_SIZE % 8 == 0);
 
 public:
 

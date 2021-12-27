@@ -45,7 +45,7 @@ struct BasePtrAllocator {
 
     BasePtrAllocator(BasePtrAllocator const&) = delete;
     BasePtrAllocator& operator = (BasePtrAllocator const&) = delete;
-    virtual ~BasePtrAllocator(){}
+    virtual ~BasePtrAllocator() = default;
 
     template <typename T, typename ...Args>
     T* allocate(size_t alignment, Args&&... args) {

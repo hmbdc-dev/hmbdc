@@ -29,7 +29,9 @@ struct Transport {
         return &config_ < &other.config_;
     }
 
-    virtual ~Transport(){}
+    Transport (Transport const&) = delete;
+    Transport& operator = (Transport const&) = delete;
+    virtual ~Transport() = default;
     
 protected:
     app::Config const config_;

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['ifdeliver',['ifDeliver',['../structhmbdc_1_1tips_1_1Node.html#a58d8d8b40a13a38d90bb4b01e2d1b98e',1,'hmbdc::tips::Node::ifDeliver(Message const &amp;message) const'],['../structhmbdc_1_1tips_1_1Node.html#a02ecf1dacc88917c2913b481826061b6',1,'hmbdc::tips::Node::ifDeliver(uint16_t tag, uint8_t const *bytes) const']]],
+  ['ifdelivercfg',['ifDeliverCfg',['../structhmbdc_1_1tips_1_1Node.html#a2e5f4ec9c89e0286c2a28c480a275d06',1,'hmbdc::tips::Node::ifDeliverCfg(Message const &amp;message) const'],['../structhmbdc_1_1tips_1_1Node.html#a9fe83ad7955b70c492f984141cecf312',1,'hmbdc::tips::Node::ifDeliverCfg(uint16_t tag, uint8_t const *bytes) const']]],
   ['inbandhasmemoryattachment',['InBandHasMemoryAttachment',['../structhmbdc_1_1app_1_1InBandHasMemoryAttachment.html',1,'hmbdc::app']]],
   ['inbandhasmemoryattachment_3c_20hmbdc_3a_3aapp_3a_3ajustbytes_20_3e',['InBandHasMemoryAttachment&lt; hmbdc::app::JustBytes &gt;',['../structhmbdc_1_1app_1_1InBandHasMemoryAttachment.html',1,'hmbdc::app']]],
   ['inbandmemoryattachmentprocessor',['InBandMemoryAttachmentProcessor',['../structhmbdc_1_1app_1_1client__detail_1_1InBandMemoryAttachmentProcessor.html',1,'hmbdc::app::client_detail::InBandMemoryAttachmentProcessor&lt; MAX_MEMORY_ATTACHMENT &gt;'],['../structhmbdc_1_1tips_1_1Domain_1_1InBandMemoryAttachmentProcessor.html',1,'hmbdc::tips::Domain&lt; RecvMessageTupleIn, IpcProp, NetProp, NodeContext, AttachmentAllocator &gt;::InBandMemoryAttachmentProcessor&lt; MAX_MEMORY_ATTACHMENT &gt;']]],
@@ -22,8 +22,13 @@ var searchData=
   ['ipc_5fproperty',['ipc_property',['../structhmbdc_1_1tips_1_1ipc__property.html',1,'hmbdc::tips']]],
   ['ipcpartydetectedcount',['ipcPartyDetectedCount',['../structhmbdc_1_1tips_1_1Domain.html#ad2c51ef16c89dabf53860c0bf66546c6',1,'hmbdc::tips::Domain']]],
   ['ipcsubscribingpartycount',['ipcSubscribingPartyCount',['../structhmbdc_1_1tips_1_1Domain.html#a2ec15e416f5f44743b64960344345a38',1,'hmbdc::tips::Domain']]],
+  ['is_5fderived_5ffrom_5fnon_5ftype_5ftemplate',['is_derived_from_non_type_template',['../classhmbdc_1_1is__derived__from__non__type__template.html',1,'hmbdc']]],
+  ['is_5fderived_5ffrom_5ftype_5ftemplate',['is_derived_from_type_template',['../classhmbdc_1_1is__derived__from__type__template.html',1,'hmbdc']]],
   ['is_5fhasmemoryattachment_5ffirst_5fbase_5fof',['is_hasMemoryAttachment_first_base_of',['../structhmbdc_1_1app_1_1is__hasMemoryAttachment__first__base__of.html',1,'hmbdc::app']]],
   ['is_5fipcable',['is_ipcable',['../structhmbdc_1_1tips_1_1domain__detail_1_1is__ipcable.html',1,'hmbdc::tips::domain_detail']]],
+  ['is_5fnetable',['is_netable',['../structhmbdc_1_1tips_1_1domain__detail_1_1is__netable.html',1,'hmbdc::tips::domain_detail']]],
   ['is_5fsubset',['is_subset',['../structhmbdc_1_1is__subset.html',1,'hmbdc']]],
-  ['iterator',['iterator',['../structhmbdc_1_1pattern_1_1blocking__buffer__detail_1_1iterator.html',1,'hmbdc::pattern::blocking_buffer_detail::iterator'],['../structhmbdc_1_1pattern_1_1lf__misc_1_1iterator.html',1,'hmbdc::pattern::lf_misc::iterator&lt; Seq &gt;'],['../structhmbdc_1_1pattern_1_1RingBuffer_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, parallel_consumer_count &gt;::iterator'],['../structhmbdc_1_1pattern_1_1RingBuffer_3_01T_00_010_01_4_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, 0 &gt;::iterator']]]
+  ['is_5fthreadable',['is_threadable',['../structhmbdc_1_1tips_1_1domain__detail_1_1is__threadable.html',1,'hmbdc::tips::domain_detail']]],
+  ['isattinshm',['isAttInShm',['../structhmbdc_1_1tips_1_1hasSharedPtrAttachment.html#acb514fc2f218fe287fd42d9030163995',1,'hmbdc::tips::hasSharedPtrAttachment']]],
+  ['iterator',['iterator',['../structhmbdc_1_1pattern_1_1RingBuffer_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, parallel_consumer_count &gt;::iterator'],['../structhmbdc_1_1pattern_1_1lf__misc_1_1iterator.html',1,'hmbdc::pattern::lf_misc::iterator&lt; Seq &gt;'],['../structhmbdc_1_1pattern_1_1RingBuffer_3_01T_00_010_01_4_1_1iterator.html',1,'hmbdc::pattern::RingBuffer&lt; T, 0 &gt;::iterator'],['../structhmbdc_1_1pattern_1_1blocking__buffer__detail_1_1iterator.html',1,'hmbdc::pattern::blocking_buffer_detail::iterator']]]
 ];

@@ -65,7 +65,7 @@ struct subscribe_for<std::tuple<Message, Messages...>, CcNode, TypeTagSet>{
     void operator()(CcNode const& node, TypeTagSet& tts
         , std::function<void(uint16_t)> afterAddTag, uint16_t mod, uint16_t res) {
         if constexpr (Message::hasRange) {
-            node.addTypeTagRangeSubsFor((Message*)nullptr
+            node.addTypeTagRangeSubsForCfg((Message*)nullptr
                 , [&tts, mod, res, &afterAddTag](uint16_t offsetInRange) {
                     if (offsetInRange >= Message::typeTagRange) {
                         HMBDC_THROW(std::out_of_range, offsetInRange << " as offset is out of the range of " 
@@ -80,7 +80,7 @@ struct subscribe_for<std::tuple<Message, Messages...>, CcNode, TypeTagSet>{
                 }
             );
         } else if constexpr (std::is_same<app::JustBytes, Message>::value) {
-            node.addJustBytesSubsFor(
+            node.addJustBytesSubsForCfg(
                 [&tts, mod, res, &afterAddTag](uint16_t tag) {
                     if (tag % mod == res) {
                         if (tts.set(tag)) {
@@ -108,7 +108,7 @@ template <app::MessageC Message, app::MessageC ...Messages, typename CcNode, typ
 struct advertise_for<std::tuple<Message, Messages...>, CcNode, TypeTagSet>{
     void operator()(CcNode const& node, TypeTagSet& tts, uint16_t mod, uint16_t res) {
         if constexpr (Message::hasRange) {
-            node.addTypeTagRangePubsFor((Message*)nullptr
+            node.addTypeTagRangePubsForCfg((Message*)nullptr
                 , [&tts, mod, res](uint16_t offsetInRange) {
                     if (offsetInRange >= Message::typeTagRange) {
                         HMBDC_THROW(std::out_of_range, offsetInRange << " as offset is out of the range of " 
@@ -120,7 +120,7 @@ struct advertise_for<std::tuple<Message, Messages...>, CcNode, TypeTagSet>{
                 }
             );
         } else if constexpr (std::is_same<app::JustBytes, Message>::value) {
-            node.addJustBytesPubsFor(
+            node.addJustBytesPubsForCfg(
                 [&tts, mod, res](uint16_t tag) {
                     if (tag % mod == res) {
                         tts.set(tag);
