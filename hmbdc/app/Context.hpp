@@ -13,6 +13,7 @@
 #include <list>
 #include <mutex>
 #include <atomic>
+#include <optional>
 
 namespace hmbdc { namespace app {
 
