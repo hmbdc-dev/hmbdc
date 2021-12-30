@@ -104,7 +104,7 @@ struct RecvTransportImpl
 
     template <app::MessageTupleC Messages, typename CcNode>
     void subscribeFor(CcNode const& node, uint16_t mod, uint16_t res) {
-        subscriptions_.markSubsFor<Messages>(node, mod, res);
+        subscriptions_.markSubsFor<Messages>(node, mod, res, [](uint16_t){});
     }
 
     template <app::MessageC Message>

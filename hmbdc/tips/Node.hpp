@@ -246,7 +246,7 @@ struct Node {
      */
     void updateSubscription() {
         auto& node = *static_cast<CcNode*>(this);
-        subscription.markSubsFor<typename CcNode::Interests>(node, 1, 0);
+        subscription.markSubsFor<typename CcNode::Interests>(node, 1, 0, [](uint16_t){});
     }
 
     /**

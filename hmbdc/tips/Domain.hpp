@@ -652,7 +652,7 @@ private:
         TypeTagSet* pOutboundSubscriptions_;
         TypeTagSet inboundSubscriptions_;
         std::string hmbdcName_;
-        uint32_t pumpMaxBlockingTimeSec_;
+        uint32_t pumpMaxBlockingTimeUs_;
 
         public:
         InBandMemoryAttachmentProcessor<
@@ -670,8 +670,8 @@ private:
         }
         , pOutboundSubscriptions_(pOutboundSubscriptions)
         , hmbdcName_(cfg.getExt<std::string>("pumpHmbdcName"))
-        , pumpMaxBlockingTimeSec_(cfg.getHex<double>("pumpMaxBlockingTimeSec") * 1000000) {
-            pumpMaxBlockingTimeSec_ = std::min(1000000u, pumpMaxBlockingTimeSec_);
+        , pumpMaxBlockingTimeUs_(cfg.getHex<double>("pumpMaxBlockingTimeSec") * 1000000) {
+            pumpMaxBlockingTimeUs_ = std::min(1000000u, pumpMaxBlockingTimeUs_);
             static_assert(IpcTransport::MAX_MESSAGE_SIZE == 0 || IpcTransport::MAX_MESSAGE_SIZE 
                 >= max_size_in_tuple<IpcSubscribeMessagesPossible>::value);
             
@@ -961,8 +961,8 @@ private:
                 if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
                     outCtx_.invokedCb(previousBatch);
                 }
-                if (pumpMaxBlockingTimeSec_) {
-                    usleep(pumpMaxBlockingTimeSec_);
+                if (pumpMaxBlockingTimeUs_) {
+                    usleep(pumpMaxBlockingTimeUs_);
                 } else {
                     std::this_thread::yield();
                 }
@@ -1293,13 +1293,15 @@ public:
      * no messages to handle, so it can respond to things like Domain is stopped, or generate
      * heartbeats if applicable.
      */
-    template <typename LoadSharingNodePtrIt>
+    template <typename LoadSharingNodePtrIt
+        , typename CcClientPtr = typename std::iterator_traits<LoadSharingNodePtrIt>::value_type
+    >
     Domain& addPool(LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end
         , size_t capacity = 1024
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , uint64_t cpuAffinity = 0) {
         if (begin == end) return *this;
-        using Node = typename std::decay<decltype(**LoadSharingNodePtrIt())>::type;
+        using Node = typename std::decay<decltype(*std::declval<CcClientPtr>())>::type;
         auto maxItemSize = (*begin)->maxMessageSize();
         
         if (std::tuple_size<typename Node::Interests>::value

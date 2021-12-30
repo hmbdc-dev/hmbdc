@@ -143,7 +143,7 @@ struct TypeTagSet {
 
     template <app::MessageTupleC MessageTuple, typename CcNode>
     void markSubsFor(CcNode const& node, uint16_t mod, uint16_t res
-        , std::function<void(uint16_t)> afterAddTag = [](uint16_t){}) {
+        , std::function<void(uint16_t)> afterAddTag) {
         typetagset_detail::subscribe_for<MessageTuple, CcNode, TypeTagSet> marker;
         marker(node, *this, afterAddTag, mod, res);
     }

@@ -1,3 +1,6 @@
+* Wed Dec 29 2021 - 15.3
+- fixes for gcc11
+
 * Sat Dec 25 2021 - 15.2
 - improved the design on the following features
   0cpy, PCI dev memory, multiple pump config, sending mask, support virtual function callbacks
@@ -296,6 +299,9 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Wed Dec 29 2021 - 15.3
+- fixes for gcc11
 
 * Sat Dec 25 2021 - 15.2
 - improved the design on the following features

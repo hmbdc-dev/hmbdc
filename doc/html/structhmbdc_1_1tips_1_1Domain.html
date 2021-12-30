@@ -122,10 +122,10 @@ template&lt;typename Node &gt; </td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#aa81c6017d3fe05cfeb9b75ff84747049">startPumping</a> ()</td></tr>
 <tr class="memdesc:aa81c6017d3fe05cfeb9b75ff84747049"><td class="mdescLeft">&#160;</td><td class="mdescRight">if pumpRunMode is set to be delayed this function start all the pumps <br /></td></tr>
 <tr class="separator:aa81c6017d3fe05cfeb9b75ff84747049"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a050565f6749a83bcd5fab823ef618aa7"><td class="memTemplParams" colspan="2">template&lt;typename LoadSharingNodePtrIt &gt; </td></tr>
-<tr class="memitem:a050565f6749a83bcd5fab823ef618aa7"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a050565f6749a83bcd5fab823ef618aa7">addPool</a> (LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
-<tr class="memdesc:a050565f6749a83bcd5fab823ef618aa7"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a group of Nodes as a thread pool within the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that collectively processing messages in a load sharing manner. Each <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is powered by a single OS thread.  <a href="#a050565f6749a83bcd5fab823ef618aa7">More...</a><br /></td></tr>
-<tr class="separator:a050565f6749a83bcd5fab823ef618aa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b1b87b4c4bc470cae99f692500c0a63"><td class="memTemplParams" colspan="2">template&lt;typename LoadSharingNodePtrIt , typename CcClientPtr  = typename std::iterator_traits&lt;LoadSharingNodePtrIt&gt;::value_type&gt; </td></tr>
+<tr class="memitem:a5b1b87b4c4bc470cae99f692500c0a63"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html">Domain</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#a5b1b87b4c4bc470cae99f692500c0a63">addPool</a> (LoadSharingNodePtrIt begin, LoadSharingNodePtrIt end, size_t capacity=1024, <a class="el" href="structhmbdc_1_1time_1_1Duration.html">time::Duration</a> maxBlockingTime=time::Duration::seconds(1), uint64_t cpuAffinity=0)</td></tr>
+<tr class="memdesc:a5b1b87b4c4bc470cae99f692500c0a63"><td class="mdescLeft">&#160;</td><td class="mdescRight">start a group of Nodes as a thread pool within the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that collectively processing messages in a load sharing manner. Each <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a> is powered by a single OS thread.  <a href="#a5b1b87b4c4bc470cae99f692500c0a63">More...</a><br /></td></tr>
+<tr class="separator:a5b1b87b4c4bc470cae99f692500c0a63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2c51ef16c89dabf53860c0bf66546c6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Domain.html#ad2c51ef16c89dabf53860c0bf66546c6">ipcPartyDetectedCount</a> () const</td></tr>
 <tr class="memdesc:ad2c51ef16c89dabf53860c0bf66546c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">how many IPC parties (processes) have been detected by this context including the current process  <a href="#ad2c51ef16c89dabf53860c0bf66546c6">More...</a><br /></td></tr>
 <tr class="separator:ad2c51ef16c89dabf53860c0bf66546c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -325,15 +325,15 @@ template&lt;typename Node &gt; </div>
 
 </div>
 </div>
-<a id="a050565f6749a83bcd5fab823ef618aa7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a050565f6749a83bcd5fab823ef618aa7">&#9670;&nbsp;</a></span>addPool()</h2>
+<a id="a5b1b87b4c4bc470cae99f692500c0a63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b1b87b4c4bc470cae99f692500c0a63">&#9670;&nbsp;</a></span>addPool()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;app::MessageTupleC RecvMessageTupleIn, typename IpcProp = NoIpc, typename NetProp = NoNet, typename NodeContext = app::BlockingContext&lt;RecvMessageTupleIn&gt;, typename AttachmentAllocator = DefaultAttachmentAllocator&gt; </div>
 <div class="memtemplate">
-template&lt;typename LoadSharingNodePtrIt &gt; </div>
+template&lt;typename LoadSharingNodePtrIt , typename CcClientPtr  = typename std::iterator_traits&lt;LoadSharingNodePtrIt&gt;::value_type&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

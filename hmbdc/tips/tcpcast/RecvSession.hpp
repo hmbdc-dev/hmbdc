@@ -183,9 +183,6 @@ private:
                             auto l = std::min<size_t>(outputBuffer_.maxItemSize(), h->messagePayloadLen);
                             memcpy(hasMemoryAttachmentItemSpace_.get(), h->payload(), l);
                             memoryAttachment_.open(h->typeTag(), hasMemoryAttachment_);
-                            // hasMemoryAttachment_->attachment = memoryAttachment_.open(hasMemoryAttachment_->len);
-                            // hasMemoryAttachment_->afterConsumedCleanupFunc 
-                            //     = [](hmbdc::app::hasMemoryAttachment* a) {::free(a->attachment);a->attachment = nullptr;};
                         } else {
                             auto l = std::min<size_t>(outputBuffer_.maxItemSize(), h->messagePayloadLen);
                             outputBuffer_.put(h->payload(), l);

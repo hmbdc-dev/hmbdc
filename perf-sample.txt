@@ -10,7 +10,7 @@ qperf               industry standard TCP            0.1) 5us - 2ms for loopback
                     (use as REFERENCE only
                      , not part of hmbdc)
 
-inter-thread        reliable,                        1.1) ~2us (shared poniter passing)
+inter-thread        reliable,                        1.1) ~2us (shared pointer passing)
                     sender / receiver blocks         
                     if buffer full or no msg
                                                      
