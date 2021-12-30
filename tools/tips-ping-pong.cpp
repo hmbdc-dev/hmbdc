@@ -13,6 +13,7 @@
 
 #include <boost/program_options.hpp>
 
+#include <sstream>
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -510,9 +511,11 @@ main(int argc, char** argv) {
     msgSize = max<uint32_t>(msgSize, 16);
 
     for (auto& param : additionalCfg) {
-        char name[128];
-        char val[128];
-        if (sscanf(param.c_str(), "%s=%s", name, val) != 2) {
+        std::string name, val;
+        std::stringstream ss(param);
+        std::getline(ss, name, '=');
+        std::getline(ss, val);
+        if (!ss) {
             cerr << "format error: " << param << endl;
             return -4;
         }
@@ -566,17 +569,14 @@ main(int argc, char** argv) {
     };
     if (netprot == "tcpcast") {
         config.put("ifaceAddr", netIface);
-        config.put("outBufferSizePower2", 18);
         return run((tcpcast::Protocol*)nullptr);
     } else if (netprot == "rmcast") {
         config.put("ifaceAddr", netIface);
-        config.put("outBufferSizePower2", 18);  /// rmcast and rnetmap need this much to handle 100MB
         return run((rmcast::Protocol*)nullptr);
 
 #ifndef HMBDC_NO_NETMAP                
     } else if (netprot == "rnetmap") {
         config.put("netmapPort", netIface);
-        config.put("outBufferSizePower2", 18);  /// rmcast and rnetmap need this much to handle 100MB
         return run((rnetmap::Protocol*)nullptr);
 #endif        
 

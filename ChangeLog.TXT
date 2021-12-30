@@ -1,3 +1,6 @@
+* Thu Dec 30 2021 - 15.4
+- fixed ping-pong test
+
 * Wed Dec 29 2021 - 15.3
 - fixes for gcc11
 
@@ -299,6 +302,9 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Thu Dec 30 2021 - 15.4
+- fixed ping-pong test
 
 * Wed Dec 29 2021 - 15.3
 - fixes for gcc11
