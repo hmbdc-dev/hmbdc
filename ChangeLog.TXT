@@ -1,3 +1,6 @@
+* Thu Dec 30 2021 - 15.6
+- improved ping-pong test
+
 * Thu Dec 30 2021 - 15.4
 - fixed ping-pong test
 
@@ -302,6 +305,9 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Thu Dec 30 2021 - 15.6
+- improved ping-pong test
 
 * Thu Dec 30 2021 - 15.4
 - fixed ping-pong test

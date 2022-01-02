@@ -329,12 +329,13 @@ struct Node {
      * @details see Domain tryPublish
      * @tparam Message TIPS message type with tag > 1000
      * @param message the message
+     * @return true if published successfully
      */
     template <app::MessageC Message>
-    void tryPublish(Message&& message) {
+    bool tryPublish(Message&& message) {
         using M = typename std::decay<Message>::type;
         node_detail::Publisher<M>& publisher = publishers_;
-        publisher.tryPublish(std::forward<Message>(message));
+        return publisher.tryPublish(std::forward<Message>(message));
     }
 
     /**

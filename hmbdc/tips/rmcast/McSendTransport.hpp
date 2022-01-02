@@ -118,7 +118,6 @@ struct McSendTransport
     }
 
 private:
-    using Buffer = hmbdc::pattern::LockFreeBufferT<2>;
     size_t maxMessageSize_;
     Buffer& HMBDC_RESTRICT buffer_;
     size_t wasteSize_;

@@ -311,7 +311,8 @@ public:
     }
 
     size_t remainingSize() const HMBDC_RESTRICT {
-        __sync_synchronize();
+        // __sync_synchronize();
+        __atomic_thread_fence(__ATOMIC_ACQUIRE);
         Sequence r = readSeq_;
         Sequence w = toBeClaimedSeq_;
         return w > r ? w - r : 0;

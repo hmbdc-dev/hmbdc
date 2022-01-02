@@ -191,14 +191,19 @@ struct Pinger
 
     void invokedCb(size_t) override {
         if (hmbdc_unlikely(rater_.check())) {
-            if (++periodicPingCount_ == msgPerSec_) {
-                cout << (skipped_?'x':'.') << flush;
-                periodicPingCount_ = 0;
+            if (triedPingCount_++ % msgPerSec_ == 0) {
+                cout << (skipped_?'x': contentions_ ? 'C' : '.') << flush;
+                contentions_ = false;
             }
             Ping p(msgSize_);
-            this->publish(p);
-            rater_.commit();
-            if (!skipped_) pingCount_++;
+            /// we do not want to block here even it merans we cannot send it out
+            /// because the channel is temporarily saturated - we will try later
+            if (this->tryPublish(p)) {
+                rater_.commit();
+                if (!skipped_) pingCount_++;
+            } else {
+                contentions_ = true;
+            }
         }
     }
 
@@ -220,11 +225,12 @@ struct Pinger
 private:
     Rater rater_{Duration::seconds(1), msgPerSec, msgPerSec};
     Stat<Duration> stat_;
-    size_t periodicPingCount_ = 0;
+    size_t triedPingCount_ = 0;
     size_t pingCount_ = 0;
     size_t skipped_ = skipFirst;
     uint32_t msgPerSec_ = msgPerSec;
     uint32_t msgSize_ = msgSize;
+    bool contentions_ = false;
 };
 
 
@@ -477,15 +483,15 @@ main(int argc, char** argv) {
     ("role,r", po::value<string>(&role)->default_value("pong"), "ping (sender process), pong (echoer process) or both (sender and echoer in the same process")
     ("use0cpy", po::value<bool>(&use0cpy)->default_value(true), "use 0cpy IPC for intra-host communications when msgSize > 1000B")
     ("msgSize", po::value<uint32_t>(&msgSize)->default_value(16), "msg size in bytes, 16B-100MB - the limit is specific to the test, hmbdc does not put limits")
-    ("msgPerSec", po::value<uint32_t>(&msgPerSec)->default_value(500), "msg per second, the test uses default config - if you see poor performance, reduce the rate or increase the default config")
+    ("msgPerSec", po::value<uint32_t>(&msgPerSec)->default_value(500), "try send msg per second - would skip if blocking is expected, the test uses default config - if you see poor performance, reduce the rate or msgSize of increase the default config via --additional options")
     ("netIface,I", po::value<string>(&netIface)->default_value("127.0.0.1"), "interface to use, for example: 192.168.0.101 or 192.168.1.0/24.")
     ("netIface2", po::value<string>(&netIface2)->default_value(""), "if netprot uses a second (backup) interface (rmcast, rnetmap) - specify here, otherwise it uses the netIface.")
     ("cpuIndex", po::value(&cpuIndex)->multitoken()->default_value({0}, "0"), "specify the cpu index numbers to use - net results can benefit from 2 CPUs (pump, ping/pong), expect exact 3 CPUs when role=both (pump, pinger, ponger)")
     ("skipFirst", po::value<size_t>(&skipFirst)->default_value(1u), "skipp the first N results (buffering & warming up stage) when collecting latency stats")
     ("runTime", po::value<uint32_t>(&runTime)->default_value(0), "how many seconds does the test last before exit. By default it runs forever")
     ("pumpMaxBlockingTimeSec", po::value<double>(&pumpMaxBlockingTimeSec)->default_value(0), "for low latency results use 0 - for low CPU utilization make it bigger - like 0.00001 sec")
-    ("show", po::value<string>(&showSection)->default_value("")->implicit_value(""), "empty, tx or rx, display additional configs, network config has tx and rx sections")
-    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, ""), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. run --show option, or DefaultUserConfigure.hpp")
+    ("show", po::value<string>(&showSection)->default_value("")->implicit_value(""), "empty, 'tx' or 'rx', display additional configs, network config has tx and rx sections")
+    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, "outBufferSizePower2=18"), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. run --show option, or DefaultUserConfigure.hpp")
     ("logging", po::value<bool>(&logging)->default_value(false), "turn on hmbdc internal logging - to stdout")
 ;
 

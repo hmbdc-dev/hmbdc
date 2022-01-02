@@ -176,7 +176,6 @@ private:
     hmbdc::comm::eth::pkt precalculatedPacketHead_;
     bool doChecksum_;
 
-    using Buffer = hmbdc::pattern::LockFreeBufferT<2>;
     size_t maxMessageSize_;
 
     Buffer& buffer_;

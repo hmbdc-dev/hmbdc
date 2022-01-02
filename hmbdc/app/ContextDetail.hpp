@@ -140,14 +140,13 @@ bool runOnceImpl(uint16_t hmbdcNumber, std::atomic<bool> const& stopped
         }
 
         using Cc = typename std::decay<CcClient>::type;
-
         const bool clientParticipateInMessaging = Cc::INTERESTS_SIZE != 0;
         if (clientParticipateInMessaging) {
             uint64_t count = lfb.peek(hmbdcNumber, begin, end, c.maxBatchMessageCount());
-            c.Cc::invokedCb(c.Cc::handleRangeImpl(begin, end, hmbdcNumber));
+            c.invokedCb(c.handleRangeImpl(begin, end, hmbdcNumber));
             lfb.wasteAfterPeek(hmbdcNumber, count);
         } else {
-            c.Cc::invokedCb(0);
+            c.invokedCb(0);
         }
     } catch (std::exception const& e) {
         if (!stopped) {
@@ -181,10 +180,10 @@ bool runOnceImpl(uint16_t threadSerialNumber, std::atomic<bool> const& stopped
         const bool clientParticipateInMessaging = Cc::INTERESTS_SIZE != 0;
         if (clientParticipateInMessaging) {
             uint64_t count = lfb.peek(begin, end, c.maxBatchMessageCount());
-            c.Cc::invokedCb(c.Cc::handleRangeImpl(begin, end, threadSerialNumber));
+            c.invokedCb(c.handleRangeImpl(begin, end, threadSerialNumber));
             lfb.wasteAfterPeek(begin, count);
         } else {
-            c.Cc::invokedCb(0);
+            c.invokedCb(0);
         }
     } catch (std::exception const& e) {
         if (!stopped) {

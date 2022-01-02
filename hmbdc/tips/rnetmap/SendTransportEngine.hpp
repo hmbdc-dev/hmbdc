@@ -82,7 +82,8 @@ struct SendTransport
         size_t n = (msg.app::hasMemoryAttachment::len + maxMemorySegPayloadSize_ - 1ul) / maxMemorySegPayloadSize_ + 2; 
         if (hmbdc_unlikely(n > buffer_.capacity())) {
             HMBDC_THROW(std::out_of_range
-                , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n);
+                , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n
+                    << " increase outBufferSizePower2");
         }
         auto it = buffer_.claim(n);
         queueMemorySegTrain(it, n, std::forward<MemoryAttachementMessage>(msg));
@@ -109,7 +110,8 @@ struct SendTransport
         size_t n = (msg.app::hasMemoryAttachment::len + maxMemorySegPayloadSize_ - 1ul) / maxMemorySegPayloadSize_ + 2; 
         if (hmbdc_unlikely(n > buffer_.capacity())) {
             HMBDC_THROW(std::out_of_range
-                , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n);
+                , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n
+                    << " increase outBufferSizePower2");
         }
         auto it = buffer_.tryClaim(n);
         if (it) {
@@ -165,7 +167,8 @@ struct SendTransport
             size_t n = (att->len + maxMemorySegPayloadSize_ - 1ul) / maxMemorySegPayloadSize_ + 2;
             if (hmbdc_unlikely(n > buffer_.capacity())) {
                 HMBDC_THROW(std::out_of_range
-                    , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n);
+                    , "send engine buffer too small capacity=" << buffer_.capacity() << "<" << n
+                        << " increase outBufferSizePower2");
             }
             auto it = buffer_.claim(n);
             queueMemorySegTrain(it, n, tag, *att, len);

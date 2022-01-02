@@ -957,10 +957,10 @@ private:
             if constexpr (has_net_send_eng) {
                 layback = layback && !sendEng_->bufferedMessageCount();
             }
+            if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
+                outCtx_.invokedCb(previousBatch);
+            }
             if (layback) {
-                if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
-                    outCtx_.invokedCb(previousBatch);
-                }
                 if (pumpMaxBlockingTimeUs_) {
                     usleep(pumpMaxBlockingTimeUs_);
                 } else {

@@ -130,10 +130,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="stru
 <tr class="memitem:aebe8d41969deeb5012f464916169ae24"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aebe8d41969deeb5012f464916169ae24">publish</a> (Message &amp;&amp;message)</td></tr>
 <tr class="memdesc:aebe8d41969deeb5012f464916169ae24"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#aebe8d41969deeb5012f464916169ae24">More...</a><br /></td></tr>
 <tr class="separator:aebe8d41969deeb5012f464916169ae24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7eabaa589549f3b945cfb8296b6cce74"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
-<tr class="memitem:a7eabaa589549f3b945cfb8296b6cce74"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#a7eabaa589549f3b945cfb8296b6cce74">tryPublish</a> (Message &amp;&amp;message)</td></tr>
-<tr class="memdesc:a7eabaa589549f3b945cfb8296b6cce74"><td class="mdescLeft">&#160;</td><td class="mdescRight">try to publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#a7eabaa589549f3b945cfb8296b6cce74">More...</a><br /></td></tr>
-<tr class="separator:a7eabaa589549f3b945cfb8296b6cce74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afffa6d345f213be7b7f7db70189b81b9"><td class="memTemplParams" colspan="2">template&lt;app::MessageC Message&gt; </td></tr>
+<tr class="memitem:afffa6d345f213be7b7f7db70189b81b9"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#afffa6d345f213be7b7f7db70189b81b9">tryPublish</a> (Message &amp;&amp;message)</td></tr>
+<tr class="memdesc:afffa6d345f213be7b7f7db70189b81b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">try to publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#afffa6d345f213be7b7f7db70189b81b9">More...</a><br /></td></tr>
+<tr class="separator:afffa6d345f213be7b7f7db70189b81b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa11242cdd2cc5a17deef86dcca4accf2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structhmbdc_1_1tips_1_1Node.html#aa11242cdd2cc5a17deef86dcca4accf2">publishJustBytes</a> (uint16_t tag, void const *bytes, size_t len, <a class="el" href="structhmbdc_1_1app_1_1hasMemoryAttachment.html">app::hasMemoryAttachment</a> *att)</td></tr>
 <tr class="memdesc:aa11242cdd2cc5a17deef86dcca4accf2"><td class="mdescLeft">&#160;</td><td class="mdescRight">publish a message in the <a class="el" href="structhmbdc_1_1tips_1_1Domain.html" title="Messages published on a TIPS pub/sub domain reach all the Nodes within that domain based on their sub...">Domain</a> that start (own) this <a class="el" href="structhmbdc_1_1tips_1_1Node.html" title="a Node is a thread of execution that can suscribe and receive Messages ">Node</a>  <a href="#aa11242cdd2cc5a17deef86dcca4accf2">More...</a><br /></td></tr>
 <tr class="separator:aa11242cdd2cc5a17deef86dcca4accf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -740,8 +740,8 @@ template&lt;typename CcNode , app::MessageTupleC RecvMessageTupleIn, app::Messag
 
 </div>
 </div>
-<a id="a7eabaa589549f3b945cfb8296b6cce74"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7eabaa589549f3b945cfb8296b6cce74">&#9670;&nbsp;</a></span>tryPublish()</h2>
+<a id="afffa6d345f213be7b7f7db70189b81b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afffa6d345f213be7b7f7db70189b81b9">&#9670;&nbsp;</a></span>tryPublish()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -754,7 +754,7 @@ template&lt;app::MessageC Message&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::tryPublish </td>
+          <td class="memname">bool <a class="el" href="structhmbdc_1_1tips_1_1Node.html">hmbdc::tips::Node</a>&lt; CcNode, RecvMessageTupleIn, SendMessageTupleIn, HasMessageStashIn &gt;::tryPublish </td>
           <td>(</td>
           <td class="paramtype">Message &amp;&amp;&#160;</td>
           <td class="paramname"><em>message</em></td><td>)</td>
@@ -781,6 +781,7 @@ template&lt;app::MessageC Message&gt; </div>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>true if published successfully </dd></dl>
 
 </div>
 </div>
