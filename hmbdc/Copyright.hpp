@@ -1,7 +1,20 @@
-/* Copyright (C) Hummingbird Code Software, LLC 2016-2018
- * The software can be used without a license i.e. as a permanent freeware unless stated otherwise.
- * Public is granted ALL rights (with due credit given to Hummingbird Code Software, LLC)
- * to use or modify without publicly redistributing the modifications in source code format.
- * Hummingbird Code Software, LLC sells hmbdc related supporting and consulting services.
+/* Copyright (C) Hummingbird Code Software, LLC 2021
  * Please direct all questions to dev@hummingbirdcode.net or hummingbirdcode@gmail.com
+ * 
+ *                                      The MIT License
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
+ * associated documentation files (the "Software"), to deal in the Software without restriction, 
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute, 
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is 
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or 
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT 
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
