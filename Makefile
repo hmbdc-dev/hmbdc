@@ -20,7 +20,7 @@ lic :
 
 .PHONY : docs
 docs :
-	@(which doxygen 2>&1) > /dev/null && doxygen doxygen-all.cfg || echo "cannot detect installed doxygen, skip doc generation!"
+	@(which doxygen 2>&1) > /dev/null && doxygen doxygen-all.cfg || echo "Cannot detect installed doxygen, skip doc generation!"
 
 .PHONY : clean
 clean :
