@@ -81,7 +81,7 @@ struct RecvTransportEngine
             HMBDC_THROW(std::runtime_error, "IO error");
         }
         for (int i = nmd_->first_rx_ring; i <= nmd_->last_rx_ring; i++) {
-            struct netmap_ring * rxring = NETMAP_TXRING(nmd_->nifp, i);
+            struct netmap_ring * rxring = NETMAP_RXRING(nmd_->nifp, i);
             if (nm_ring_empty(rxring))
                 continue;
             rxring->head = rxring->cur = rxring->tail;

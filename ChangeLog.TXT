@@ -1,3 +1,6 @@
+* Sat Jan 08 2022 - 15.7
+- Fixed rnetmap corrupt packet bug
+
 * Thu Dec 30 2021 - 15.6
 - improved ping-pong test
 
@@ -305,6 +308,9 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sat Jan 08 2022 - 15.7
+- Fixed rnetmap corrupt packet bug
 
 * Thu Dec 30 2021 - 15.6
 - improved ping-pong test

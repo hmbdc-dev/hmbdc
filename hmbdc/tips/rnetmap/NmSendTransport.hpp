@@ -52,7 +52,7 @@ struct NmSendTransport
     , rater_(rater)
     , toCleanupAttQueue_(toCleanupAttQueue)
     , maxSendBatch_(config_.getExt<size_t>("maxSendBatch"))
-    , adPending_(false)
+    , adPending_(0)
     , seqAlertPending_(false)
     , seqAlert_(nullptr)
     , startSending_(false) {
@@ -116,8 +116,12 @@ struct NmSendTransport
         if (hmbdc_unlikely(ioctl(nmd_->fd, NIOCTXSYNC, NULL) < 0)) {
             HMBDC_THROW(std::runtime_error, "IO error");
         }
-        struct netmap_ring * txring = NETMAP_TXRING(nmd_->nifp, nmd_->first_tx_ring);
-        txring->head = txring->cur = txring->tail;
+        for (int i = nmd_->first_tx_ring; i <= nmd_->last_tx_ring; i++) {
+            struct netmap_ring * txring = NETMAP_TXRING(nmd_->nifp, i);
+            if (nm_ring_empty(txring))
+                continue;
+            txring->head = txring->cur = txring->tail;
+        }
 
         auto addr = seqAlertBuf_;
         auto h = new (addr) TransportMessageHeader;
@@ -151,7 +155,7 @@ struct NmSendTransport
     }
 
     void setAdPending() {
-        adPending_ = true;
+        adPending_ = adBufs_.size();
     }
 
     void setSeqAlertPending() {
@@ -184,7 +188,7 @@ private:
     size_t maxSendBatch_;
     std::vector<std::array<char, sizeof(TransportMessageHeader)
         + sizeof(app::MessageWrap<TypeTagBackupSource>)>> adBufs_;
-    bool adPending_;
+    size_t adPending_;
     char seqAlertBuf_[sizeof(TransportMessageHeader) +  sizeof(app::MessageWrap<SeqAlert>)];
     bool seqAlertPending_;
     SeqAlert* seqAlert_;
@@ -211,11 +215,10 @@ private:
             TransportMessageHeader* th = nullptr;
             size_t wireSize = 0;
             if (hmbdc_unlikely(adPending_)) {
-                for (auto& adBuf : adBufs_) {
-                    th = reinterpret_cast<TransportMessageHeader*>(adBuf.data());
-                    wireSize += sizeof(adBuf);
-                }
-                adPending_ = false;
+                auto& adBuf = adBufs_[adPending_ - 1];
+                th = reinterpret_cast<TransportMessageHeader*>(adBuf.data());
+                wireSize = sizeof(adBuf);
+                adPending_--;
             } else if (it != end && startSending_) {
                 th = reinterpret_cast<TransportMessageHeader*>(*it);
                 wireSize = th->wireSize();
@@ -268,7 +271,7 @@ private:
                     memcpy(p + slotWireSize, th, (int)wireSize);
                 }
                 slotRemaining -= wireSize;
-                slotWireSize += wireSize;
+                slotWireSize += wireSize;                            
                 batch--;
             } else {
                 batch = 0; //this batch is done
@@ -347,8 +350,6 @@ private:
     void initializePacket(hmbdc::comm::eth::pkt *pkt, int ttl, std::string srcIpStr, std::string dstIpStr
         , ether_addr srcEthAddr, ether_addr dstEthAddr, uint16_t srcPort, uint16_t dstPort) {
         struct ether_header *eh;
-        struct ip *ip;
-        struct udphdr *udp;
         uint32_t a, b, c, d;
         sscanf(srcIpStr.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d);
         auto srcIp = (a << 24u) + (b << 16u) + (c << 8u) + d;
@@ -361,30 +362,23 @@ private:
         bcopy(&dstEthAddr, eh->ether_dhost, 6);
 
         eh->ether_type = htons(ETHERTYPE_IP);
-
-#pragma GCC diagnostic push
-#if defined __clang__ || __GNUC_PREREQ(9,0)            
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#endif
-        ip = &pkt->ipv4.ip;
-        udp = &pkt->ipv4.udp;
-        ip->ip_v = IPVERSION;
-        ip->ip_hl = sizeof(*ip) >> 2;
-        ip->ip_id = 0;
-        ip->ip_tos = IPTOS_LOWDELAY;
-        ip->ip_len = 0; //zero so chksum can happen in ip_sum
-        ip->ip_id = 0;
-        ip->ip_off = htons(IP_DF); /* Don't fragment */
-        ip->ip_ttl = ttl;
-        ip->ip_p = IPPROTO_UDP;
-        ip->ip_dst.s_addr = htonl(dstIp); 
-        ip->ip_src.s_addr = htonl(srcIp); 
-        ip->ip_sum = 0;
-        ip->ip_len = sizeof(*ip) + sizeof(udphdr); //ip->ip_len is unknown, put known part
-        udp->source = htons(srcPort);
-        udp->dest = htons(dstPort);
-        udp->len = sizeof(udphdr); //put known part
-        udp->check = 0;
+        pkt->ipv4.ip.ip_v = IPVERSION;
+        pkt->ipv4.ip.ip_hl = sizeof(struct ip) >> 2;
+        pkt->ipv4.ip.ip_id = 0;
+        pkt->ipv4.ip.ip_tos = IPTOS_LOWDELAY;
+        pkt->ipv4.ip.ip_len = 0; //zero so chksum can happen in ip_sum
+        pkt->ipv4.ip.ip_id = 0;
+        pkt->ipv4.ip.ip_off = htons(IP_DF); /* Don't fragment */
+        pkt->ipv4.ip.ip_ttl = ttl;
+        pkt->ipv4.ip.ip_p = IPPROTO_UDP;
+        pkt->ipv4.ip.ip_dst.s_addr = htonl(dstIp); 
+        pkt->ipv4.ip.ip_src.s_addr = htonl(srcIp); 
+        pkt->ipv4.ip.ip_sum = 0;
+        pkt->ipv4.ip.ip_len = sizeof(struct ip) + sizeof(udphdr); //ip_len is unknown, put known part
+        pkt->ipv4.udp.source = htons(srcPort);
+        pkt->ipv4.udp.dest = htons(dstPort);
+        pkt->ipv4.udp.len = sizeof(udphdr); //put known part
+        pkt->ipv4.udp.check = 0;
         
         bzero(&pkt->vh, sizeof(pkt->vh));
     }
@@ -392,7 +386,7 @@ private:
     static 
     void updatePacket(hmbdc::comm::eth::pkt *packet, size_t payloadWireSize, bool doChecksum = true) {
         packet->ipv4.ip.ip_len += payloadWireSize; //already has sizeof(ip) + sizeof(udphdr);
-        packet->ipv4.ip.ip_len = ntohs(packet->ipv4.ip.ip_len);
+        packet->ipv4.ip.ip_len = htons(packet->ipv4.ip.ip_len);
         if (doChecksum) {
             packet->ipv4.ip.ip_sum = hmbdc::comm::eth::wrapsum(
                 hmbdc::comm::eth::checksum(&packet->ipv4.ip, sizeof(packet->ipv4.ip), 0));
@@ -411,7 +405,6 @@ private:
     }
 };
 
-#pragma GCC diagnostic pop
 } //nmsendtransport_detail
 using NmSendTransport = nmsendtransport_detail::NmSendTransport;
 }}}

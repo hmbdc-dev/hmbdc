@@ -21,39 +21,6 @@ struct TransportMessageHeader {
         return 1023;
     }
 
-    //copy message into the right place in memory
-    template <typename M>
-    static TransportMessageHeader*
-    copyTo(void* addrIn, M&& m) {
-        using Message = typename std::decay<M>::type;
-        auto addr = (char*)addrIn;
-        auto h = reinterpret_cast<TransportMessageHeader*>(addr);
-        new (addr + sizeof(TransportMessageHeader)) 
-            app::MessageWrap<Message>(std::forward<M>(m));
-        h->messagePayloadLen = sizeof(app::MessageWrap<Message>);
-        return h;
-    }
-
-    static TransportMessageHeader*
-    copyTo(void* addrIn, uint16_t tag, void const* bytes, size_t len) {
-        auto addr = (char*)addrIn;
-        auto h = reinterpret_cast<TransportMessageHeader*>(addr);
-        new (addr + sizeof(TransportMessageHeader)) app::MessageWrap<app::JustBytes>(tag, bytes, len, nullptr);
-        h->messagePayloadLen = 
-            sizeof(app::MessageWrap<app::JustBytes>) - sizeof(app::MessageWrap<app::JustBytes>::payload) + len;
-        return h;
-    }
-
-    template <typename Message, typename ... Args>
-    static TransportMessageHeader*
-    copyToInPlace(void* addrIn, Args&&... args) {
-        char* addr = (char*)addrIn;
-        auto h = reinterpret_cast<TransportMessageHeader*>(addr);
-        new (addr + sizeof(TransportMessageHeader)) app::MessageWrap<Message>(std::forward<Args>(args)...);
-        h->messagePayloadLen = sizeof(app::MessageWrap<Message>);
-        return h;
-    }
-
     void const* payload() const {
         return reinterpret_cast<const char*>(this) 
             + sizeof(TransportMessageHeader); 
@@ -184,7 +151,7 @@ struct SessionDropped
 
 struct SeqAlert
 : app::hasTag<556> {
-    HMBDC_SEQ_TYPE expectSeq;
+    XmitEndian<HMBDC_SEQ_TYPE> expectSeq;
     friend 
     std::ostream& operator << (std::ostream& os, SeqAlert const & m) {
         return os << "SeqAlert " << m.expectSeq;

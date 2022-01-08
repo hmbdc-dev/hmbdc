@@ -122,17 +122,6 @@ struct SendTransport
         return false;
     }
 
-    template <typename Message, typename ... Args>
-    void queueInPlace(Args&&... args) HMBDC_RESTRICT {
-        static_assert(std::is_trivially_destructible<Message>::value, "cannot send message with dtor");
-        if (hmbdc_unlikely(sizeof(Message) > maxMessageSize_)) {
-            HMBDC_THROW(std::out_of_range, "maxMessageSize too small to hold a message when constructing SendTransportEngine");        
-        }
-        auto s = buffer_.claim();
-        TransportMessageHeader::copyToInPlace<Message>(*s, std::forward<Args>(args)...)->setSeq(s.seq_);
-        buffer_.commit(s);
-    }
-
     void queueJustBytes(uint16_t tag, void const* bytes, size_t len
         , app::hasMemoryAttachment* att) {
         if (!att) {
@@ -281,7 +270,6 @@ private:
             h->setSeq(it++.seq_);
         }
     }
-
 
     template<typename M, typename ... Messages>
     void queue(typename Buffer::iterator it

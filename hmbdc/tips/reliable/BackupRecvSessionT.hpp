@@ -138,29 +138,14 @@ struct BackupRecvSessionT
         }
     }
 
-    void sendGapReport(HMBDC_SEQ_TYPE missSeq, size_t len) {
-        if (hmbdc_likely(!gapPending_ && missSeq != std::numeric_limits<HMBDC_SEQ_TYPE>::max())) {
-            char buf[70];
-            auto l = sprintf(buf, "=%" PRIu64 ",%zu\t", missSeq, len);
-
-            if (hmbdc_unlikely(l != send(writeFd_.fd, buf, l, MSG_NOSIGNAL))) {
-                HMBDC_LOG_C("error when sending gap report to ", id(), " errno=", errno);
-                stopped_ = true;
-            }
-
-            if (len) {
-                gapPendingSeq_ = missSeq + len - 1;
-                gapPending_ = true;
-            }
-        }
-    }
-
     char const* id() const {
         return id_.c_str();
     }
 
     int accept(TransportMessageHeader* h) {
         auto seq = h->getSeq();
+        // if (seq != std::numeric_limits<HMBDC_SEQ_TYPE>::max()) 
+        //     HMBDC_LOG_N(h->typeTag(), '@', seq);
         auto a = arb(0, seq, h);
         if (a == 1) {
             auto tag = h->typeTag();
@@ -172,33 +157,6 @@ struct BackupRecvSessionT
             }
         }
         return a;
-    }
-
-    int arb(uint16_t part, HMBDC_SEQ_TYPE seq
-        , TransportMessageHeader* h) HMBDC_RESTRICT {
-        //UDP packet out of order case
-        if (hmbdc_unlikely(gapPending_ && part == 0)) return 0; 
-        if (seq != std::numeric_limits<HMBDC_SEQ_TYPE>::max()) {
-            auto res = seqArb_(part, seq, [](size_t) {
-                //impossible to get here
-            });
-            if (res == 0) {
-                sendGapReport(seqArb_.expectingSeq(), seq - seqArb_.expectingSeq());
-            } else if (seq == gapPendingSeq_) {
-                gapPending_ = false;
-            }
-            return res;
-        } else if (h->typeTag() == SeqAlert::typeTag) {
-            auto& alert = h->template wrapped<SeqAlert>();
-            auto nextSeq = alert.expectSeq;
-
-            if (seqArb_.expectingSeq() < nextSeq) {
-                sendGapReport(seqArb_.expectingSeq(), nextSeq - seqArb_.expectingSeq());
-            }
-            // HMBDC_LOG_D(std::this_thread::get_id(), "=-1");
-            return -1;
-        }
-        return 1;
     }
     
     SendFrom const sendFrom;
@@ -302,6 +260,50 @@ private:
         }
 
         return true;
+    }
+
+    void sendGapReport(HMBDC_SEQ_TYPE missSeq, size_t len) {
+        if (hmbdc_likely(!gapPending_ && missSeq != std::numeric_limits<HMBDC_SEQ_TYPE>::max())) {
+            char buf[70];
+            auto l = sprintf(buf, "=%" PRIu64 ",%zu\t", missSeq, len);
+
+            if (hmbdc_unlikely(l != send(writeFd_.fd, buf, l, MSG_NOSIGNAL))) {
+                HMBDC_LOG_C("error when sending gap report to ", id(), " errno=", errno);
+                stopped_ = true;
+            }
+
+            if (len) {
+                gapPendingSeq_ = missSeq + len - 1;
+                gapPending_ = true;
+            }
+        }
+    }
+
+    int arb(uint16_t part, HMBDC_SEQ_TYPE seq
+        , TransportMessageHeader* h) HMBDC_RESTRICT {
+        //UDP packet out of order case
+        if (hmbdc_unlikely(gapPending_ && part == 0)) return 0; 
+        if (seq != std::numeric_limits<HMBDC_SEQ_TYPE>::max()) {
+            auto res = seqArb_(part, seq, [](size_t) {
+                //impossible to get here
+            });
+            if (res == 0) {
+                sendGapReport(seqArb_.expectingSeq(), seq - seqArb_.expectingSeq());
+            } else if (seq == gapPendingSeq_) {
+                gapPending_ = false;
+            }
+            return res;
+        } else if (h->typeTag() == SeqAlert::typeTag) {
+            auto& alert = h->template wrapped<SeqAlert>();
+            auto nextSeq = alert.expectSeq;
+
+            if (seqArb_.expectingSeq() < nextSeq) {
+                sendGapReport(seqArb_.expectingSeq(), nextSeq - seqArb_.expectingSeq());
+            }
+            // HMBDC_LOG_D(std::this_thread::get_id(), "=-1");
+            return -1;
+        }
+        return 1;
     }
 
     hmbdc::app::Config const& config_;

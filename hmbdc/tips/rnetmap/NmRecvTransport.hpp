@@ -76,7 +76,7 @@ struct NmRecvTransport
             HMBDC_THROW(std::runtime_error, "IO error");
         }
         for (int i = nmd_->first_rx_ring; i <= nmd_->last_rx_ring; i++) {
-            struct netmap_ring * rxring = NETMAP_TXRING(nmd_->nifp, i);
+            struct netmap_ring * rxring = NETMAP_RXRING(nmd_->nifp, i);
             if (nm_ring_empty(rxring))
                 continue;
             rxring->head = rxring->cur = rxring->tail;
@@ -135,17 +135,10 @@ private:
                 && p->ipv4.ip.ip_off == htons(IP_DF)) {
                 if (!data_) {
                     data_ = (uint8_t*)p->ipv4.body;
-#pragma GCC diagnostic push
-#if defined __clang__ || __GNUC_PREREQ(9,0)       
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#endif
-                    auto ip = &p->ipv4.ip;
-                    senderEndpoint_ = ip->ip_src.s_addr;
-                } 
+                    senderEndpoint_ = p->ipv4.ip.ip_src.s_addr;
+                }
                 while (data_ + sizeof(TransportMessageHeader) < buf + slot->len) {
                     auto header = reinterpret_cast<TransportMessageHeader*>(data_);
-                    // HMBDC_LOG_DEBUG(header->typeTag());
-                    // HMBDC_LOG_DEBUG(seq);
                     if (data_ + header->wireSize() <= buf + slot->len) {
                         if (hmbdc_unlikely(header->typeTag() == TypeTagBackupSource::typeTag)) {
                             auto it = cmdBuffer_.claim();
@@ -201,8 +194,7 @@ private:
                         hmbdc::comm::eth::checksum(&packet->ipv4.ip.ip_src, 2 * sizeof(packet->ipv4.ip.ip_src), /* pseudo header */
                             IPPROTO_UDP + (u_int32_t)ntohs(udp->len)))))) {
                 return false;
-            }
-#pragma GCC diagnostic pop            
+            }   
             packet->ipv4.udp.check = tmp;
             return true;
         }

@@ -60,7 +60,7 @@ struct pkt {
 		struct udphdr udp;
 		uint8_t body[1];	
 	} ipv4;
-} __attribute__((__packed__));
+} __attribute__((__packed__, aligned (2)));
 
 // template<int s> struct Wow;
 // Wow<sizeof(pkt)> wow;

@@ -657,7 +657,6 @@ protected:
             size_t retry = 3;
             while (true) {
                 try {
-                    // using namespace boost::interprocess;
                     auto name = std::string(shmName) + "-att-pool";
                     if (ownership > 0) {
                         shm_unlink(name.c_str());
@@ -675,9 +674,6 @@ protected:
                 }
             }
         }
-        // if (cpa::ipc) {
-        //     sleep(2);
-        // }
     }
 
     ~ThreadCommBase() {

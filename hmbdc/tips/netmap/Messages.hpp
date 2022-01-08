@@ -35,16 +35,6 @@ struct TransportMessageHeader {
         return h;
     }
 
-    template <typename Message, typename ... Args>
-    static TransportMessageHeader*
-    copyToInPlace(void* addrIn, Args&&... args) {
-        char* addr = (char*)addrIn;
-        auto h = reinterpret_cast<TransportMessageHeader*>(addr);
-        new (addr + sizeof(TransportMessageHeader)) app::MessageWrap<Message>(std::forward<Args>(args)...);
-        h->messagePayloadLen() = sizeof(app::MessageWrap<Message>);
-        return h;
-    }
-
     void const* payload() const {
         return reinterpret_cast<const char*>(this) 
             + sizeof(TransportMessageHeader); 

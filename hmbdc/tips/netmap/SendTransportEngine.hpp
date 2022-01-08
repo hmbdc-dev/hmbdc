@@ -130,17 +130,6 @@ struct SendTransportEngine
         queue(++it, std::forward<Messages>(msgs)...);
     }
 
-    template <typename Message, typename ... Args>
-    void queueInPlace(Args&&... args) HMBDC_RESTRICT {
-        static_assert(std::is_trivially_destructible<Message>::value, "cannot send message with dtor");
-        if (hmbdc_unlikely(sizeof(Message) > maxMessageSize_)) {
-            HMBDC_THROW(std::out_of_range, "maxMessageSize too small to hold a message when constructing SendTransportEngine");        
-        }
-        auto s = buffer_.claim();
-        TransportMessageHeader::copyToInPlace<Message>(*s, std::forward<Args>(args)...);
-        buffer_.commit(s);
-    }
-
     // void queueBytes(uint16_t tag, void const* bytes, size_t len);
     void queue(pattern::MonoLockFreeBuffer::iterator it) {}
 
@@ -436,8 +425,6 @@ SendTransportEngine::
 initializePacket(hmbdc::comm::eth::pkt *pkt, int ttl, std::string srcIpStr, std::string dstIpStr
     , ether_addr srcEthAddr, ether_addr dstEthAddr, uint16_t srcPort, uint16_t dstPort) {
     struct ether_header *eh;
-    struct ip *ip;
-    struct udphdr *udp;
     uint32_t a, b, c, d;
     sscanf(srcIpStr.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d);
     auto srcIp = (a << 24u) + (b << 16u) + (c << 8u) + d;
@@ -450,30 +437,23 @@ initializePacket(hmbdc::comm::eth::pkt *pkt, int ttl, std::string srcIpStr, std:
     bcopy(&dstEthAddr, eh->ether_dhost, 6);
 
     eh->ether_type = htons(ETHERTYPE_IP);
-
-#pragma GCC diagnostic push
-#if defined __clang__ || __GNUC_PREREQ(9,0)       
-#pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#endif        
-    ip = &pkt->ipv4.ip;
-    udp = &pkt->ipv4.udp;
-    ip->ip_v = IPVERSION;
-    ip->ip_hl = sizeof(*ip) >> 2;
-    ip->ip_id = 0;
-    ip->ip_tos = IPTOS_LOWDELAY;
-    ip->ip_len = 0; //zero so chksum can happen in ip_sum
-    ip->ip_id = 0;
-    ip->ip_off = htons(IP_DF); /* Don't fragment */
-    ip->ip_ttl = ttl;
-    ip->ip_p = IPPROTO_UDP;
-    ip->ip_dst.s_addr = htonl(dstIp); 
-    ip->ip_src.s_addr = htonl(srcIp); 
-    ip->ip_sum = 0;
-    ip->ip_len = sizeof(*ip) + sizeof(udphdr); //ip->ip_len is unknown, put known part
-    udp->source = htons(srcPort);
-    udp->dest = htons(dstPort);
-    udp->len = sizeof(udphdr); //put known part
-    udp->check = 0;
+    pkt->ipv4.ip.ip_v = IPVERSION;
+    pkt->ipv4.ip.ip_hl = sizeof(struct ip) >> 2;
+    pkt->ipv4.ip.ip_id = 0;
+    pkt->ipv4.ip.ip_tos = IPTOS_LOWDELAY;
+    pkt->ipv4.ip.ip_len = 0; //zero so chksum can happen in ip_sum
+    pkt->ipv4.ip.ip_id = 0;
+    pkt->ipv4.ip.ip_off = htons(IP_DF); /* Don't fragment */
+    pkt->ipv4.ip.ip_ttl = ttl;
+    pkt->ipv4.ip.ip_p = IPPROTO_UDP;
+    pkt->ipv4.ip.ip_dst.s_addr = htonl(dstIp); 
+    pkt->ipv4.ip.ip_src.s_addr = htonl(srcIp); 
+    pkt->ipv4.ip.ip_sum = 0;
+    pkt->ipv4.ip.ip_len = sizeof(struct ip) + sizeof(udphdr); //ip->ip_len is unknown, put known part
+    pkt->ipv4.udp.source = htons(srcPort);
+    pkt->ipv4.udp.dest = htons(dstPort);
+    pkt->ipv4.udp.len = sizeof(udphdr); //put known part
+    pkt->ipv4.udp.check = 0;
     
     bzero(&pkt->vh, sizeof(pkt->vh));
 }
@@ -500,8 +480,6 @@ updatePacket(hmbdc::comm::eth::pkt *packet, size_t payloadWireSize, bool doCheck
                         IPPROTO_UDP + (u_int32_t)ntohs(udp->len)))));
     }
 }
-
-#pragma GCC diagnostic pop
 
 } //sendtransportengine_detail
 

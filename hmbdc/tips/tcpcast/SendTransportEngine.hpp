@@ -81,30 +81,6 @@ struct SendTransport
         return false;
     }
 
-    template <typename Message, typename ... Args>
-    void queueInPlace(Args&&... args) {
-        static_assert(!std::is_base_of<app::JustBytes, Message>::value
-            , "use queueJustBytes instead");
-        static_assert(std::is_trivially_destructible<Message>::value
-            , "cannot send message with dtor");
-        static_assert(!std::is_base_of<app::hasMemoryAttachment, Message>::value 
-            || app::is_hasMemoryAttachment_first_base_of<Message>::value
-            , "hasMemoryAttachment has to the first base for Message");
-        auto s = buffer_.claim();
-        char* addr = static_cast<char*>(*s);
-        auto h = new (addr) TransportMessageHeader;
-        h->messagePayloadLen = sizeof(app::MessageWrap<Message>);
-        if (hmbdc_likely(sizeof(Message) <= maxMessageSize_)) {
-            auto wrap = new (addr + sizeof(TransportMessageHeader)) 
-                app::MessageWrap<Message>(std::forward<Args>(args)...);
-            h->flag = wrap->scratchpad().desc.flag;
-        } else {
-            HMBDC_THROW(std::out_of_range
-                , "maxMessageSize too small to hold a message");
-        }
-        buffer_.commit(s);
-    }
-
     void queueJustBytes(uint16_t tag, void const* bytes, size_t len
         , app::hasMemoryAttachment* att) {
         if (!minRecvToStart_ && !outboundSubscriptions_.check(tag)) {
