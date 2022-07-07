@@ -87,9 +87,7 @@ g++ tools/tips-ping-pong.cpp  -std=c++1z -fconcepts \
   dev@hummingbirdcode.net or hummingbirdcode@gmail.com
 
 ### Who do I talk to? ###
-* MIT Licensed, public is granted all the rights to use and modify 
-  hmbdc without redistributing the modifications 
-  in source code format.
+* MIT Licensed
 * please direct questions to dev@hummingbirdcode.net or 
   hummingbirdcode@gmail.com 
   and thank you for your interests in hmbdc!
