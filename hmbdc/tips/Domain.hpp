@@ -604,7 +604,8 @@ private:
                     att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* h) {
                         auto hmbdc0cpyShmRefCount = &Message::getHmbdc0cpyShmRefCount(*h);
                         if (h->attachment 
-                            && 0 == __atomic_sub_fetch(hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
+                            && 0 == --*reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)) {
+                            // && 0 == __atomic_sub_fetch(hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
                             auto& hmbdcShmDeallocator
                                 = *(std::function<void (uint8_t*)>*)h->clientData[0];
                             hmbdcShmDeallocator((uint8_t*)h->attachment);
@@ -774,7 +775,9 @@ private:
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
                                 auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
-                                __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                // __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
+                                    -> fetch_add(intDiff, std::memory_order_release);
                             }
                         }
                         ipcTransport_.send(std::move(toSend));
@@ -784,7 +787,9 @@ private:
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
                                 auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
-                                __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                // __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
+                                    -> fetch_add(intDiff, std::memory_order_release);
                             }
                         }
                         ipcTransport_.send(std::move(toSend));
@@ -849,7 +854,9 @@ private:
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
                                 auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();;
-                                __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                // __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
+                                    -> fetch_add(intDiff, std::memory_order_release);
                             }
                         }
                         res = ipcTransport_.trySend(std::move(toSend));
@@ -858,7 +865,9 @@ private:
                                 if (toSend.template holdShmHandle<ToSendType>()) {
                                     toSend.hmbdcIsAttInShm = true;
                                     auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();;
-                                    __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                    // __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                    reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
+                                        -> fetch_sub(intDiff, std::memory_order_release);
                                 }
                             }
                         }
@@ -1300,7 +1309,10 @@ public:
         , size_t capacity = 1024
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , uint64_t cpuAffinity = 0) {
+            
         if (begin == end) return *this;
+        if (end - begin == 1) return add(**begin, capacity, maxBlockingTime, cpuAffinity);
+
         using Node = typename std::decay<decltype(*std::declval<CcClientPtr>())>::type;
         auto maxItemSize = (*begin)->maxMessageSize();
         
@@ -1316,7 +1328,7 @@ public:
             auto& node = *new domain_detail::NodeProxy<Node>(nodeIn);
             nodeIn.updateSubscription();
             nodeIn.setDomain(*this);
-            addPubSubFor(node);
+            if (it == begin) addPubSubFor(node);
             proxies.push_back(&node);
         }
 
@@ -1458,7 +1470,7 @@ public:
      * 1 additonal time in Domain. publish via hasSharedPtrAttachment is always prefered
      * @param tag - type tag
      * @param bytes - bytes of the message contents - must match the message already 
-     * constructed binary wise (hasMemoryAttachment, inTagRange must be considered
+     * constructed binary wise (hasMemoryAttachment must be considered
      * - user needs to add those leading bytes to match binary wise)
      * @param len - len of the above buffer
      * @param att - if the message type is derived from hasMemoryAttachment, explictly

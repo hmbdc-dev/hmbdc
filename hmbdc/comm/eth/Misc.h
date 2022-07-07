@@ -50,22 +50,27 @@ wrapsum(uint32_t sum) {
 
 struct virt_header {
 	uint8_t fields[12];
-} __attribute__((__packed__));
+};
+static_assert(12 == sizeof(virt_header));
 
-struct pkt {
+#pragma pack(push, 1)
+struct alignas(2) pkt {
 	struct virt_header vh;
 	struct ether_header eh;
 	struct {
 		struct ip ip;
 		struct udphdr udp;
-		uint8_t body[1];	
+		uint8_t body[4];	
 	} ipv4;
-} __attribute__((__packed__, aligned (2)));
+};
+#pragma pack(pop)
 
 // template<int s> struct Wow;
 // Wow<sizeof(pkt)> wow;
 static_assert(sizeof(pkt) == 58u, "wierd that size is not 58?");
+static_assert(offsetof(pkt, ipv4.body) == 54u, "wierd that offset is not 54?");
 
+#pragma pack(push, 1)
 template <size_t N>
 struct pkt_n {
     struct virt_header vh;
@@ -80,6 +85,6 @@ struct pkt_n {
         return reinterpret_cast<pkt&>(*this);
     }
 
-} __attribute__((__packed__));
-
+};
+#pragma pack(pop)
 }}}

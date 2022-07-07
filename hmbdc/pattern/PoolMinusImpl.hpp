@@ -38,9 +38,9 @@ struct PoolMinusImpl {
     }
 
     void addConsumer(PoolConsumer& c, uint64_t poolThreadAffinityIn) {
-        auto count = __sync_add_and_fetch(&consumerCount_, 1u);
+        auto count = ++consumerCount_;
         if (count > consumerQ_.CAPACITY) {
-            __sync_sub_and_fetch(&consumerCount_, 1u);
+            --consumerCount_;
             HMBDC_THROW(std::runtime_error
                 , "too many consumers, poolsize = " << consumerCount_);
         }
@@ -70,7 +70,7 @@ struct PoolMinusImpl {
     }
 
     void stop() {
-        __sync_synchronize();
+        std::atomic_thread_fence(std::memory_order_acq_rel);
         stopped_ = true;
     }
 
@@ -96,7 +96,7 @@ struct PoolMinusImpl {
                         consumerQ_.put(consumer);
                         continue;
                     }
-                    __sync_sub_and_fetch(&consumerCount_, 1u);
+                    --consumerCount_;
                     consumer->dropped();
                 }
             }
@@ -139,7 +139,7 @@ private:
             } while (hoggingCond() && consumerQ_.remainingSize() == 0 && !stopped_);
         } catch (std::exception const& e) {
             consumer->stopped(e);
-            __sync_sub_and_fetch(&consumerCount_, 1u);
+            --consumerCount_;
             if (!consumer->dropped()) {//resume
                 addConsumer(*consumer
                     , consumer->poolThreadAffinity & activePoolThreadSequenceMask_);
@@ -154,7 +154,7 @@ private:
     Threads threads_;
     bool stopped_;
     uint64_t activePoolThreadSequenceMask_;
-    uint32_t consumerCount_;
+    std::atomic<uint32_t> consumerCount_;
     ConsumerQ consumerQ_;
 };
 }}

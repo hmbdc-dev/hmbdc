@@ -14,6 +14,8 @@
 #include <memory.h>
 
 namespace hmbdc { namespace tips { namespace rnetmap {
+
+#pragma pack(push, 1)
 struct TransportMessageHeader {
     uint8_t flag = 0; //1 - hasAttachment
     XmitEndian<uint16_t> messagePayloadLen;
@@ -77,8 +79,8 @@ struct TransportMessageHeader {
     void setSeq(HMBDC_SEQ_TYPE seq) {
         static_cast<app::MessageHead*>(payload())->scratchpad().seq = seq;
     }
-
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
 struct TypeTagBackupSource 
 : app::hasTag<553> {

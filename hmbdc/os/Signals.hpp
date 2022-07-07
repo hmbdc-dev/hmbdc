@@ -50,5 +50,29 @@ private:
 	}
 };
 
+// this platform independent implementation tied to asio too much that
+// it requires ios be run() in a dedicated thread
+// struct HandleSignals {
+// 	/**
+// 	 * @brief specfy what to do when SIGTERM or SIGINT is received
+// 	 * @details will install signal handlers - might make previous installed
+// 	 * handlers not working, so don't call this more than once
+// 	 * 
+// 	 * @param doThis a function<void()> or more likely a lambda specifying
+// 	 * what to do
+// 	 */
+// 	static
+// 	void 
+// 	onTermIntDo(std::function<void()> doThis) {
+// 		static boost::asio::io_service ios;
+// 		static boost::asio::signal_set sigSet{ios, SIGINT, SIGTERM};
+// 		sigSet.async_wait([doThis](const boost::system::error_code& error, int) {
+//   			/*if (!error)*/ {
+// 				// A signal occurred.
+// 				doThis();
+// 			}
+// 		});
+// 	}
+// };
 }}
 

@@ -106,8 +106,7 @@ struct EpollFd {
             return true;
         } else {
             EpollTask::instance().setPollPending();
-            // return fdReadyLocal_ = __sync_val_compare_and_swap(&fdReady_, true, false);
-            return fdReadyLocal_ = __atomic_exchange_n(&fdReady_, false, __ATOMIC_RELAXED);
+            return fdReadyLocal_ = fdReady_.exchange(false, std::memory_order_relaxed);
         }
     }
 
@@ -128,7 +127,7 @@ struct EpollFd {
     
 private:
 	friend struct EpollTask;
-    bool fdReady_;
+    std::atomic<bool> fdReady_;
     bool fdReadyLocal_;
 };
 }}}
@@ -182,7 +181,7 @@ poll() {
 		sentinel = true;
 	}
 	pollPending_ = false;
-	if (nfds > 0) __atomic_thread_fence(__ATOMIC_RELEASE);
+	if (nfds > 0) std::atomic_thread_fence(std::memory_order_release);
 }
 
 inline

@@ -346,7 +346,9 @@ exit
                     att->attachment = (char*)att->attachment + sizeof(size_t);
                     att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* att) {
                         auto& refCount = *((size_t*)att->clientData[0]);
-                        if (0 == __atomic_sub_fetch(&refCount, 1, __ATOMIC_RELAXED)) {
+                        
+                        if (0 == --*reinterpret_cast<std::atomic<size_t>*>(&refCount)) {
+                        // if (0 == __atomic_sub_fetch(&refCount, 1, __ATOMIC_RELAXED)) {
                             auto toFree = (char*)att->attachment;
                             toFree -= sizeof(size_t);
                             ::free(toFree);

@@ -6,6 +6,7 @@
 //to run:
 //./chat <local-ip> admin admin                  # start the groups by admin, and keep it running
 //./chat <local-ip> <chat-group-name> <my-name>  # join the group
+//./chat dot                                     # show nodes's pub/sub topology in dot format
 //to build:
 //g++ chat.cpp -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS  -Ipath-to-boost -lrt -o /tmp/chat
 //
@@ -15,9 +16,9 @@
 //- see ipcTransportOwnership config for shared memory ownership in tips/DefaultUserConfig.hpp
 // 
 
-#include "hmbdc/tips/tcpcast/Protocol.hpp" //use tcpcast for communication
+#include "hmbdc/tips/tcpcast/Protocol.hpp"  /// use tcpcast for communication
 #include "hmbdc/tips/Tips.hpp"
-
+#include "hmbdc/tips/Utils.hpp"             /// for printNodePubSubDot
 
 #include <iostream>
 #include <string>
@@ -48,10 +49,10 @@ struct ChatMessage
 : hasSharedPtrAttachment<ChatMessage, char[]>   //message text is saved in a shared_ptr<char[]>
                                                 //recipients even in a different host gets valid shared_ptr to use
                                                 //no limit on the attachment length
-, inTagRange<1002, 100> {                       //up to 100 chat groups; only configured 3 in the example
+, hasTag<1002, 100> {                           //up to 100 chat groups; only configured 3 in the example
     ChatMessage(char const* myId, uint16_t grouId, char const* msg)
     : hasSharedPtrAttachment(std::shared_ptr<char[]>(new char[strlen(msg) + 1]), strlen(msg) + 1)
-    , inTagRange(grouId) {
+    , hasTag(grouId) {
         snprintf(id, sizeof(id), "%s", myId);
         snprintf(hasSharedPtrAttachment::attachmentSp.get(), hasSharedPtrAttachment::len
             , "%s", msg);
@@ -138,9 +139,14 @@ struct Chatter
 
 int main(int argc, char** argv) {
     using namespace std;
-    if (argc != 4) {
+    if (argc == 2 && std::string("dot") == argv[1]) {
+        printNodePubSubDot<std::tuple<Chatter, Admin>>("chat", cout);
+        return 0;
+    } else if (argc != 4) {
         cerr << argv[0] << " local-ip chat-group-name my-name" << endl;
         cerr << "multicast should be enabled on local-ip network" << endl;
+        cerr << " Additionally, to show node pub/sub topology in dot format, run:";
+        cerr << argv[0] << " dot" << endl;
         return -1;
     }
     std::string ifaceAddr = argv[1];

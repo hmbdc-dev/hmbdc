@@ -5,6 +5,7 @@
 
 namespace hmbdc { namespace tips { namespace udpcast {
 
+#pragma pack(push, 1)
 struct TransportMessageHeader {
     uint16_t& messagePayloadLen() {
         return *reinterpret_cast<uint16_t*>(payload());
@@ -44,6 +45,7 @@ struct TransportMessageHeader {
     size_t wireSize() const {
         return sizeof(TransportMessageHeader) + messagePayloadLen();
     }    
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
 }}}

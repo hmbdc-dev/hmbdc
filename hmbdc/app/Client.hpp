@@ -103,7 +103,8 @@ struct single_thread_powered_client{};
  * See in example hmbdc.cpp @snippet hmbdc.cpp use JustBytes instead of Message types
  */
 template <typename CcClient, MessageC ... Messages>
-struct Client {
+class Client {
+public:    
     using Interests = std::tuple<Messages ...>;
 
     enum {
@@ -213,7 +214,6 @@ struct Client {
     Client(Client const&) = delete;
     Client& operator = (Client const&) = delete;
     virtual ~Client() = default;
-
 
 protected:
     /**

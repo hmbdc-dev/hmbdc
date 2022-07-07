@@ -7,6 +7,7 @@
 #include "hmbdc/Config.hpp"
 #include <boost/smart_ptr/detail/yield_k.hpp>
 #include <limits>
+#include <atomic>
 #include <iostream>
 
 #include <stdexcept>
@@ -28,8 +29,9 @@ struct PoolConsumer {
     void messageDispatchingStarted() {
         if (hmbdc_unlikely(!messageDispatchingStarted_)) {
             messageDispatchingStartedCb(pDispStartCount_
-            ?(__atomic_add_fetch(pDispStartCount_, 1, __ATOMIC_RELEASE), pDispStartCount_)
-            :0);
+            ? (++*reinterpret_cast<std::atomic<size_t>*>(pDispStartCount_), pDispStartCount_)
+            // ?(__atomic_add_fetch(pDispStartCount_, 1, __ATOMIC_RELEASE), pDispStartCount_)
+            :nullptr);
             messageDispatchingStarted_ = true;
         }
     }
@@ -52,9 +54,9 @@ private:
     
     hmbdc::time::TimerManager* tmPtr;
     uint64_t poolThreadAffinity;
-    uint16_t droppedCount;
+    std::atomic<uint16_t> droppedCount;
     uint64_t skippedPoolThreadMask_;
-    HMBDC_SEQ_TYPE nextSeq_ __attribute__((__aligned__(SMP_CACHE_BYTES)));
+    alignas(SMP_CACHE_BYTES) HMBDC_SEQ_TYPE nextSeq_;
     bool interestedInMessages;
     bool messageDispatchingStarted_;
     size_t* pDispStartCount_ = nullptr;
@@ -109,9 +111,13 @@ handleRange(BufIt begin,
     const auto STOP = std::numeric_limits<typename BufIt::Sequence>::max() - 1;
     const auto IGNORE = std::numeric_limits<typename BufIt::Sequence>::max() - 2;
     bool res = true;
+    auto tmp = std::numeric_limits<typename BufIt::Sequence>::max();
     if (hmbdc_unlikely(nextSeq_ == std::numeric_limits<typename BufIt::Sequence>::max()
-        && __sync_bool_compare_and_swap(&nextSeq_
-        , std::numeric_limits<typename BufIt::Sequence>::max(), begin.seq()))) {
+        && reinterpret_cast<std::atomic<HMBDC_SEQ_TYPE>*>(&nextSeq_)
+                ->compare_exchange_strong(tmp
+                    , begin.seq(), std::memory_order_acq_rel, std::memory_order_acq_rel))) {
+        // && __sync_bool_compare_and_swap(&nextSeq_
+        // , std::numeric_limits<typename BufIt::Sequence>::max(), begin.seq()))) {
         try {
             messageDispatchingStarted();
         }  
@@ -135,7 +141,10 @@ handleRange(BufIt begin,
     if ((hmbdc_unlikely(interestedInMessages && begin.seq() > nextSeq))) {
         return true;
     } else if (hmbdc_likely(end.seq() > nextSeq)) {
-        if (hmbdc_likely(__sync_bool_compare_and_swap(&nextSeq_, nextSeq, IGNORE))) {
+        if (hmbdc_likely(reinterpret_cast<std::atomic<HMBDC_SEQ_TYPE>*>(&nextSeq_)
+                ->compare_exchange_strong(nextSeq
+                    , IGNORE, std::memory_order_acq_rel, std::memory_order_acq_rel))) {
+        // if (hmbdc_likely(__sync_bool_compare_and_swap(&nextSeq_, nextSeq, IGNORE))) {
             try {
                 size_t res = 0;
                 if (hmbdc_likely(interestedInMessages)) {
@@ -156,12 +165,15 @@ handleRange(BufIt begin,
                 stopped(hmbdc::UnknownException());
                 res = false;
             }
-            __sync_synchronize();
+            std::atomic_thread_fence(std::memory_order_acq_rel);
             if (hmbdc_likely(res)) nextSeq_ = end.seq();
         }
     } else if (hmbdc_unlikely(!interestedInMessages 
         || (end.seq() == nextSeq && begin.seq() == nextSeq))) {
-        if (hmbdc_unlikely(__sync_bool_compare_and_swap(&nextSeq_, nextSeq, IGNORE))) {
+        if (hmbdc_unlikely(reinterpret_cast<std::atomic<HMBDC_SEQ_TYPE>*>(&nextSeq_)
+                ->compare_exchange_strong(nextSeq
+                    , IGNORE, std::memory_order_acq_rel, std::memory_order_acq_rel))) {
+        // if (hmbdc_unlikely(__sync_bool_compare_and_swap(&nextSeq_, nextSeq, IGNORE))) {
             try {
                 invoked(0);
             } catch (std::exception const& e) {
@@ -177,7 +189,7 @@ handleRange(BufIt begin,
                 stopped(hmbdc::UnknownException());
                 res = false;
             }
-            __sync_synchronize();
+            std::atomic_thread_fence(std::memory_order_acq_rel);
             if (hmbdc_likely(res)) nextSeq_ = end.seq();
         }
     }

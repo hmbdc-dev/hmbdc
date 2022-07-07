@@ -14,6 +14,7 @@
 
 namespace hmbdc { namespace tips { namespace tcpcast {
 
+#pragma pack(push, 1)
 struct TransportMessageHeader {
     uint8_t flag; //1 - hasAttachment
     XmitEndian<uint16_t> messagePayloadLen;
@@ -52,8 +53,10 @@ struct TransportMessageHeader {
     size_t wireSizeContainsTRansportHeader() const {
         return sizeof(TransportMessageHeader);
     }
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 struct TypeTagSource
 : app::hasTag<250> {
     TypeTagSource()
@@ -96,8 +99,10 @@ struct TypeTagSource
 
         return os;
     }
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 struct UdpcastListenedAt
 : app::hasTag<251> {
     UdpcastListenedAt(){}
@@ -112,7 +117,9 @@ struct UdpcastListenedAt
         os << "UdpcastListeningAt:" << m.ipPort;
         return os;
     }
-} __attribute__((packed));
+};
+#pragma pack(pop)
+
 /**
  * @class SessionStarted
  * @brief this message tipsears in the receiver's buffer indicating a new source is connected

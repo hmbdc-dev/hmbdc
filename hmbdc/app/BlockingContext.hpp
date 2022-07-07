@@ -117,14 +117,13 @@ bool runOnceLoadSharingImpl(std::atomic<bool>& stopped
         const bool clientParticipateInMessaging = 
             std::decay<CcClient>::type::INTERESTS_SIZE != 0;
         if (clientParticipateInMessaging && buf) {
-            uint8_t msgWrapped[buf->maxItemSize()] __attribute__((aligned (8)));
-            void* tmp = msgWrapped;
-            bool disp = false;
-            if (buf->tryTake(tmp, 0, waitDuration(c, maxBlockingTime))) {
-                disp = MessageDispacher<CcClient, typename CcClient::Interests>()(
-                    c, *static_cast<MessageHead*>(tmp));
+            auto it = buf->peekExclusive();
+            if (it) {
+                c.CcClient::invokedCb(c.CcClient::handleRangeImpl(it, it + 1, 0xffff));
+                buf->wasteAfterPeekExclusive(it);
+            } else {
+                buf->waitItem(waitDuration(c, maxBlockingTime));
             }
-            c.CcClient::invokedCb(disp?1:0);
         } else {
             c.CcClient::invokedCb(0);
             auto d = waitDuration(c, maxBlockingTime);
@@ -187,7 +186,7 @@ struct TransportEntry<JustBytes> {
  * between senders and receivers
  */
 template <MessageTupleC... MessageTuples>
-struct BlockingContext {
+class BlockingContext {
 private:
     using cpa = blocking_context_detail::context_property_aggregator<MessageTuples ...>;
     template <typename Message> struct can_handle;
@@ -378,7 +377,7 @@ public:
      * stops immidiately after this non-blocking call
      */
     void stop() {
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         stopped_ = true;
         // std::apply(
         //     [](auto&&... args) {

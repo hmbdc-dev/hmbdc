@@ -156,10 +156,11 @@ class TipsConsole :
                     print("while expecting att, got {}= and {}".format(typestr, l), file=sys.stderr)
 
     def status_msgs(self) :
-        """sequnce for status messages (console stderr output)
+        """sequence for status messages (console stderr output)
+            Each stderr line maps to one status message
 
         Yields:
-            dictionary: contains status info
+            dictionary: contains 'status' info line or 'other' line that isn't a status
         """
         while True:
             l = self._pipe.stderr.readline()

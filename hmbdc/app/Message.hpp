@@ -45,11 +45,20 @@ concept MessageForwardIterC = MessageC<decltype(*(MIter{}))>
 
 /**
  * @class hasTag<>
- * @brief each message type has 16 bit tag
+ * @brief util template to specify how a message type is mapped to tag (or tags).
+ * Concrete message type needs to derive from this template.
+ * By default, each message type has a unique 16 bit tag, so the message type 
+ * and its tag is 1-1 mapped at compile time ("static-tagged");
+ * If the map has to be runtime determined (such as configuration determined), the message type
+ * can specify a rangeSize > 1, in that case, each message type is mapped to a tag range
+ * [tag, tag + rangeSize) at compile time and the message's tag is determined at contruction time. 
+ * They are also called "runtime-tagged" messages.
  * @tparam tag 16 bit unsigned tag
+ * @tparam rangeSize how many tags starting from tag are mapped to this mesage type
  */
+template <uint16_t tag, uint16_t rangeSize = 1> struct hasTag;
 template <uint16_t tag>
-struct hasTag {
+struct hasTag<tag, 1> {
     using hmbdc_tag_type = hasTag;
     enum {
         typeTag = tag,
@@ -67,10 +76,9 @@ struct hasTag {
         return typeTag;
     }
 };
-
 template <uint16_t tagStart, uint16_t rangeSize>
-struct inTagRange {
-    using hmbdc_tag_type = inTagRange;
+struct hasTag {
+    using hmbdc_tag_type = hasTag;
     enum {
         typeSortIndex = tagStart,
         hasRange = 1,
@@ -79,7 +87,7 @@ struct inTagRange {
     static constexpr uint16_t typeTagStart = tagStart;
     static constexpr uint16_t typeTagRange = rangeSize;
 
-    inTagRange(uint16_t offset)
+    hasTag(uint16_t offset)
     : typeTagOffsetInRange(offset) {
         if (offset >= typeTagRange) {
             HMBDC_THROW(std::out_of_range, offset << " too big for typeTagRange=" << typeTagRange);
@@ -91,8 +99,8 @@ struct inTagRange {
     XmitEndian<uint16_t> const typeTagOffsetInRange{0};
     friend 
     std::ostream& 
-    operator << (std::ostream & os, inTagRange const& t) {
-        return os << "inTagRange tag=" << t.typeTagStart + t.typeTagOffsetInRange;
+    operator << (std::ostream & os, hasTag const& t) {
+        return os << "hasTag tag=" << t.typeTagStart + t.typeTagOffsetInRange;
     }
 };
 
@@ -105,7 +113,7 @@ HMBDC_CLASS_HAS_DECLARE(hmbdcIsAttInShm);
  * @details user on the sending side cannot directly free the attachment, instead the user can provide 
  * a callback func and hmbdc will call it - the default callback function is to call free on the attachment
  */
-struct hasMemoryAttachment {
+struct alignas(8) hasMemoryAttachment {
     /**
      * @brief default ctor 
      * @details assuming attachment will be allocated and release thru heap
@@ -182,7 +190,7 @@ struct hasMemoryAttachment {
     static void unmap(hasMemoryAttachment*);
     static void free(hasMemoryAttachment*);
     size_t map(char const* fileName);
-} __attribute__((aligned (8)));
+};
 
 /** 
  * @class MessageHead
@@ -193,6 +201,7 @@ struct hasMemoryAttachment {
  * message's dtors and call them properly within a process boundary.
  * @snippet hmbdc.cpp define a message
  */
+#pragma pack(push, 1)
 struct MessageHead {
 	MessageHead(uint16_t typeTag)
 	: reserved2(0)
@@ -214,18 +223,18 @@ struct MessageHead {
             struct {
                 char forbidden[sizeof(pid_t)];
                 uint8_t flag;   /// not usable when inbandUnderlyingTypeTag is used
-            } __attribute__((packed)) desc;
+            } desc;
             XmitEndianByteField<uint64_t, 6> seq;
             union {
                 struct {
                     pid_t from;
                     uint16_t inbandUnderlyingTypeTag : 16;
-                } __attribute__((packed)) hd;
+                } hd;
                 uint64_t inbandPayloadLen : 48;
-            } __attribute__((packed)) ipc;
+            } ipc;
             uint64_t reserved : 48;
             uint8_t space[6];
-        } __attribute__((packed));
+        };
     static_assert(sizeof(Scratchpad) == sizeof(reserved2) + sizeof(reserved), "");
     static_assert(sizeof(Scratchpad::seq) == sizeof(reserved2) + sizeof(reserved), "");
     Scratchpad& scratchpad() {return *reinterpret_cast<Scratchpad*>(&reserved2);}
@@ -240,7 +249,8 @@ struct MessageHead {
         auto addr = (char const*)&m - sizeof(MessageHead);
         return *(MessageHead const*)addr;
     }
-} __attribute__((packed));
+};
+#pragma pack(pop)
 static_assert(sizeof(MessageHead) == 8, "pakcing issue?");
 
 template <typename Message>
@@ -307,11 +317,14 @@ struct Flush
 : hasTag<0> {
 };
 
+
+#pragma pack(push, 1)
 template <size_t MaxStreamableSize>
 struct LoggingT
 : hasTag<3> {
     char payload[MaxStreamableSize];
-} __attribute__((__may_alias__, packed));
+};
+#pragma pack(pop)
 
 /**
  * @class JustBytes
@@ -389,7 +402,7 @@ struct is_hasMemoryAttachment_first_base_of {
     }();
 };
 
-struct StartMemorySegTrain
+struct alignas(8) StartMemorySegTrain
 : hasTag<5> {
     XmitEndian<uint16_t> inbandUnderlyingTypeTag;
     hasMemoryAttachment att;
@@ -400,8 +413,9 @@ struct StartMemorySegTrain
         return os << "StartAttachmentTrain " << m.inbandUnderlyingTypeTag 
         << ' ' << ' ' << m.segCount;
     }
-} __attribute__((aligned(8)));
+};
 
+#pragma pack(push, 1)
 struct MemorySeg
 : hasTag<6> { //none of the following reaches the receiving side - only used on sedning side
     void const *  seg;
@@ -411,10 +425,11 @@ struct MemorySeg
     std::ostream& operator << (std::ostream& os, MemorySeg const & m) {
         return os << "MemorySeg " << m.seg << ' ' << m.len << ' ' << m.inbandUnderlyingTypeTag;
     }
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
 template <MessageC Message>
-struct InBandHasMemoryAttachment
+struct alignas(8) InBandHasMemoryAttachment
 : hasTag<7> {
 
     template <typename ShmAllocator>
@@ -445,8 +460,10 @@ private:
     : underlyingMessage(std::forward<Args>(args)...) {}
     using M = typename std::decay<Message>::type;
     static_assert(std::is_trivially_destructible<M>::value, "cannot send message with dtor");
-} __attribute__((aligned(8)));
+};
 
+
+#pragma pack(push, 1)
 struct InBandMemorySeg
 : hasTag<8> {
     char seg[1]; //open end
@@ -454,7 +471,8 @@ struct InBandMemorySeg
     std::ostream& operator << (std::ostream& os, InBandMemorySeg const & m) {
         return os << "MemorySegInBand";
     }
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
 template<MessageC Message>
 struct MessageWrap<InBandHasMemoryAttachment<Message>> :  MessageHead {

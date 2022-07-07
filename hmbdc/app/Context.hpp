@@ -600,7 +600,7 @@ struct ThreadCommBase
      * @return size_t (>= 1)
      */
     size_t dispatchingStartedCount() const {
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         return *pDispStartCount_;
     }
 
@@ -612,8 +612,8 @@ struct ThreadCommBase
             return std::shared_ptr<uint8_t[]>(
                 ptr
                 , [this](uint8_t* t) {
-                    auto hmbdc0cpyShmRefCount = &shmAttAllocator_->getHmbdc0cpyShmRefCount(t);
-                    if (0 == __atomic_sub_fetch(hmbdc0cpyShmRefCount, 1, __ATOMIC_RELEASE)) {
+                    auto& hmbdc0cpyShmRefCount = shmAttAllocator_->getHmbdc0cpyShmRefCount(t);
+                    if (1 == hmbdc0cpyShmRefCount.fetch_sub(1, std::memory_order_release)) {
                         shmAttAllocator_->deallocate(t);
                     }
             });
@@ -743,10 +743,10 @@ protected:
             return (uint8_t*)managedShm_.get_address_from_handle(h) + hmbdc0cpyShmRefCountSize;
         }
        
-        static size_t& getHmbdc0cpyShmRefCount(void* attached) {
+        static std::atomic<size_t>& getHmbdc0cpyShmRefCount(void* attached) {
             auto addr = (size_t*)attached;
             addr -= 1;
-            return *addr;
+            return *(std::atomic<size_t>*)addr;
         }
         
         uint8_t* allocate(size_t len) {
@@ -1161,14 +1161,14 @@ private:
     typename std::enable_if<cpa::has_pool, void>::type
     stopWithContextProperty() {
         if (pool_) pool_->stop();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         stopped_ = true;
     }
 
     template <typename cpa>
     typename std::enable_if<!cpa::has_pool, void>::type
     stopWithContextProperty() {
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         stopped_ = true;
     }
 
@@ -1376,7 +1376,8 @@ private:
                         , schedule, priority);
                     
                     hmbdcNumber = clientParticipateInMessaging?hmbdcNumber:0xffffu;
-                    __atomic_add_fetch(this->pDispStartCount_, 1, __ATOMIC_RELEASE);
+                    reinterpret_cast<std::atomic<size_t>*>(this->pDispStartCount_)
+                        ->fetch_add(1, std::memory_order_release);
                     c.messageDispatchingStartedCb(this->pDispStartCount_);
                 } catch (std::exception const& e) {
                     c.stopped(e);

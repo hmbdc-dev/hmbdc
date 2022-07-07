@@ -11,6 +11,7 @@
 #include <boost/smart_ptr/detail/yield_k.hpp>
 
 #include <random>
+#include <atomic>
 #include <functional>
 #include <vector>
 #include <thread>
@@ -59,9 +60,9 @@ struct PoolTImpl {
             poolMinus_.addConsumer(c, poolThreadAffinityIn);
             return;
         }
-        auto count = __sync_add_and_fetch(&consumerCount_, 1u);
+        auto count = ++consumerCount_;
         if (count > consumerQueues_[0]->CAPACITY / 2u) {
-            __sync_sub_and_fetch(&consumerCount_, 1u);
+            --consumerCount_;
             HMBDC_THROW(std::runtime_error
                 , "too many consumers, poolsize = " << consumerCount_);
         }
@@ -145,7 +146,7 @@ struct PoolTImpl {
     }
 
     void stop() {
-        __sync_synchronize();
+        std::atomic_thread_fence(std::memory_order_acq_rel);
         stopped_ = true;
         poolMinus_.stop();
     }
@@ -198,12 +199,11 @@ struct PoolTImpl {
             auto l = consumers.peek(it, e);
             for (; it != e; ++it) {
                 PoolConsumer* consumer = *it;
-                uint16_t droppedCount = 
-                    __sync_add_and_fetch(&consumer->droppedCount, 1u);
+                uint16_t droppedCount = ++consumer->droppedCount;
                 if (hmbdc_unlikely(droppedCount == 
                     hmbdc::numeric::setBitsCount(
                         consumer->poolThreadAffinity & activePoolThreadSequenceMask_))) {
-                    __sync_sub_and_fetch(&consumerCount_, 1u);
+                    --consumerCount_;
                     //now consumer can be deleted
                     consumer->dropped();
                 }
@@ -238,12 +238,11 @@ struct PoolTImpl {
             if (consumer->handleRange(begin, end, threadSerialNumber)) {
                 consumers.put(consumer);
             } else {
-                uint16_t droppedCount = 
-                    __sync_add_and_fetch(&consumer->droppedCount, 1u);
+                uint16_t droppedCount = ++consumer->droppedCount;
                 if (hmbdc_unlikely(droppedCount == 
                     hmbdc::numeric::setBitsCount(
                         consumer->poolThreadAffinity & activePoolThreadSequenceMask_))) {
-                    __sync_sub_and_fetch(&consumerCount_, 1u);
+                    --consumerCount_;
                     //now consumer can be deleted
                     if (!consumer->dropped()) { //resume
                         addConsumer(*consumer
@@ -272,7 +271,7 @@ struct PoolTImpl {
     Threads threads_;
     bool stopped_;
     uint64_t activePoolThreadSequenceMask_;
-    uint32_t consumerCount_;
+    std::atomic<uint32_t> consumerCount_;
     uint16_t hmbdcNumbers_[LockFreeBuffer::max_parallel_consumer];
 };
 

@@ -48,10 +48,10 @@ struct Announcement
 //
 struct ChatMessage 
 : hasSharedPtrAttachment<ChatMessage, char[], true>         /// true means using shm pool for IPC transfer <======
-, inTagRange<1002, 100> {           //up to 100 chat groups; only configured 3 in the example
+, hasTag<1002, 100> {       //up to 100 chat groups; only configured 3 in the example
     template <typename Node>
     ChatMessage(char const* myId, uint16_t grouId, char const* msg, Node& node)
-    : inTagRange(grouId) {
+    : hasTag(grouId) {
         /// allocate memory from shm - and it is managed by TIPS                <======
         /// no need to worry about deallocate afterwards on local machine
         /// or on other processes or remote hosts, the message type works everywhere

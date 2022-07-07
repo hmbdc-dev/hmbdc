@@ -89,12 +89,12 @@ struct Announcement
 //be assigned a unique tag number ranging from 1002 - (1002 + 100)
 //
 struct ChatMessage 
-: hasSharedPtrAttachment<ChatMessage, char[]>    //message text is saved in a shared_ptr<char[]>
-                                                 //no limit on the attachment length 
-, inTagRange<1002, 100> {           //up to 100 chat groups; only configured 3 in the example
+: hasSharedPtrAttachment<ChatMessage, char[]>   //message text is saved in a shared_ptr<char[]>
+                                                //no limit on the attachment length 
+, hasTag<1002, 100> {                           //up to 100 chat groups; only configured 3 in the example
     ChatMessage(char const* myId, uint16_t grouId, char const* msg)
     : hasSharedPtrAttachment(std::shared_ptr<char[]>(new char[strlen(msg) + 1]), strlen(msg) + 1)
-    , inTagRange(grouId) {
+    , hasTag(grouId) {
         snprintf(id, sizeof(id), "%s", myId);
         snprintf(hasSharedPtrAttachment::attachmentSp.get(), hasSharedPtrAttachment::len
             , "%s", msg);

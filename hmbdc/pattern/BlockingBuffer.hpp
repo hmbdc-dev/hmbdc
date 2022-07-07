@@ -3,9 +3,12 @@
 #include "hmbdc/Compile.hpp"
 #include "hmbdc/time/Time.hpp"
 #include "hmbdc/Config.hpp"
+
+#include <set>
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable
 #include <malloc.h>
+#include <assert.h>
 
 
 namespace hmbdc { namespace pattern {
@@ -14,7 +17,8 @@ namespace blocking_buffer_detail {
 struct iterator;
 }
 
-struct BlockingBuffer {
+class BlockingBuffer {
+public:
     using iterator = blocking_buffer_detail::iterator;
     using value_type = void *;
     BlockingBuffer(size_t maxItemSize, size_t capacity) 
@@ -189,13 +193,15 @@ struct BlockingBuffer {
         return ret;
     }
 
-    iterator peek();
+    iterator peekExclusive();
     size_t peek(iterator& b, iterator& e);
     void wasteAfterPeek(size_t len) {
         std::unique_lock<std::mutex> lck(mutex_);
         if (size_ == capacity_) hasSlot_.notify_all();
         size_ -= len;
     }
+
+    void wasteAfterPeekExclusive(iterator const& b);
 
     void waitItem(time::Duration timeout) {
         std::unique_lock<std::mutex> lck(mutex_);
@@ -246,6 +252,8 @@ private:
     std::mutex mutex_;
     std::condition_variable hasItem_;
     std::condition_variable hasSlot_;
+    std::set<size_t> outstandingPeekExclusiveSeqs_;
+    size_t peekedExclusiveInSize_{0};
 };
 
 namespace blocking_buffer_detail {
@@ -315,11 +323,37 @@ peek(iterator& b, iterator& e) {
 inline
 BlockingBuffer::iterator 
 BlockingBuffer::
-peek() {
+peekExclusive() {
     std::unique_lock<std::mutex> lck(mutex_);
-    if (size_) {
-        return iterator(this, seq_ - size_);
+    if (size_ > peekedExclusiveInSize_) {
+        auto seq = seq_ - (size_ - peekedExclusiveInSize_);
+        peekedExclusiveInSize_++;
+        outstandingPeekExclusiveSeqs_.insert(seq);
+        return iterator(this, seq);
+    } else {
+        assert(size_ == peekedExclusiveInSize_);
     }
     return iterator();
 }
+
+inline
+void BlockingBuffer::
+wasteAfterPeekExclusive(iterator const& b) {
+    std::unique_lock<std::mutex> lck(mutex_);
+    auto seqLow = *outstandingPeekExclusiveSeqs_.begin();
+    outstandingPeekExclusiveSeqs_.erase(b.seq_);
+    if (outstandingPeekExclusiveSeqs_.size()) {
+        auto reduction = *outstandingPeekExclusiveSeqs_.begin() - seqLow;
+        if (reduction) {
+            if (size_ == capacity_) hasSlot_.notify_all();
+            size_ -= reduction;
+            peekedExclusiveInSize_ -= reduction;
+        }
+    } else {
+        if (size_ == capacity_) hasSlot_.notify_all();
+        size_ -= peekedExclusiveInSize_;
+        peekedExclusiveInSize_ = 0;
+    }
+}
+
 }}

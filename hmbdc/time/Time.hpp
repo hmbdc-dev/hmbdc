@@ -8,12 +8,15 @@
 #include <stdint.h>
 #include <time.h>
 #include <limits>
+#include <chrono>
 
 namespace hmbdc { namespace time {
 struct Duration;
 struct SysTime
 {
-    SysTime() : nsecSinceEpoch_(0){}
+    SysTime() : nsecSinceEpoch_(0) 
+    {}
+    
     ///UTC as input
     explicit SysTime(int64_t sec, int64_t usec = 0, int64_t nsec = 0) {
         nsecSinceEpoch_ = sec * 1000000000l + usec*1000l + nsec;
@@ -59,6 +62,17 @@ struct SysTime
 
     explicit operator bool() const {
         return nsecSinceEpoch_;
+    }
+
+    auto toChrono() const {
+        using R = std::chrono::time_point<std::chrono::system_clock>;
+        return R{std::chrono::nanoseconds(nsecSinceEpoch())};
+    }
+
+    static auto fromChrono(auto time_point) {
+        return hmbdc::time::SysTime{0, 0,
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+            time_point.time_since_epoch()).count()};
     }
     
     static
@@ -207,6 +221,17 @@ struct Duration {
 
     void toNativeEndian() {
         toXmitEndian();
+    }
+
+    auto toChrono() const {
+        using R = std::chrono::time_point<std::chrono::system_clock>::duration;
+        return std::chrono::duration_cast<R>
+            (std::chrono::nanoseconds(nanoseconds()));
+    }
+
+    static auto fromChrono(auto d) {    
+        return hmbdc::time::Duration::nanoseconds(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(d).count());
     }
 
 private:

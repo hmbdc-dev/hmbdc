@@ -7,6 +7,7 @@
 #include "hmbdc/Config.hpp"
 #include <stdexcept>
 #include <utility>
+#include <atomic>
 #include <inttypes.h>
 #include <limits>
 
@@ -17,14 +18,14 @@ namespace seqarb_detail {
 namespace {
 
 template <bool THREADSAFE>
-inline  __attribute__ ((always_inline))
+inline
 void 
 my__sync_synchronize() {
-    if (THREADSAFE) __sync_synchronize();
+    if (THREADSAFE) std::atomic_thread_fence(std::memory_order_acq_rel);
 }
 
 template <bool THREADSAFE, typename T>
-inline  __attribute__ ((always_inline))
+inline
 bool
 my__sync_bool_compare_and_swap(volatile T* var, T compVal, T newVal) {
     if (THREADSAFE) return __sync_bool_compare_and_swap(var, compVal, newVal);
@@ -36,7 +37,7 @@ my__sync_bool_compare_and_swap(volatile T* var, T compVal, T newVal) {
 }
 
 template <bool THREADSAFE, typename T>
-inline  __attribute__ ((always_inline))
+inline
 T
 my__sync_val_compare_and_swap(volatile T* var, T compVal, T newVal) {
     if (THREADSAFE) return __sync_val_compare_and_swap(var, compVal, newVal);
@@ -61,7 +62,7 @@ struct SeqArb {
     SeqArb& operator = (SeqArb const&) = delete;
 
     template <typename HitFunc, typename GapFunc>
-    inline  __attribute__ ((always_inline))
+    inline
     bool operator()(uint16_t participantIndex, Seq seq, HitFunc&& h, GapFunc&& g) HMBDC_RESTRICT {
         j_[participantIndex].seq = seq;
 
@@ -89,7 +90,6 @@ struct SeqArb {
     }
 
     template <typename SeqGen, typename HitFunc, typename GapFunc>
-    inline  __attribute__ ((always_inline))
     size_t operator()(uint16_t participantIndex, SeqGen&& seqGen
         , size_t seqSize, HitFunc&& h, GapFunc&& g) HMBDC_RESTRICT {
         auto seq = seqGen();
@@ -141,7 +141,7 @@ struct SeqArb {
     }
 
 private:
-    inline  __attribute__ ((always_inline))
+    inline
     Seq jLow() const HMBDC_RESTRICT {
         auto res = j_[0].seq;
         for (auto i = 1u; i < PARTICIPANT_COUNT; ++i) 
@@ -151,12 +151,12 @@ private:
 
     uint64_t const missedInit_;
     bool gapFuncLock_;
-    volatile Seq seq_ __attribute__((__aligned__(SMP_CACHE_BYTES)));
-    uint64_t missed_ __attribute__((__aligned__(SMP_CACHE_BYTES)));
-    struct J {
+    alignas(SMP_CACHE_BYTES) volatile Seq seq_;
+    alignas(SMP_CACHE_BYTES) uint64_t missed_;
+    struct alignas(SMP_CACHE_BYTES) J {
         J() : seq(0u){}
         Seq seq;
-    } __attribute__((__aligned__(SMP_CACHE_BYTES)));
+    };
     J j_[PARTICIPANT_COUNT];
 };
 

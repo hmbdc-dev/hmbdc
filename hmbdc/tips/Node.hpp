@@ -125,7 +125,8 @@ struct aggregate_send_msgs<Node, Nodes ...> {
  * are called in this Node's thread sequentially, so there is no data protection needs
  * within a Node from this perspective.
  * The framework uses "Cfg" callback functions mostly at the initialization stage to set up
- * pub/sub configurations before message dispatching
+ * pub/sub configurations before message dispatching in the main thread; at that time the Node's 
+ * thread has not been started (loadCb() is NOT called yet)
  * @tparam CcNode The concrete Node type
  * @tparam RecvMessageTuple The std tuple list all the received Message types.
  * The matching handleMessageCb for the above type needs to be provided for each type
@@ -146,6 +147,8 @@ struct Node {
      * @brief Concrete Node needs to specify a list of Messages that would be sent out
      * if this Node is active to help IPC and network delivering filtering.
      * If not fully specified the message could be invisible outside of this process.
+     * See printNodePubSubDot in Utils.hpp for automitically get a Node's pub sub into
+     * dot graphics
      */
     using Interests = RecvMessageTupleIn;
     using SendMessageTuple = SendMessageTupleIn;
@@ -207,11 +210,11 @@ struct Node {
     }
 
     /**
-     * @brief The concrete node overrides this function for each inTagRange type of Message
+     * @brief The concrete node overrides this function for each tag ranged type of Message
      * to indicate which type tags in the range this Node subscribes for - otherwise each one
      * in range is subscribed
      * 
-     * @tparam Message the inTagRange Message
+     * @tparam Message the Message
      * @param addOffsetInRange a functor that adds a type tag into the subscription
      * Note - the functor does not take a type tag - instead it takes the tag offset
      * within the range
@@ -224,11 +227,11 @@ struct Node {
     }
 
     /**
-     * @brief The concrete node overrides this function for each inTagRange type of Message
+     * @brief The concrete node overrides this function for each runtime-tagged type of Message
      * to indicate which type tags in the range this Node subscribes for - otherwise each one
      * in range is expected to be published
      * 
-     * @tparam Message the inTagRange Message
+     * @tparam Message the runtime-tagged Message
      * @param addOffsetInRange a functor that adds a type tag into the subscription
      * Note - the functor does not take a type tag - instead it takes the tag offset
      * within the range
@@ -320,6 +323,7 @@ struct Node {
     template <app::MessageC Message>
     void publish(Message&& message) {
         using M = typename std::decay<Message>::type;
+        static_assert(is_in_tuple_v<M, SendMessageTuple>);
         node_detail::Publisher<M>& publisher = publishers_;
         publisher.publish(std::forward<Message>(message));
     }
@@ -334,6 +338,7 @@ struct Node {
     template <app::MessageC Message>
     bool tryPublish(Message&& message) {
         using M = typename std::decay<Message>::type;
+        static_assert(is_in_tuple_v<M, SendMessageTuple>);
         node_detail::Publisher<M>& publisher = publishers_;
         return publisher.tryPublish(std::forward<Message>(message));
     }

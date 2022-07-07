@@ -137,7 +137,7 @@ struct DailyTimer : Timer {
     : Timer(callback)
     {}
 private:
-    virtual void reschedule(TimerManager& tm, SysTime const& now) { 
+    void reschedule(TimerManager& tm, SysTime const& now) override { 
         Duration day = Duration::seconds(86400);
         SysTime newFireTime = getFireAt() + day;
         while (newFireTime < now) newFireTime += day;
@@ -151,7 +151,7 @@ struct OneTimeTimer : Timer {
     {}
 
 private:
-    virtual void reschedule(TimerManager&, SysTime const&){};
+    void reschedule(TimerManager&, SysTime const&) override {};
 };
 
 inline

@@ -149,13 +149,15 @@ struct Config
      * @details previously set defaults take precedence
      * 
      * @param c a config holding configuration values
+     * @return *this
      */
-    void setAdditionalFallbackConfig(Config const& c) {
+    Config& setAdditionalFallbackConfig(Config const& c) {
         if (!fallbackConfig_) {
             fallbackConfig_.reset(new Config(c));
         } else {
             fallbackConfig_->setAdditionalFallbackConfig(c);
         }
+        return *this;
     }
     /**
      * @brief depracated
@@ -197,6 +199,49 @@ struct Config
     }
 
     /**
+     * @brief put an array of values
+     * 
+     * @tparam Args whatever ptree put expect
+     * @param args whatever ptree put expect
+     * @return object itself
+     */
+    template <typename Array>
+    Config& putArray(const path_type& param, Array&& array) {
+        Base a;
+        for (auto const& v : array) {
+            Base elem;
+            elem.put("", v);
+            a.push_back(std::make_pair("", elem));
+        }
+        Base::put_child(param, a);
+        return *this;
+    }
+
+    /**
+     * @brief put an array of values
+     * 
+     * @param args a delimit seperated string for array values
+     * @param delimit delimit such as "," or "[sep]"
+     * @return object itself
+     */
+    Config& putArray(const path_type& param, std::string const& values
+        , char const* delimit) {
+        std::vector<std::string> array;
+        auto s = values;
+        while(true) {
+            auto pos = s.find(delimit);
+            auto v = s.substr(0, pos);
+            if (v.size()) array.push_back(v);
+            if (pos != std::string::npos) {
+                s.erase(0,  pos + strlen(delimit));
+            } else {
+                break;
+            }
+        }
+        return putArray(param, array);
+    }
+
+    /**
      * @brief      Gets the child from the config.
      * @details check the section for it, if not found, try use fallback provided
      * if still missing, search using the default user config values set by
@@ -216,7 +261,7 @@ struct Config
                     return fallbackConfig_->getChildExt(param);
                 } else {
                     throw boost::property_tree::ptree_bad_path(
-                        "invalid param and no default user Config set", param);
+                        section_.dump() + ":invalid param and no default user Config set", param);
                 }
             }
         }
@@ -245,7 +290,7 @@ struct Config
                     return fallbackConfig_->getExt<T>(param, throwIfMissing);
                 } else if (throwIfMissing) {
                     throw boost::property_tree::ptree_bad_path(
-                        "invalid param and no default user Config set", param); 
+                        section_.dump() + ":invalid param and no default user Config set", param); 
                 } else {
                     return T{};
                 }
@@ -273,10 +318,15 @@ struct Config
         if (children) {
             for (auto& v : *children) {
                 if (v.first.empty()) {
-                    res.push_back(v.second.get_value<T>());
+                    // special case for [""] which reserved for an empty array
+                    // due to ptree limits for json array
+                    if (children->size() > 1
+                        || v.second.get_value<std::string>() != "") {
+                        res.push_back(v.second.get_value<T>());
+                    }
                 } else {
                     throw boost::property_tree::ptree_bad_data(
-                        "param not pointing to array ", param);
+                        section_.dump() + ":param not pointing to array ", param);
                 }
             }
             return res;
@@ -284,7 +334,7 @@ struct Config
             return fallbackConfig_->getArray<T>(param);
         }
         throw boost::property_tree::ptree_bad_path(
-            "invalid array param and no default user Config set", param);
+            section_.dump() + ":invalid array param and no default user Config set", param);
     }
 
     /**
@@ -295,11 +345,13 @@ struct Config
      * 
      * @param param config parameter name
      * @tparam T numeric type of the value: int , uint64_t ...
+     * @param throwIfMissing - true if no config found, throw an exception
      * @return result
      */
     template <typename T>
-    T getHex(boost::property_tree::ptree::path_type const& param) const {
-        std::istringstream iss(getExt<std::string>(param));
+    T getHex(boost::property_tree::ptree::path_type const& param
+        , bool throwIfMissing = true) const {
+        std::istringstream iss(getExt<std::string>(param, throwIfMissing));
         T res;
         iss >> std::hex >> res;
         return res;
@@ -365,7 +417,6 @@ struct Config
     template <typename T>
     Config const& operator()(std::vector<T>& to, const boost::property_tree::ptree::path_type& param
         , bool throwIfMissing = true) const {
-        // auto toStr = getExt<string>(param);
         auto s = getExt<std::string>(param, throwIfMissing);
         std::istringstream iss(s);
    
@@ -376,7 +427,7 @@ struct Config
         }
         if (!iss.eof()) {
             throw (boost::property_tree::ptree_bad_data(
-                "not space separated items in Config ", param));
+                section_.dump() + ":not space separated items in Config ", param));
         }
    
         return *this;
@@ -449,6 +500,43 @@ struct Config
         }
 
         return os;
+    }
+
+    /**
+     * @brief it's very commion a config needs to be updated from the cmd line
+     * arg list via key=val args:
+     * argv example: a_key=a_value a_array=a0,a1,a2 a.multi.level.path=some_value
+     * if a arg in argv does not exit in the config, throw
+     * @param argc how many args in argv; when return: how many args are not procesed 
+     * since there is no "=" in them and they are not processed (not throw in these cases) 
+     * - for example "--help"
+     * @param argv paramaters, when return, it contains only unprecessed params
+     * @param arrayDelimit when setting array use this str as delimit
+     * @return *this
+     */
+    Config& updateWithCmdline(int& argc, char const* argv[], char const* arrayDelimit = ",")  {
+        int unprocessed = 0;
+        while (unprocessed != argc) {
+            auto arg = std::string(argv[unprocessed]);
+            auto pos = arg.find("=");
+            if (pos == arg.npos) {
+                unprocessed++;
+                continue;
+            }
+            auto paramPath = arg.substr(0, pos);
+            arg.erase(0,  pos + 1);
+            auto const& child = getChildExt(paramPath);
+            // is it array
+            if (child.size() && child.begin()->first == "") {
+                putArray(paramPath, arg, arrayDelimit);
+            } else {
+                put(paramPath, arg);
+            }
+            memmove(argv + unprocessed, argv + unprocessed + 1
+                , sizeof(char*) * (argc - unprocessed - 1));
+            --argc;
+        }
+        return *this;
     }
 
 private:

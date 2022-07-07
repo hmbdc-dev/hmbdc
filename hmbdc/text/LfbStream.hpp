@@ -15,7 +15,7 @@ namespace lfb_stream {
 struct Streamable{
     virtual void dump(std::ostream& os) const = 0;
     virtual ~Streamable() = default;
-} __attribute__ ((__may_alias__));
+};
 
 namespace lfbstream_detail {
 
@@ -29,7 +29,7 @@ struct TypedStreamable
     : payload(std::move(m)){}
     RT payload;
     virtual void dump(std::ostream& os) const override {os << payload;}
-}__attribute__ ((__may_alias__));
+};
 
 template<uint32_t SIZE_LIMIT, std::size_t N >
 struct TypedStreamable<SIZE_LIMIT, const char (&) [N]>
@@ -40,7 +40,7 @@ public:
     TypedStreamable(char const* s) 
     : payload(s){}
     virtual void dump(std::ostream& os) const override {os << payload;}
-}__attribute__ ((__may_alias__));
+};
 
 template<uint32_t SIZE_LIMIT>
 struct TypedStreamable<SIZE_LIMIT, const char* &>
@@ -53,7 +53,7 @@ public:
         payload[sizeof(payload) - 1] = 0;
     }
     virtual void dump(std::ostream& os) const override {os << payload;}
-}__attribute__ ((__may_alias__));
+};
 
 template<uint32_t SIZE_LIMIT, std::size_t N >
 struct TypedStreamable<SIZE_LIMIT, char (&) [N]>
@@ -66,7 +66,7 @@ public:
         payload[sizeof(payload) - 1] = 0;
     }
     virtual void dump(std::ostream& os) const override {os << payload;}
-}__attribute__ ((__may_alias__));
+};
 
 template <uint32_t SIZE_LIMIT>
 struct TypedStreamable<SIZE_LIMIT, char const*>
@@ -79,7 +79,7 @@ public:
         payload[sizeof(payload) - 1] = 0;
     }
     virtual void dump(std::ostream& os) const override {os << payload;}
-}__attribute__ ((__may_alias__));
+};
 
 } // lfbstream_detail
 

@@ -12,6 +12,7 @@
 #include <limits>
 #include <algorithm>
 #include <mutex>
+#include <atomic>
 
 #ifndef HMBDC_YIELD
 #define HMBDC_YIELD(x) boost::detail::yield(x)
@@ -52,16 +53,12 @@ private:
     const Sequence MASK;
 
     lf_misc::chunk_base_ptr<Sequence> const buffer_;
-    Sequence toBeClaimedSeq_
-    __attribute__((__aligned__(SMP_CACHE_BYTES)));
-    Sequence readSeq_[PARALLEL_CONSUMER_COUNT]
-    __attribute__((__aligned__(SMP_CACHE_BYTES)));
-    Sequence readSeqLastPurge_[PARALLEL_CONSUMER_COUNT]
-    __attribute__((__aligned__(SMP_CACHE_BYTES)));
+    alignas(SMP_CACHE_BYTES) Sequence toBeClaimedSeq_;
+    alignas(SMP_CACHE_BYTES) Sequence readSeq_[PARALLEL_CONSUMER_COUNT];
+    alignas(SMP_CACHE_BYTES) Sequence readSeqLastPurge_[PARALLEL_CONSUMER_COUNT];
 
     my_spin_lock locks_[PARALLEL_CONSUMER_COUNT];
 
-    inline  __attribute__ ((always_inline))
     Sequence readSeqLow() const HMBDC_RESTRICT {
         Sequence res = readSeq_[0];
         for (uint16_t i = 1;
@@ -70,7 +67,6 @@ private:
         return res;
     }
 
-    inline  __attribute__ ((always_inline))
     uint16_t findSlowestReader() const HMBDC_RESTRICT {
         Sequence smallest = readSeq_[0];
         uint16_t smallestLoc = 0;
@@ -112,8 +108,9 @@ public:
     }
 
     void put(void const* HMBDC_RESTRICT item, size_t sizeHint = 0) HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, 1);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(1, std::memory_order_relaxed);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
         for (uint32_t k = 0;
             seq >= CAPACITY + readSeqLow();
             ++k) {
@@ -122,25 +119,24 @@ public:
         size_t index = seq & MASK;
         memcpy(buffer_ + index
             , item, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         *buffer_.getSeq(index) = seq;
     }
 
     bool tryPut(void const* HMBDC_RESTRICT item, size_t sizeHint = 0) HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for(auto seq = toBeClaimedSeq_; 
             seq < CAPACITY + readSeqLow();
             seq = toBeClaimedSeq_) {
-            // if (hmbdc_likely(__sync_bool_compare_and_swap(&toBeClaimedSeq_, seq, seq + 1))) {
-            if (hmbdc_likely(__atomic_compare_exchange_n (
-                &toBeClaimedSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            // if (hmbdc_likely(__atomic_compare_exchange_n (
+            //     &toBeClaimedSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            if (reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+                ->compare_exchange_weak(seq, seq + 1
+                    , std::memory_order_relaxed, std::memory_order_relaxed)) {
                 size_t index = seq & MASK;
                 memcpy(buffer_ + index
                     , item, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-                // __sync_synchronize();
-                __atomic_thread_fence(__ATOMIC_ACQUIRE);
+                std::atomic_thread_fence(std::memory_order_acquire);
                 *buffer_.getSeq(index) = seq;
                 return true;
             }
@@ -149,8 +145,10 @@ public:
     }
 
     void killPut(void const* HMBDC_RESTRICT item, size_t sizeHint = 0) HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, 1);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(1, std::memory_order_relaxed);
+
         while (seq >= CAPACITY + readSeqLow()) {
             uint16_t slowLoc = findSlowestReader();
             markDead(slowLoc);
@@ -158,7 +156,7 @@ public:
 
         size_t index = seq & MASK;
         memcpy(buffer_ + index, item, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         *buffer_.getSeq(index) = seq;
     }
 
@@ -172,8 +170,9 @@ public:
     }
 
     iterator claim() HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, 1);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(1, std::memory_order_relaxed);
         for (uint32_t k = 0;
             seq >= CAPACITY + readSeqLow();
             ++k) {
@@ -183,14 +182,15 @@ public:
     }
 
     iterator tryClaim() HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for(auto seq = toBeClaimedSeq_; 
             seq < CAPACITY + readSeqLow();
             seq = toBeClaimedSeq_) {
-            // if (hmbdc_likely(__sync_bool_compare_and_swap(&toBeClaimedSeq_, seq, seq + 1))) {
-            if (hmbdc_likely(__atomic_compare_exchange_n (
-                &toBeClaimedSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            // if (hmbdc_likely(__atomic_compare_exchange_n (
+            //     &toBeClaimedSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+             if (reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+                ->compare_exchange_weak(seq, seq + 1
+                    , std::memory_order_relaxed, std::memory_order_relaxed)) {
                 return iterator(buffer_, seq);
             }
         }
@@ -206,14 +206,15 @@ public:
      * @return iterator pointing to the start of the slot, or empty when not possible
      */
     iterator tryClaim(size_t n) HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for(auto seq = toBeClaimedSeq_; 
             seq + n - 1 < CAPACITY + readSeqLow();
             seq = toBeClaimedSeq_) {
-            // if (hmbdc_likely(__sync_bool_compare_and_swap(&toBeClaimedSeq_, seq, seq + n))) {
-            if (hmbdc_likely(__atomic_compare_exchange_n (
-                &toBeClaimedSeq_, &seq, seq + n, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            // if (hmbdc_likely(__atomic_compare_exchange_n (
+            //     &toBeClaimedSeq_, &seq, seq + n, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+             if (reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+                ->compare_exchange_weak(seq, seq + n
+                    , std::memory_order_relaxed, std::memory_order_relaxed)) {
                 return iterator(buffer_, seq);
             }
         }
@@ -221,8 +222,9 @@ public:
     }
 
     iterator claim(size_t n) HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, n);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, n, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, n, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(n, std::memory_order_relaxed);
         for (uint32_t k = 0;
             seq + n > CAPACITY + readSeqLow();
             ++k) {
@@ -232,8 +234,9 @@ public:
     }
 
     iterator killClaim() HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, 1);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(1, std::memory_order_relaxed);
         while (seq >= CAPACITY + readSeqLow()) {
             uint16_t slowLoc = findSlowestReader();
             markDead(slowLoc);
@@ -242,8 +245,9 @@ public:
     }
 
     iterator killClaim(size_t n) HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, n);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, n, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, n, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(n, std::memory_order_relaxed);
         while (seq + n > CAPACITY + readSeqLow()) {
             uint16_t slowLoc = findSlowestReader();
             markDead(slowLoc);
@@ -252,14 +256,12 @@ public:
     }
 
     void commit(iterator it) HMBDC_RESTRICT {
-        __sync_synchronize();
-        // __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acq_rel);
         *buffer_.getSeq(*it - buffer_) = it.seq_;
     }
 
     void commit(iterator from, size_t n) HMBDC_RESTRICT {
-        __sync_synchronize();
-        // __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acq_rel);
         for (size_t i = 0; i < n; ++i) {
             *buffer_.getSeq(*from - buffer_) = from.seq_;
             ++from;
@@ -269,8 +271,7 @@ public:
     void markDead(uint16_t parallel_consumer_index) HMBDC_RESTRICT {
         if (parallel_consumer_index < PARALLEL_CONSUMER_COUNT) {
             readSeq_[parallel_consumer_index] = READ_SEQ_MAX;
-            __sync_synchronize();
-            // __atomic_thread_fence(__ATOMIC_RELEASE);
+            std::atomic_thread_fence(std::memory_order_acq_rel);
         }
     }
 
@@ -298,8 +299,9 @@ public:
         }
 
         memcpy(item, buffer_ + index, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-        // __sync_fetch_and_add(readSeq_ + PARALLEL_CONSUMER_INDEX, 1);
-        __atomic_fetch_add(readSeq_ + PARALLEL_CONSUMER_INDEX, 1, __ATOMIC_RELEASE);
+        // __atomic_fetch_add(readSeq_ + PARALLEL_CONSUMER_INDEX, 1, __ATOMIC_RELEASE);
+        reinterpret_cast<std::atomic<Sequence>*>(
+            readSeq_ + PARALLEL_CONSUMER_INDEX)->fetch_add(1, std::memory_order_release);
     }
 
     void takeReentrant(uint16_t PARALLEL_CONSUMER_INDEX, void * HMBDC_RESTRICT item, size_t sizeHint = 0) HMBDC_RESTRICT {
@@ -355,8 +357,9 @@ public:
                 ++k) {
                 HMBDC_YIELD(k);
             }
-            // __sync_fetch_and_add(readSeq_ + PARALLEL_CONSUMER_INDEX, size);
-            __atomic_fetch_add(readSeq_ + PARALLEL_CONSUMER_INDEX, size, __ATOMIC_RELEASE);
+            // __atomic_fetch_add(readSeq_ + PARALLEL_CONSUMER_INDEX, size, __ATOMIC_RELEASE);
+            reinterpret_cast<std::atomic<Sequence>*>(readSeq_ + PARALLEL_CONSUMER_INDEX)
+                ->fetch_add(size, std::memory_order_release);
     }
 
     /**
@@ -370,14 +373,15 @@ public:
     void wasteAfterPeek(uint16_t PARALLEL_CONSUMER_INDEX, size_t size) HMBDC_RESTRICT
     {
         if (!size) return;
-        // __sync_fetch_and_add(readSeq_ + PARALLEL_CONSUMER_INDEX, size);
-        __atomic_fetch_add(readSeq_ + PARALLEL_CONSUMER_INDEX, size, __ATOMIC_RELEASE);
+        // __atomic_fetch_add(readSeq_ + PARALLEL_CONSUMER_INDEX, size, __ATOMIC_RELEASE);
+        reinterpret_cast<std::atomic<Sequence>*>(readSeq_ + PARALLEL_CONSUMER_INDEX)
+                ->fetch_add(size, std::memory_order_release);
+
     }
 
     Sequence catchUpWith(uint16_t PARALLEL_CONSUMER_INDEX, uint16_t WITH_PARALLEL_CONSUMER_INDEX) {
         readSeq_[PARALLEL_CONSUMER_INDEX] = readSeq_[WITH_PARALLEL_CONSUMER_INDEX];
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQ_REL);
+        std::atomic_thread_fence(std::memory_order_acquire);
         return readSeq_[PARALLEL_CONSUMER_INDEX];
     }
 
@@ -385,20 +389,17 @@ public:
         if (readSeq_[PARALLEL_CONSUMER_INDEX] <= newSeq) {
             readSeq_[PARALLEL_CONSUMER_INDEX] = newSeq;
         }
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_RELEASE);
+        std::atomic_thread_fence(std::memory_order_release);
     }
 
     size_t remainingSize(uint16_t index) const HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         Sequence r = readSeq_[index];
         Sequence w = toBeClaimedSeq_;
         return w > r ? w - r : 0;
     }
     size_t remainingSize() const HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         Sequence r = readSeqLow();
         Sequence w = toBeClaimedSeq_;
         return w > r ? w - r : 0;
@@ -409,8 +410,7 @@ public:
         do {
             readSeq_[PARALLEL_CONSUMER_INDEX] = toBeClaimedSeq_;
             index = readSeq_[PARALLEL_CONSUMER_INDEX] & MASK;
-            // __sync_synchronize();
-            __atomic_thread_fence(__ATOMIC_ACQ_REL);
+            std::atomic_thread_fence(std::memory_order_acq_rel);
         } while (*buffer_.getSeq(index) == readSeq_[PARALLEL_CONSUMER_INDEX]);
     }
 
@@ -428,7 +428,7 @@ public:
      * @return mask indicating which consumer marked dead
      */
     uint64_t purge() {
-        __sync_synchronize();
+        std::atomic_thread_fence(std::memory_order_acq_rel);
         uint64_t res = 0;
         for (uint16_t i = 0; i < PARALLEL_CONSUMER_COUNT; ++i) {
             auto seq = readSeq_[i];

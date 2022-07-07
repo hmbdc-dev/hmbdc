@@ -16,10 +16,10 @@ namespace hmbdc { namespace tips {
  * on the compile time (through C++ template) Message type information.
  * 
  * Runtime message filterring is provided through a special Message
- * category inTagRange Message - where a message type could be associated 
+ * category runtime-tagged Message - where a message type could be associated 
  * with a runtime decided tag value - this enables the Message type 
  * filterring decision to be made on a runtime configured criteria.
- * For example, an ImageFrame Message if defnined as inTagRange, it 
+ * For example, an ImageFrame Message if defnined as runtime-tagged, it 
  * could be used by both the left camera and the right camera, and this Message
  * could be filterred by TIPS depending on its origin (left vs right) by associate
  * different tags to the Message runtime instances

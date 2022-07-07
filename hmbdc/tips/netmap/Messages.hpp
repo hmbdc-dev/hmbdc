@@ -71,5 +71,5 @@ struct TransportMessageHeader {
     size_t wireSize() {
         return sizeof(TransportMessageHeader) + sizeof(app::MessageWrap<Message>);
     }
-} __attribute__((packed));
+};
 }}}

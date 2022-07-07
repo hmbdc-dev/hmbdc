@@ -15,10 +15,8 @@ private:
     const Sequence MASK;
 
     hmbdc::pattern::lf_misc::chunk_base_ptr<Sequence> const buffer_;
-    Sequence toBeClaimedSeq_
-    __attribute__((__aligned__(SMP_CACHE_BYTES)));
-    std::atomic<Sequence> readSeq_
-    __attribute__((__aligned__(SMP_CACHE_BYTES)));
+    alignas(SMP_CACHE_BYTES) Sequence toBeClaimedSeq_;
+    alignas(SMP_CACHE_BYTES) std::atomic<Sequence> readSeq_;
 
     bool readyToWriteOver(Sequence seq) const {
         return *buffer_.getSeq(seq & MASK) == std::numeric_limits<Sequence>::max();
@@ -64,8 +62,9 @@ public:
     }
 
     void put(void const* HMBDC_RESTRICT item, size_t sizeHint = 0) HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, 1);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(1, std::memory_order_relaxed);
         for (uint32_t k = 0;
             seq >= CAPACITY + readSeq_ || !readyToWriteOver(seq);
             ++k) {
@@ -74,24 +73,24 @@ public:
         auto index = seq & MASK;
         memcpy(buffer_ + index
             , item, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         *buffer_.getSeq(index) = seq;
     }
 
     bool tryPut(void const* HMBDC_RESTRICT item, size_t sizeHint = 0) HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for(auto seq = toBeClaimedSeq_; 
             seq < CAPACITY + readSeq_ && readyToWriteOver(seq);
             seq = toBeClaimedSeq_) {
-            if (hmbdc_likely(__sync_bool_compare_and_swap(
-                &toBeClaimedSeq_, seq, seq + 1))) {
+            if (reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+                ->compare_exchange_strong(seq, seq + 1
+                    , std::memory_order_acq_rel, std::memory_order_acq_rel)) {
+            // if (hmbdc_likely(__sync_bool_compare_and_swap(
+            //     &toBeClaimedSeq_, seq, seq + 1))) {
                 auto index = seq & MASK;
                 memcpy(buffer_ + index
                     , item, sizeHint ? sizeHint : VALUE_TYPE_SIZE);
-                // __sync_synchronize();
-                __atomic_thread_fence(__ATOMIC_ACQUIRE);
+                std::atomic_thread_fence(std::memory_order_acquire);
                 *buffer_.getSeq(index) = seq;
                 return true;
             }
@@ -108,8 +107,9 @@ public:
     }
 
     iterator claim() HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, 1);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, 1, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(1, std::memory_order_relaxed);
         for (uint32_t k = 0;
             seq >= CAPACITY + readSeq_ 
                 || !readyToWriteOver(seq);
@@ -120,15 +120,16 @@ public:
     }
 
     iterator tryClaim() HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for(auto seq = toBeClaimedSeq_; 
             seq < CAPACITY + readSeq_ 
                 && readyToWriteOver(seq);
             seq = toBeClaimedSeq_) {
-            // if (hmbdc_likely(__sync_bool_compare_and_swap(&toBeClaimedSeq_, seq, seq + 1)))
-            if (hmbdc_likely(__atomic_compare_exchange_n (
-                &toBeClaimedSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            // if (hmbdc_likely(__atomic_compare_exchange_n (
+            //     &toBeClaimedSeq_, &seq, seq + 1, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            if (reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+                ->compare_exchange_weak(seq, seq + 1
+                    , std::memory_order_relaxed, std::memory_order_relaxed)) {
                 return iterator(buffer_, seq);
             }
         }
@@ -136,15 +137,16 @@ public:
     }
 
     iterator tryClaim(size_t n) HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for(auto seq = toBeClaimedSeq_; 
             seq + n - 1 < CAPACITY + readSeq_ 
                 && readyToWriteOver(seq, n);
             seq = toBeClaimedSeq_) {
-            // if (hmbdc_likely(__sync_bool_compare_and_swap(&toBeClaimedSeq_, seq, seq + n))) {
-            if (hmbdc_likely(__atomic_compare_exchange_n (
-                &toBeClaimedSeq_, &seq, seq + n, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            // if (hmbdc_likely(__atomic_compare_exchange_n (
+            //     &toBeClaimedSeq_, &seq, seq + n, true, __ATOMIC_RELAXED, __ATOMIC_RELAXED))) {
+            if (reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+                ->compare_exchange_weak(seq, seq + n
+                    , std::memory_order_relaxed, std::memory_order_relaxed)) {
                 return iterator(buffer_, seq);
             }
         }
@@ -152,8 +154,9 @@ public:
     }
 
     iterator claim(size_t n) HMBDC_RESTRICT {
-        // Sequence seq = __sync_fetch_and_add(&toBeClaimedSeq_, n);
-        Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, n, __ATOMIC_RELAXED);
+        // Sequence seq = __atomic_fetch_add(&toBeClaimedSeq_, n, __ATOMIC_RELAXED);
+        Sequence seq = reinterpret_cast<std::atomic<Sequence>*>(&toBeClaimedSeq_)
+            ->fetch_add(n, std::memory_order_relaxed);
         for (uint32_t k = 0;
             seq + n > CAPACITY + readSeq_;
             ++k) {
@@ -171,14 +174,12 @@ public:
     }
 
     void commit(iterator it) HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         *buffer_.getSeq(*it - buffer_) = it.seq_;
     }
 
     void commit(iterator from, size_t n) HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         for (size_t i = 0; i < n; ++i) {
             *buffer_.getSeq(*from - buffer_) = from.seq_;
             ++from;
@@ -305,25 +306,22 @@ public:
         //this is very dangerous if size is not matching;
         //if any reads other than the matching peek happened
         //bad things happen
-        if (incomplete) readSeq_ = seq; 
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_RELEASE);
+        if (incomplete) readSeq_ = seq;
+        std::atomic_thread_fence(std::memory_order_release);
     }
 
     size_t remainingSize() const HMBDC_RESTRICT {
-        // __sync_synchronize();
-        __atomic_thread_fence(__ATOMIC_ACQUIRE);
+        std::atomic_thread_fence(std::memory_order_acquire);
         Sequence r = readSeq_;
         Sequence w = toBeClaimedSeq_;
         return w > r ? w - r : 0;
     }
 
     void reset() {
-        __sync_synchronize();
+        std::atomic_thread_fence(std::memory_order_acq_rel);
         for (auto i = 0ul; i < CAPACITY; ++i) {
             *buffer_.getSeq(i & MASK) = std::numeric_limits<Sequence>::max();
         }
-        // __atomic_store(&readSeq_, &toBeClaimedSeq_, __ATOMIC_RELEASE);
         readSeq_ = toBeClaimedSeq_;
     }
 };

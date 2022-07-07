@@ -14,7 +14,7 @@ namespace hmbdc { namespace app {
  *  FIFO. If a message is deemed to come too early, just stash it and move on (to 
  *  the next message). The stashed messages will be delivered later at the user's choice - see the added 
  *  stash and openStash functions. The stash mechanism can enforce any particular order of message
- *  processing regarless of the order of message being sent.
+ *  processing regarless of the order of messages being received.
  * 
  * @tparam CcClient the concrete Client type
  * @tparam MaxStashedMessageSizeIn byte size of the max message that will need to be stashed,
@@ -22,8 +22,9 @@ namespace hmbdc { namespace app {
  * @tparam typename ... Messages message types that the Client interested
  */
 template <typename CcClient, size_t MaxStashedMessageSizeIn, MessageC ... Messages>
-struct ClientWithStash
-: Client<CcClient, Messages...> {
+class ClientWithStash
+: public Client<CcClient, Messages...> {
+public:    
     using Base = Client<CcClient, Messages...>;
     using Interests = typename Base::Interests;
 
@@ -52,9 +53,11 @@ protected:
 
 /**
  * @brief release the stashed messages - after this call is returned, the callbacks of
- * the stahsed message will be invoked with the stashed messages
+ * the stashed message will be invoked with the stashed messages until the 'currently'
+ * stashed messages runs out then the normal new message dispatching resumes
  * @details it is fine to stash more / new messages even in the above callbacks invoked
- * due to stashed messages
+ * due to stashed messages, those newly stahed message will be released after the next
+ * opeStash call though
  */
     void openStash() {
         stashOpenCount_ = stash_.size();

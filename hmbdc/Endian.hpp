@@ -32,6 +32,7 @@ public:
     }
 };
 
+#pragma pack(push, 1)
 template <typename T>
 struct XmitEndian {
     using RawType = T;
@@ -83,8 +84,10 @@ struct XmitEndian {
 
 private:
     T vx_;
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
+#pragma pack(push, 1)
 template <typename T, size_t N>
 struct XmitEndianByteField {
     using RawType = T;
@@ -123,8 +126,9 @@ private:
     union {
         uint8_t vb_[N];
         T vx_ : N*8;
-    } __attribute__((packed));
-} __attribute__((packed));
+    };
+};
+#pragma pack(pop)
 
 // template <typename UT, typename T, uint8_t index, uint8_t bits>
 // struct XmitEndianBitField {

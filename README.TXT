@@ -30,7 +30,8 @@ Keywords and features:
     reliable multicast
     reliable netmap
 - support easy to use symetric (no broker process) type based message 
-  publish / subscribe with recording and playback tool
+  publish / subscribe with automatic pub/sub topology feature, 
+  and message recording / playback tool
 - other high performance computing features:
   high speed async logging, timer, rate control ...
 - straightforward integration with any other programming 
@@ -86,13 +87,9 @@ g++ tools/tips-ping-pong.cpp  -std=c++1z -fconcepts \
   dev@hummingbirdcode.net or hummingbirdcode@gmail.com
 
 ### Who do I talk to? ###
-* public is granted all the rights to use and modify 
+* MIT Licensed, public is granted all the rights to use and modify 
   hmbdc without redistributing the modifications 
   in source code format.
-* hmbdc is public downloadable freeware owned by 
-  Hummingbird Code Software LLC. 
-  Please contact dev@hummingbirdcode.net or
-  hummingbirdcode@gmail.com for hmbdc-licensed package.
 * please direct questions to dev@hummingbirdcode.net or 
   hummingbirdcode@gmail.com 
   and thank you for your interests in hmbdc!
