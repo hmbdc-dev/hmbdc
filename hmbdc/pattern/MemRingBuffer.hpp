@@ -18,6 +18,9 @@
 #define HMBDC_YIELD(x) boost::detail::yield(x)
 #endif
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+
 namespace hmbdc { namespace pattern {
 
 namespace memringbuffer_detail {
@@ -460,3 +463,5 @@ namespace hmbdc { namespace pattern {
 template<uint16_t PARALLEL_CONSUMER_COUNT, typename SeqT = size_t>
 using MemRingBuffer = memringbuffer_detail::MemRingBuffer<PARALLEL_CONSUMER_COUNT, SeqT>;
 }}
+
+#pragma GCC diagnostic pop

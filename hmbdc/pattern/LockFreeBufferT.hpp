@@ -14,6 +14,9 @@
 
 namespace hmbdc { namespace pattern {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+
 template <uint16_t MAX_PARALLE_CONSUMER>
 struct LockFreeBufferT {
     using Sequence = HMBDC_SEQ_TYPE;
@@ -114,3 +117,6 @@ private:
 }} // end namespace hmbdc::pattern
 
 #include "hmbdc/pattern/LockFreeBufferT.ipp"
+
+
+#pragma GCC diagnostic pop

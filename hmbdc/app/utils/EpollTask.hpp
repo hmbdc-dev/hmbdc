@@ -79,7 +79,7 @@ private:
     bool stopped_;
     size_t maxFdCount_;
     ::pollfd* pollFds_;
-    bool** sentinels_;
+    std::atomic<bool>** sentinels_;
     std::mutex lock_;
 };
 #endif
@@ -204,7 +204,7 @@ EpollTask(size_t maxFdCount)
 : stopped_(false)
 , maxFdCount_(maxFdCount)
 , pollFds_(new ::pollfd[maxFdCount])
-, sentinels_(new bool* [maxFdCount]) {
+, sentinels_(new std::atomic<bool>* [maxFdCount]) {
 	for (auto i = 0u; i < maxFdCount; ++i) {
 		pollFds_[i].fd = -1;
 		sentinels_[i] = nullptr;

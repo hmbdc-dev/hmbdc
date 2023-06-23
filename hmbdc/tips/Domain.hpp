@@ -191,7 +191,7 @@ struct is_threadable {
         value = [](){
             if constexpr (is_derived_from_non_type_template_v<int, do_not_send_via, Message>) {
                 auto mask = Message::do_not_send_via::mask;
-                return (mask & INTER_THREAD) ? 0 : 1;
+                return ((int)mask & (int)INTER_THREAD) ? 0 : 1;
             }
             return 1;
         }(),
@@ -206,7 +206,7 @@ struct is_ipcable {
                 typename matching_ipcable<Message>::type>::value;
             if constexpr (res && is_derived_from_non_type_template_v<int, do_not_send_via, Message>) {
                 auto mask = Message::do_not_send_via::mask;
-                return (mask & INTER_PROCESS) ? 0 : 1;
+                return ((int)mask & (int)INTER_PROCESS) ? 0 : 1;
             }
             return res;
         }(),
@@ -221,7 +221,7 @@ struct is_netable {
                 typename matching_ipcable<Message>::type>::value;
             if constexpr (res && is_derived_from_non_type_template_v<int, do_not_send_via, Message>) {
                 auto mask = Message::do_not_send_via::mask;
-                return (mask & OVER_NETWORK) ? 0 : 1;
+                return ((int)mask & (int)OVER_NETWORK) ? 0 : 1;
             }
             return res;
         }(),

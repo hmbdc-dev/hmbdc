@@ -17,6 +17,7 @@
 #include <thread>
 #include <mutex>
 #include <stdexcept>
+#include <memory>
 
 namespace hmbdc { namespace app {
 namespace blocking_context_detail {
@@ -347,13 +348,17 @@ public:
     void start(LoadSharingClientPtrIt begin, LoadSharingClientPtrIt end
         , size_t capacity = 1024
         , size_t maxItemSize = max_size_in_tuple<
-            typename std::decay<decltype(**LoadSharingClientPtrIt())>::type::Interests
+            typename std::decay_t<
+                typename std::pointer_traits<
+                    typename std::iterator_traits<LoadSharingClientPtrIt>::value_type>::element_type
+            >::Interests
         >::value
         , uint64_t cpuAffinity = 0
         , time::Duration maxBlockingTime = time::Duration::seconds(1)
         , DeliverPred&& pred = DeliverPred()) { //=[](auto&&){return true;}
         using Client = typename std::decay<
-                decltype(**LoadSharingClientPtrIt())
+            typename std::pointer_traits<
+                typename std::iterator_traits<LoadSharingClientPtrIt>::value_type>::element_type
             >::type;
         if (maxItemSize < max_size_in_tuple<typename Client::Interests>::value) 
             HMBDC_THROW(std::out_of_range, "maxItemSize is too small");
