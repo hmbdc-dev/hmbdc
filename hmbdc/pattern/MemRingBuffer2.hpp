@@ -3,14 +3,14 @@
 namespace hmbdc { namespace pattern {
 
 namespace memringbuffer_detail {
-template<typename SeqT>
-class MemRingBuffer<0u, SeqT> {
+template<>
+class MemRingBuffer<0u> {
 public:
-    using Sequence = SeqT;
+    using Sequence = HMBDC_SEQ_TYPE;
     enum {PARALLEL_CONSUMER_COUNT = 0,}; //not used
 
-    const SeqT CAPACITY;
-    const SeqT VALUE_TYPE_SIZE;
+    const size_t CAPACITY;
+    const size_t VALUE_TYPE_SIZE;
 private:
     const Sequence MASK;
 
@@ -102,7 +102,7 @@ public:
         return toBeClaimedSeq_ >= CAPACITY + readSeq_;
     }
 
-    SeqT readSeq() const {
+    Sequence readSeq() const {
         return readSeq_;
     }
 

@@ -40,7 +40,8 @@ struct chunk_base_ptr {
     , valueTypeSizePower2Num_(valueTypeSizePower2Num)
     , freer_([this, &allocator](){allocator.free(((char* const)this) + space_);}) {
         if (valueTypeSizePower2Num + ringSizePower2Num > 32) {
-            HMBDC_THROW(std::out_of_range, "failed to allocated space");
+            HMBDC_THROW(std::out_of_range, "failed to allocated space valueTypeSizePower2Num=" << valueTypeSizePower2Num 
+                << " ringSizePower2Num=" << ringSizePower2Num);
         }
     }
 

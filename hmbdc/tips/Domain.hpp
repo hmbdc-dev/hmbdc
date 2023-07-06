@@ -1269,7 +1269,7 @@ public:
     void startPumping() {
         auto pumpRunMode = config_.getExt<std::string>("pumpRunMode");
         static_assert(run_pump_in_ipc_portal || run_pump_in_thread_ctx
-            , "no pump for this Domain type, do not call this");
+            , "no pump or it does not need to be started for this Domain type, do not call this");
         if (pumpRunMode == "delayed") {
             if constexpr (run_pump_in_ipc_portal) {
                 for (auto& pump : pumps_) {

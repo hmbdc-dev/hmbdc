@@ -49,36 +49,47 @@ struct SendTransport
 
     template <app::MessageC Message>
     void queue(Message&& msg) {
+        using M = typename std::decay<Message>::type;
+        static_assert(sizeof(NetWrap<M>) == sizeof(TransportMessageHeader) + sizeof(app::MessageWrap<M>));
+        static_assert(std::is_trivially_destructible<M>::value, "cannot send message with dtor");
+        static_assert(!std::is_base_of<app::hasMemoryAttachment, M>::value 
+            || app::is_hasMemoryAttachment_first_base_of<M>::value
+            , "hasMemoryAttachment has to the first base for Message");
         if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
-            using M = typename std::decay<Message>::type;
             if constexpr (std::is_base_of<app::hasMemoryAttachment, M>::value) {
                 msg.release();
             }
             return;
         }
-        auto n = 1;
-        auto it = buffer_.claim(n);
-        queue(it, std::forward<Message>(msg));
-        buffer_.commit(it, n);
+
+        if (hmbdc_likely(sizeof(M) <= maxMessageSize_)) {
+            buffer_.putInPlace<NetWrap<M>>(std::forward<Message>(msg));
+        } else {
+            HMBDC_THROW(std::out_of_range
+                , "maxMessageSize too small to hold a message");
+        }
     }
 
     template <app::MessageC Message>
     bool tryQueue(Message&& msg) {
+        using M = typename std::decay<Message>::type;
+        static_assert(sizeof(NetWrap<M>) == sizeof(TransportMessageHeader) + sizeof(app::MessageWrap<M>));
+        static_assert(std::is_trivially_destructible<M>::value, "cannot send message with dtor");
+        static_assert(!std::is_base_of<app::hasMemoryAttachment, M>::value 
+            || app::is_hasMemoryAttachment_first_base_of<M>::value
+            , "hasMemoryAttachment has to the first base for Message");
         if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
-            using M = typename std::decay<Message>::type;
             if constexpr (std::is_base_of<app::hasMemoryAttachment, M>::value) {
                 msg.release();
             }
             return true; //don't try again
         }
-        auto n = 1;
-        auto it = buffer_.tryClaim(n);
-        if (it) {
-            queue(it, std::forward<Message>(msg));
-            buffer_.commit(it, n);
-            return true;
+        if (hmbdc_likely(sizeof(M) <= maxMessageSize_)) {
+            return buffer_.tryPutInPlace<NetWrap<M>>(std::forward<Message>(msg));
+        } else {
+            HMBDC_THROW(std::out_of_range
+                , "maxMessageSize too small to hold a message");
         }
-        return false;
     }
 
     void queueJustBytes(uint16_t tag, void const* bytes, size_t len
@@ -89,19 +100,13 @@ struct SendTransport
             }
             return;
         }
-        auto s = buffer_.claim();
-        char* addr = static_cast<char*>(*s);
-        auto h = new (addr) TransportMessageHeader;
-        h->messagePayloadLen = len + sizeof(app::MessageHead);
+
         if (hmbdc_likely(len <= maxMessageSize_)) {
-            auto wrap = new (addr + sizeof(TransportMessageHeader)) 
-               app:: MessageWrap<app::JustBytes>(tag, bytes, len, att);
-            h->flag = wrap->scratchpad().desc.flag;
+            buffer_.tryPutInPlace<NetWrap<app::JustBytes>>(tag, bytes, len, att);
         } else {
             HMBDC_THROW(std::out_of_range
                 , "maxMessageSize too small to hold a message");
         }
-        buffer_.commit(s);
     }
 
     void stop();
@@ -115,34 +120,6 @@ protected:
     hmbdc::time::Rater rater_;
     hmbdc::app::Config mcConfig_;
     TypeTagSet outboundSubscriptions_;
-
-private:
-    template<typename M, typename ... Messages>
-    void queue(MonoLockFreeBuffer::iterator it, M&& m, Messages&&... msgs) {
-        using Message = typename std::decay<M>::type;
-        static_assert(std::is_trivially_destructible<Message>::value, "cannot send message with dtor");
-        static_assert(!std::is_base_of<app::hasMemoryAttachment, Message>::value 
-            || app::is_hasMemoryAttachment_first_base_of<Message>::value
-            , "hasMemoryAttachment has to the first base for Message");
-
-        auto s = *it;
-        char* addr = static_cast<char*>(s);
-        auto h = new (addr) TransportMessageHeader;
-        h->messagePayloadLen = sizeof(app::MessageWrap<Message>);
-        if (hmbdc_likely(sizeof(Message) <= maxMessageSize_)) {
-            auto wrap = new (addr + sizeof(TransportMessageHeader)) 
-                app::MessageWrap<Message>(std::forward<M>(m));
-            h->flag = wrap->scratchpad().desc.flag;
-        } else {
-            HMBDC_THROW(std::out_of_range, "maxMessageSize too small to hold a message when constructing SendTransportEngine");
-        }
-        if constexpr (has_hmbdc_net_queued_ts<Message>::value) {
-            h->template wrapped<Message>().hmbdc_net_queued_ts = hmbdc::time::SysTime::now();
-        }
-        queue(++it, std::forward<Messages>(msgs)...);
-    }
-
-    void queue(MonoLockFreeBuffer::iterator it) {}
 };
 
 struct SendTransportEngine

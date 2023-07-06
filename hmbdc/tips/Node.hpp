@@ -181,8 +181,25 @@ struct Node {
         return std::make_tuple<char const*, int>(nullptr, 20);
 #endif        
     }
+
+    /**
+     * @brief one time callback when the node starts runs in its own thread
+     * @param ignore
+     */
     virtual void messageDispatchingStartedCb(size_t const*){}
+
+    /**
+     * @brief callback when Node's running has thrown an exception
+     * @param exception
+     */
     virtual void stoppedCb(std::exception const&) {}
+
+    /**
+     * @brief callback when the node is about to be dropped from its domain - no more messaging function
+     * 
+     * @return true - if let it happen
+     * @return false - if we do not want it dropped
+     */
     virtual bool droppedCb() {return true;}
 
     /**

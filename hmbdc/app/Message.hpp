@@ -61,6 +61,7 @@ template <uint16_t tag>
 struct hasTag<tag, 1> {
     using hmbdc_tag_type = hasTag;
     enum {
+        typeTagInSpec = tag,
         typeTag = tag,
         typeSortIndex = tag,
         hasRange = 0,
@@ -80,6 +81,7 @@ template <uint16_t tagStart, uint16_t rangeSize>
 struct hasTag {
     using hmbdc_tag_type = hasTag;
     enum {
+        typeTagInSpec = tagStart,
         typeSortIndex = tagStart,
         hasRange = 1,
         justBytes = 0,

@@ -475,8 +475,7 @@ public:
         } else {
             justBytesSendInPlace<Message>(std::forward<Args>(args)...);
             if (!can_handle<Message>::justbytes) {
-                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTag="
-                    , std::decay<Message>::type::typeTag);)
+                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTagInSpec=", Message::typeTagInSpec);)
             }
         }
     }
@@ -531,8 +530,7 @@ public:
             return true;
         } else {
             if (!can_handle<Message>::justbytes) {
-                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTag="
-                    , std::decay<Message>::type::typeTag);)
+                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTag=", m.getTypeTag());)
             }
 
             return justBytesTrySend(std::forward<Message>(m), timeout);
@@ -576,11 +574,10 @@ public:
             return true;
         } else {
             if (!can_handle<Message>::justbytes) {
-                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTag="
-                    , std::decay<Message>::type::typeTag);)
+                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTagInSpec=", Message::typeTagInSpec);)
             }
 
-            return justBytesTrySendInPlace<Message>(args...);
+            return justBytesTrySendInPlace<Message>(std::forward<Args>(args)...);
         }
     }
 
@@ -595,11 +592,11 @@ public:
      */
     template <MessageForwardIterC ForwardIt>
     void send(ForwardIt begin, size_t n) {
+        using Message = decltype(*begin);
+        using M = typename std::decay<Message>::type;
         if constexpr (can_handle<decltype(*(ForwardIt()))>::match) {
             if (!n) return;
             justBytesSend(begin, n);
-            using Message = decltype(*begin);
-            using M = typename std::decay<Message>::type;
             auto constexpr i = index_in_tuple<TransportEntries<M>, MsgConduits>::value;
             auto& entries = std::get<i>(msgConduits_);
             for (auto i = 0u; i < entries.size(); ++i) {
@@ -610,9 +607,8 @@ public:
                 }
             }
         } else {
-            if (!can_handle<decltype(*(ForwardIt()))>::justbytes) {
-                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTag="
-                    , std::decay<decltype(*(ForwardIt()))>::type::typeTag);)
+            if (!can_handle<M>::justbytes) {
+                HMBDC_LOG_ONCE(HMBDC_LOG_D("unhandled message sent typeTagInSpec=", M::typeTagInSpec);)
             }
             justBytesSend(begin, n);
         }

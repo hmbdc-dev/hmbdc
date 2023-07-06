@@ -14,6 +14,7 @@
 
 namespace hmbdc { namespace tips { namespace tcpcast {
 
+HMBDC_CLASS_HAS_DECLARE(hmbdc_net_queued_ts);
 #pragma pack(push, 1)
 struct TransportMessageHeader {
     uint8_t flag; //1 - hasAttachment
@@ -54,6 +55,36 @@ struct TransportMessageHeader {
         return sizeof(TransportMessageHeader);
     }
 };
+
+template <typename Message>
+struct NetWrap {
+    template <typename ...Args>
+    NetWrap(Args&&... args)
+    : wrappedMsg{std::forward<Args>(args)...} {
+        header.messagePayloadLen = sizeof(app::MessageWrap<Message>);
+        header.flag = wrappedMsg.scratchpad().desc.flag;
+
+        if constexpr (has_hmbdc_net_queued_ts<Message>::value) {
+            wrappedMsg.hmbdc_net_queued_ts = hmbdc::time::SysTime::now();
+        }
+    }
+
+    TransportMessageHeader header;
+    app::MessageWrap<Message> wrappedMsg;
+};
+
+template <>
+struct NetWrap<app::JustBytes> {
+    NetWrap(uint16_t tag, void const* bytes, size_t len, app::hasMemoryAttachment* att)
+    : wrappedMsg{tag, bytes, len, att} {
+        header.messagePayloadLen = len + sizeof(app::MessageHead);
+        header.flag = wrappedMsg.scratchpad().desc.flag;
+    }
+
+    TransportMessageHeader header;
+    app::MessageWrap<app::JustBytes> wrappedMsg;
+};
+
 #pragma pack(pop)
 
 #pragma pack(push, 1)

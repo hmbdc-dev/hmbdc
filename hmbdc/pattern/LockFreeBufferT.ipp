@@ -33,7 +33,7 @@ uint32_t itemSizePower2NumT(size_t valueTypeSize) {
 namespace hmbdc { namespace pattern {
 
 template <uint16_t mpc>
-using MRB = MemRingBuffer<mpc, HMBDC_SEQ_TYPE>;
+using MRB = MemRingBuffer<mpc>;
 
 template <uint16_t mpc>
 size_t 

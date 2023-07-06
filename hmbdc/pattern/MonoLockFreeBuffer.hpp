@@ -85,7 +85,7 @@ private:
 
 
 namespace hmbdc { namespace pattern {
-using MMRB = MemRingBuffer<0u, typename MonoLockFreeBuffer::Sequence>;
+using MMRB = MemRingBuffer<0u>;
 
 namespace {
 inline

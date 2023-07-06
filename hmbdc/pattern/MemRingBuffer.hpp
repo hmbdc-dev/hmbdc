@@ -42,10 +42,10 @@ struct my_spin_lock : std::atomic_flag {
     }
 };
 
-template<uint16_t parallel_consumer_count, typename SeqT = size_t>
+template<uint16_t parallel_consumer_count>
 class MemRingBuffer {
 public:
-    using Sequence = SeqT;
+    using Sequence = HMBDC_SEQ_TYPE;
     enum {PARALLEL_CONSUMER_COUNT = parallel_consumer_count,};
 
     const size_t CAPACITY;
@@ -460,8 +460,8 @@ public:
 #include "hmbdc/pattern/MemRingBuffer2.hpp"
 
 namespace hmbdc { namespace pattern {
-template<uint16_t PARALLEL_CONSUMER_COUNT, typename SeqT = size_t>
-using MemRingBuffer = memringbuffer_detail::MemRingBuffer<PARALLEL_CONSUMER_COUNT, SeqT>;
+template<uint16_t PARALLEL_CONSUMER_COUNT>
+using MemRingBuffer = memringbuffer_detail::MemRingBuffer<PARALLEL_CONSUMER_COUNT>;
 }}
 
 #pragma GCC diagnostic pop
