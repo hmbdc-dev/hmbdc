@@ -376,8 +376,7 @@ runPongInDomain(Config const& config, uint16_t pongCpu) {
 template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingInSingleNodeDomain(Config const& config) {
-    using MyDomain = SingleNodeDomain<Pinger<Ping, Pong>
-        , std::tuple<Pong>, ipc_property<>, net_property<NetProt>>;
+    using MyDomain = SingleNodeDomain<Pinger<Ping, Pong>, ipc_property<>, net_property<NetProt>>;
     if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
@@ -402,8 +401,7 @@ runPingInSingleNodeDomain(Config const& config) {
 template <typename NetProt>
 int 
 runPongInSingleNodeDomain(Config const& config) {
-    using MyDomain = SingleNodeDomain<Ponger
-        , std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>;
+    using MyDomain = SingleNodeDomain<Ponger, ipc_property<>, net_property<NetProt>>;
     if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};

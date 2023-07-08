@@ -83,9 +83,8 @@ struct RecvTransportImpl
  */
     void handleMessageCb(TypeTagBackupSource const& t) {
         auto ip = inet_addr(t.ip);
-        //unless using loopback address, don't EVER listen to myself (own process)
-        if (ip == myBackupIp_ 
-            && (!loopback_)) {
+        //unless setting loopback, don't EVER listen to myself (own process)
+        if (ip == myBackupIp_ && (!loopback_)) {
             return;
         }
         if (t.srcPid == myPid_ && ip == myBackupIp_) return;

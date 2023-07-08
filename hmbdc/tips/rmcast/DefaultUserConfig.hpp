@@ -7,7 +7,7 @@ namespace hmbdc { namespace tips { namespace rmcast {
 constexpr char const*  const DefaultUserConfig = R"|(
 {
     "ifaceAddr"         : "127.0.0.1",                  "__ifaceAddr"                   :"ip address for the NIC interface for multicast IO, 0.0.0.0/0 pointing to the first intereface that is not a loopback",
-    "loopback"          : false,                        "__loopback"                    :"set this to true if processes within the same host need to communicate using, not effective when using loopback interface 127.0.0.1.",
+    "loopback"          : false,                        "__loopback"                    :"set this to true if processes within the same host need to communicate using rmcast",
     "mcastAddr"         : "232.43.212.236",             "__mcastAddr"                   :"multicast address for IO",
     "mcastPort"         : 4322,                         "__mcastPort"                   :"multicast port to for IO",
     "mtu"               : 1500,                         "__mtu"                         :"mtu, check ifconfig output for this value for each NIC in use",

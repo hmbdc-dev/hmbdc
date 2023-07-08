@@ -106,18 +106,18 @@ struct BackupRecvSessionT
 
     bool runOnce() {
         if (hmbdc_unlikely(stopped_)) return false;
-        if (hmbdc_unlikely(!initialized_ && writeFd_.isFdReady())) {
-            try {
+        try {
+            if (hmbdc_unlikely(!initialized_ && writeFd_.isFdReady())) {
                 initializeConn();
-            } catch (std::exception const& e) {
-                HMBDC_LOG_W(e.what());
-                return false;
-            } catch (...) {
-                HMBDC_LOG_C("unknown exception");
-                return false;
             }
+            return doRead();
+        } catch (std::exception const& e) {
+            HMBDC_LOG_W(e.what());
+            return false;
+        } catch (...) {
+            HMBDC_LOG_C("unknown exception");
+            return false;
         }
-        return doRead();
     }
 
     void sendSubscribe(uint16_t t) {

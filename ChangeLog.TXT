@@ -1,3 +1,6 @@
+* Sat Jul 08 2023 - 15.14
+- fixed empty attachment delayed bug
+
 * Wed Jul 05 2023 - 15.11
 - refactored and minor fixes
 
@@ -320,6 +323,9 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sat Jul 08 2023 - 15.14
+- fixed empty attachment delayed bug
 
 * Wed Jul 05 2023 - 15.11
 - refactored and minor fixes

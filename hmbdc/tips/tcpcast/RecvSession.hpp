@@ -100,18 +100,18 @@ struct RecvSession {
 
     bool runOnce() {
         if (hmbdc_unlikely(stopped_)) return false;
-        if (hmbdc_unlikely(!initialized_ && writeFd_.isFdReady())) {
-            try {
+        try {
+            if (hmbdc_unlikely(!initialized_ && writeFd_.isFdReady())) {
                 initializeConn();
-            } catch (std::exception const& e) {
-                HMBDC_LOG_W(e.what());
-                return false;
-            } catch (...) {
-                HMBDC_LOG_C("unknown exception");
-                return false;
             }
+            return doRead();
+        } catch (std::exception const& e) {
+            HMBDC_LOG_W(e.what());
+            return false;
+        } catch (...) {
+            HMBDC_LOG_C("unknown exception");
+            return false;
         }
-        return doRead();
     }
 
 private:
@@ -161,7 +161,7 @@ private:
     bool doRead() {
         do {
             if (hmbdc_unlikely(currTransportHeadFlag_ == hmbdc::app::hasMemoryAttachment::flag
-                && filledLen_)) {
+                && (filledLen_ || memoryAttachment_.writeDone()))) {
                 auto s = memoryAttachment_.write(bufCur_, filledLen_);
                 if (memoryAttachment_.writeDone()) {
                     memoryAttachment_.close();

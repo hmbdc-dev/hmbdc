@@ -405,7 +405,7 @@ protected:
 private:
     template <app::MessageTupleC T1, typename T2, typename T3, typename T4, typename T5> 
     friend struct Domain;
-    template <typename T1, app::MessageTupleC T2, typename T3, typename T4, typename T5> 
+    template <typename T1, typename T3, typename T4, typename T5> 
     friend struct SingleNodeDomain;
 
     template <typename Domain>

@@ -8,7 +8,7 @@ namespace hmbdc { namespace tips { namespace rnetmap {
 constexpr char const*  const DefaultUserConfig = R"|(
 {
     "doChecksum"    : false,                            "__doChecksum"                   :"calculating checksum when sending or receiving",
-    "loopback"      : false,                            "__loopback"                     :"set this to true if processes within the same host need to communicate, not effective when using loopback interface 127.0.0.1.",    
+    "loopback"      : false,                            "__loopback"                     :"set this to true if processes within the same host need to communicate via rnetmap",    
     "mtu"           : 1500,                             "__mtu"                          :"mtu, check ifconfig output for this value for each NIC in use",
     "nagling"       : false,                            "__nagling"                      :"should the backup tcp channel do nagling",
     "netmapPort"    : "netmapPort UNSPECIFIED",         "__netmapPort"                   :"the netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side must be specific on which tx ring to use",

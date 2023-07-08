@@ -57,13 +57,12 @@ struct ContextCallForwarder {
  * @tparam DefaultAttachmentAllocator see Domain documentation
  */
 template <typename CcNode
-    , app::MessageTupleC RecvMessageTupleIn
     , typename IpcProp
     , typename NetProp
     , typename AttachmentAllocator = DefaultAttachmentAllocator>
 struct SingleNodeDomain 
-: private Domain<RecvMessageTupleIn
-    , IpcProp, NetProp, detail::ContextCallForwarder<CcNode, RecvMessageTupleIn>
+: private Domain<typename CcNode::RecvMessageTuple
+    , IpcProp, NetProp, detail::ContextCallForwarder<CcNode, typename CcNode::RecvMessageTuple>
     , AttachmentAllocator> {
 public:
     /**
@@ -72,7 +71,7 @@ public:
      * @param cfg - used to construct Domain, see Domain documentation
      */
     SingleNodeDomain(app::Config cfg)
-    : SingleNodeDomain::Domain(cfg.put("pumpRunMode", "delayed")) {
+    : SingleNodeDomain::Domain(cfg) {
     }
 
 /**

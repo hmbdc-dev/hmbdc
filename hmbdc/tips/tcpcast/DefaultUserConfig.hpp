@@ -9,7 +9,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
 {
     "ifaceAddr"                         : "127.0.0.1",              "__ifaceAddr"                     :"ip address for the NIC interface for IO, 0.0.0.0/0 pointing to the first intereface that is not a loopback",
     "tcpPort"                           : 0,                        "__tcpPort"                       :"tcp port number used when send/recv messages out - 0 means let the OS pick",
-    "loopback"                          : false,                    "__loopback"                      :"set this to true if processes within the same host need to communicate using rmcast not effective when using loopback interface (127.0.0.1.",
+    "loopback"                          : false,                    "__loopback"                      :"set this to true if processes within the same host need to communicate using tcpcast",
     "mtu"                               : 1500,                     "__mtu"                           :"mtu, check ifconfig output for this value for each NIC in use",
     "schedPolicy"                       : "SCHED_OTHER",            "__schedPolicy"                   :"engine thread schedule policy - check man page for allowed values",
     "schedPriority"                     : 0,                        "__schedPriority"                 :"engine thread schedule priority - check man page for allowed values",      

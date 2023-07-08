@@ -184,6 +184,14 @@ struct recv_ipc_converted<std::tuple<>> {
     using type = std::tuple<>;
 };
 
+template <app::MessageTupleC MessageTuple>
+struct recv_net_converted;
+
+template <>
+struct recv_net_converted<std::tuple<>> {
+    using type = std::tuple<>;
+};
+
 
 template <app::MessageC Message>
 struct is_threadable {
@@ -232,6 +240,15 @@ template <app::MessageC Message, app::MessageC ...Messages>
 struct recv_ipc_converted<std::tuple<Message, Messages...>> {
     using next = typename recv_ipc_converted<std::tuple<Messages...>>::type;
     using type = std::conditional_t<is_ipcable<Message>::value
+        , typename add_if_not_in_tuple<typename matching_ipcable<Message>::type, next>::type
+        , next
+    >;
+};
+
+template <app::MessageC Message, app::MessageC ...Messages>
+struct recv_net_converted<std::tuple<Message, Messages...>> {
+    using next = typename recv_net_converted<std::tuple<Messages...>>::type;
+    using type = std::conditional_t<is_netable<Message>::value
         , typename add_if_not_in_tuple<typename matching_ipcable<Message>::type, next>::type
         , next
     >;
@@ -315,7 +332,7 @@ private:
     using RecvMessageTuple = typename hmbdc::remove_duplicate<RecvMessageTupleIn>::type;
 
     using IpcableRecvMessages = typename domain_detail::recv_ipc_converted<RecvMessageTuple>::type;
-    using NetableRecvMessages = IpcableRecvMessages;
+    using NetableRecvMessages = typename domain_detail::recv_net_converted<RecvMessageTuple>::type;
 
     enum {
         run_pump_in_ipc_portal = IpcProperty::capacity != 0,

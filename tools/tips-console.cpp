@@ -503,8 +503,7 @@ struct Runner {
         
         pattern::SingletonGuardian<NetProt> ncGuard;
         using ConsoleDomain 
-            = SingleNodeDomain<ConsoleNode
-                , std::tuple<JustBytes>, ipc_property<IpcCapacity, 0>, net_property<NetProt, 0>>;
+            = SingleNodeDomain<ConsoleNode, ipc_property<IpcCapacity, 0>, net_property<NetProt, 0>>;
         ConsoleDomain domain{config};
         ConsoleNode console{config};
         domain.add(console);
