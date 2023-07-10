@@ -1,3 +1,6 @@
+* Sun Jul 09 2023 - 15.16
+- fixed doc, tryPublish bug, Rmcast and rnetmap SeqAlert init bugs
+
 * Sat Jul 08 2023 - 15.14
 - fixed empty attachment delayed bug
 
@@ -323,6 +326,9 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
+
+* Sun Jul 09 2023 - 15.16
+- fixed doc, tryPublish bug, Rmcast and rnetmap SeqAlert init bugs
 
 * Sat Jul 08 2023 - 15.14
 - fixed empty attachment delayed bug

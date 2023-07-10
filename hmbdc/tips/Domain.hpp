@@ -863,25 +863,29 @@ private:
                             , "mising or wrong fromHmbdcIpcable() func - cannot convertback");
                         serializedCached.emplace(message.toHmbdcIpcable());
                         if (!disableNet) {
-                            //keep the att around
-                            std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                            if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
+                                //keep the att around
+                                std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
+                            }
                         }
                         auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
+
                         if constexpr (ToSendType::att_via_shm_pool) {
+                            static_assert(!IpcProperty::use_dev_mem, "not implemented");
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
-                                auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();;
+                                auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
                                 // __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
                                 reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
                                     -> fetch_add(intDiff, std::memory_order_release);
                             }
                         }
-                        res = ipcTransport_.trySend(std::move(toSend));
+                        res = ipcTransport_.trySend(toSend);
                         if (!res) {
                             if constexpr (ToSendType::att_via_shm_pool) {
                                 if (toSend.template holdShmHandle<ToSendType>()) {
                                     toSend.hmbdcIsAttInShm = true;
-                                    auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();;
+                                    auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
                                     // __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
                                     reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
                                         -> fetch_sub(intDiff, std::memory_order_release);
@@ -890,30 +894,51 @@ private:
                         }
                     } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
                         auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
-                        res = ipcTransport_.trySend(std::move(toSend));
+                        if constexpr (ToSendType::att_via_shm_pool) {
+                            if (toSend.template holdShmHandle<ToSendType>()) {
+                                toSend.hmbdcIsAttInShm = true;
+                                auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
+                                // __atomic_add_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
+                                    -> fetch_add(intDiff, std::memory_order_release);
+                            }
+                        }
+                        res = ipcTransport_.trySend(toSend);
+                        if (!res) {
+                            if constexpr (ToSendType::att_via_shm_pool) {
+                                if (toSend.template holdShmHandle<ToSendType>()) {
+                                    toSend.hmbdcIsAttInShm = true;
+                                    auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
+                                    // __atomic_sub_fetch(hmbdc0cpyShmRefCount, intDiff, __ATOMIC_RELEASE);
+                                    reinterpret_cast<std::atomic<size_t>*>(hmbdc0cpyShmRefCount)
+                                        -> fetch_sub(intDiff, std::memory_order_release);
+                                }
+                            }
+                        }
                     } else {
                         res = ipcTransport_.template trySendInPlace<ToSendType>(hmbdcAvoidIpcFrom, message);
                     }
                 }
-
-                if constexpr (!disableNet) {
-                    if constexpr(has_toHmbdcIpcable<M>::value) {
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(Mipc) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        if (serializedCached) {
+            }
+            if constexpr (!disableNet) {
+                if constexpr(has_toHmbdcIpcable<M>::value) {
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(Mipc) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    if (serializedCached) {    
+                        if constexpr (std::is_base_of<app::hasMemoryAttachment, Mipc>::value) {
                             // restore
                             std::swap(afterConsumedCleanupFuncKept, serializedCached->afterConsumedCleanupFunc);
-                            res = sendEng_->tryQueue(*serializedCached) && res;
-                        } else {
-                            res = sendEng_->tryQueue(message.toHmbdcIpcable()) && res;
                         }
+                        res = sendEng_->tryQueue(*serializedCached) && res;
                     } else {
-                        static_assert(NetProperty::max_message_size == 0 
-                            || sizeof(Mipc) <= NetProperty::max_message_size
-                            , "NetProperty::max_message_size is too small"); 
-                        res = sendEng_->tryQueue(message) && res;
+                        res = sendEng_->tryQueue(message.toHmbdcIpcable()) && res;
                     }
+                } else {
+                    static_assert(NetProperty::max_message_size == 0 
+                        || sizeof(Mipc) <= NetProperty::max_message_size
+                        , "NetProperty::max_message_size is too small"); 
+                    res = sendEng_->tryQueue(message) && res;
                 }
             }
             return res;
@@ -1714,5 +1739,3 @@ struct MessageWrap<app::InBandHasMemoryAttachment<
 
 } /// app
 } /// hmbdc
-
-

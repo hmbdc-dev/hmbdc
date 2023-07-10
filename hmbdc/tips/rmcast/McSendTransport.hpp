@@ -194,9 +194,9 @@ private:
                         }
                         toSendMsgs_.push_back(iovec{(void*)item->wireBytes(), item->wireSize()}); 
                     }
+                    seqAlert_->expectSeq = it.seq_ + 1;
                     it++;
 
-                    seqAlert_->expectSeq = item->getSeq() + 1;
                     rater_.commit();
                 }
                 wasteSize_ = it - begin;

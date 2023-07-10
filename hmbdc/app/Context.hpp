@@ -50,12 +50,11 @@ namespace context_property {
      * @tparam max_parallel_consumer max thread counts that processes messages
      * that incudes pool threads plus the count of direct mode Clients that 
      * registers messages within the Context
-     * supported values: 4(default) 
-     * 2,8,16,32,64,128,256 requires hmbdc licensed
+     * supported values: 4(default) 1,2,8,16,32,64,128,256
      */
     template <uint16_t max_parallel_consumer = DEFAULT_HMBDC_CAPACITY>
     struct broadcast{
-        static_assert(max_parallel_consumer >= 4u 
+        static_assert(max_parallel_consumer >= 1u 
             && hmbdc::numeric::set_bits_count<max_parallel_consumer>::value == 1u, "");
     };
 

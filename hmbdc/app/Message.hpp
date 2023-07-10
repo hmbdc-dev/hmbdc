@@ -199,7 +199,7 @@ struct alignas(8) hasMemoryAttachment {
  * @details It is recommneded that a Message type do not have significant dtor defined
  * because the message could travel through process bundaries or through network 
  * - won't compile if trying to send them.
- * The only exception is the BlockingContext (licensed package), which does allow  
+ * The only exception is the BlockingContext, which does allow  
  * message's dtors and call them properly within a process boundary.
  * @snippet hmbdc.cpp define a message
  */

@@ -37,8 +37,7 @@ template <typename T>
 struct XmitEndian {
     using RawType = T;
     static_assert(sizeof(T) > 1, "not effective or apply");
-    XmitEndian(){}
-    explicit XmitEndian(T v)
+    explicit XmitEndian(T v = 0)
     : vx_(Endian::match_xmit?v:boost::endian::endian_reverse(v)) {
     }
 

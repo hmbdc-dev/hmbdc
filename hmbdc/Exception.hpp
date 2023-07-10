@@ -1,12 +1,15 @@
 #include "hmbdc/Copyright.hpp"
 #pragma once
+#include <boost/lexical_cast.hpp>
+#include <boost/stacktrace.hpp>
 
 #include <sstream>
 #include <stdexcept>
 
 #define HMBDC_THROW(Exception, x) {\
     std::ostringstream os;\
-    os << x << " at " << __FILE__ << ':' << __LINE__;\
+    os << x << " at " << __FILE__ << ':' << __LINE__ << '\n'\
+        << boost::lexical_cast<std::string>(boost::stacktrace::stacktrace());\
     throw Exception(os.str()); \
 }
 
