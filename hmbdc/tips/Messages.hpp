@@ -63,8 +63,8 @@ struct hasSharedPtrAttachment {
     static_assert(std::is_trivially_copyable<T>::value);
 
     const SP attachmentSp;          /// the attachment
-    const size_t len;               /// the length of the POD data
-    const bool isAttInShm;          /// the attachment is in the shm pool alreadyq
+    const size_t len = 0;               /// the length of the POD data
+    const bool isAttInShm = false;          /// the attachment is in the shm pool alreadyq
     uint8_t reserved[7] = {0};      /// it is imperative for the struct to have a multiple
                                     /// of 8 as its size so the inheritance packing is not
                                     /// wierd
@@ -85,7 +85,36 @@ struct hasSharedPtrAttachment {
     , isAttInShm(isAttInShmIn) {
     }
 
+    hasSharedPtrAttachment(hasSharedPtrAttachment const& other) {
+        *this = other;
+    }
+
+    hasSharedPtrAttachment(hasSharedPtrAttachment&& other) {
+        *this = std::move(other);
+    }
+
+    template <typename Message2, bool use_shm_pool2>
+    hasSharedPtrAttachment(hasSharedPtrAttachment<Message2, T, use_shm_pool2> const& other) {
+        *this = other;
+    }
+
+    template <typename Message2, bool use_shm_pool2>
+    hasSharedPtrAttachment(hasSharedPtrAttachment<Message2, T, use_shm_pool2>&& other) {
+        *this = std::move(other);
+    }
+
+    /**
+     * @brief assignment
+     * 
+     * @param other 
+     * @return auto& 
+     */
     auto& operator = (hasSharedPtrAttachment const& other) {
+        reset(other.isAttInShm, other.attachmentSp, other.len);
+        return *this;
+    }
+
+    auto& operator = (hasSharedPtrAttachment&& other) {
         reset(other.isAttInShm, other.attachmentSp, other.len);
         return *this;
     }
@@ -96,6 +125,11 @@ struct hasSharedPtrAttachment {
         return *this;
     }
 
+    template <typename Message2, bool use_shm_pool2>
+    auto& operator = (hasSharedPtrAttachment<Message2, T, use_shm_pool2>&& other) {
+        reset(other.isAttInShm, other.attachmentSp, other.len);
+        return *this;
+    }
 
     /**
      * @brief reset to a new state

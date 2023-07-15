@@ -40,8 +40,18 @@ struct ContextCallForwarder {
     void messageDispatchingStartedCb(size_t const*p) {node->messageDispatchingStartedCb(p);}
     void stoppedCb(std::exception const& e) {node->stoppedCb(e);}
     bool droppedCb() {return node->droppedCb();}
-    void stop(){}
-    void join(){}
+
+    // the follwoing are only used when NoIpc
+    // forward all to
+    using CtxUsedWhenNoIpc = app::BlockingContext<>;
+    CtxUsedWhenNoIpc ctxUsedWhenNoIpc_;
+    using ClientRegisterHandle = typename CtxUsedWhenNoIpc::ClientRegisterHandle;
+    template <typename ...Args>
+    ClientRegisterHandle registerToRun(Args&& ... args) {return ctxUsedWhenNoIpc_.registerToRun(std::forward<Args>(args)...);}
+    template <typename ...Args>
+    void start(Args&& ... args) {ctxUsedWhenNoIpc_.start(std::forward<Args>(args)...);}
+    void stop(){ctxUsedWhenNoIpc_.stop();}
+    void join(){ctxUsedWhenNoIpc_.join();}
 };
 }
 
@@ -95,6 +105,7 @@ public:
      * @brief exposed from Domain - see Domain documentation
      * 
      */
+    using SingleNodeDomain::Domain::getConfig;
     using SingleNodeDomain::Domain::getDftConfig;
     using SingleNodeDomain::Domain::startPumping;
     using SingleNodeDomain::Domain::pumpOnce;

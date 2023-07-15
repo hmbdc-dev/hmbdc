@@ -99,6 +99,18 @@ struct hasTag {
     uint16_t getTypeTag() const { return typeTagStart + typeTagOffsetInRange; }
     void resetTypeTagOffsetInRange(uint16_t newOffset) {const_cast<XmitEndian<uint16_t>&>(typeTagOffsetInRange) = newOffset;}
     XmitEndian<uint16_t> const typeTagOffsetInRange{0};
+
+    /**
+     * @brief assignment
+     * 
+     * @param other 
+     * @return auto& 
+     */
+    auto& operator = (hasTag const& other) {
+        const_cast<XmitEndian<uint16_t>&>(typeTagOffsetInRange) = other.typeTagOffsetInRange;
+        return *this;
+    }
+
     friend 
     std::ostream& 
     operator << (std::ostream & os, hasTag const& t) {

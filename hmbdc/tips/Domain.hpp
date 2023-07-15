@@ -569,6 +569,11 @@ private:
             if constexpr (has_net_send_eng) {
                 layback = layback && !sendEng_->bufferedMessageCount();
             }
+
+            if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
+                outCtx_.invokedCb(previousBatch);
+            }
+            
             if (layback) {
                 std::this_thread::yield();
             }
@@ -1192,6 +1197,15 @@ public:
         } // else no pump needed
     }
 
+    /**
+     * @brief Get the Config object that is in effect
+     * 
+     * @return app::Config const& reference to the config
+     */
+    app::Config const& getConfig() const {
+        return config_;
+    }
+    
     /**
      * @brief get the default configuration
      * 
