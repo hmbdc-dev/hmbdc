@@ -176,7 +176,7 @@ struct Pinger
 
     void messageDispatchingStartedCb(size_t const*) override {
         cout << "Started Pinger with the first " << skipped_ 
-            << " values ignored(x), press ctrl-c to get results" << endl;
+            << " values ignored(x), good(.), congested(C), press ctrl-c to get results" << endl;
     };
 
     void handleMessageCb(Pong const& m) {
@@ -489,7 +489,7 @@ main(int argc, char** argv) {
     ("runTime", po::value<uint32_t>(&runTime)->default_value(0), "how many seconds does the test last before exit. By default it runs forever")
     ("pumpMaxBlockingTimeSec", po::value<double>(&pumpMaxBlockingTimeSec)->default_value(0), "for low latency results use 0 - for low CPU utilization make it bigger - like 0.00001 sec")
     ("show", po::value<string>(&showSection)->default_value("")->implicit_value(""), "empty, 'tx' or 'rx', display additional configs, network config has tx and rx sections")
-    ("additional", po::value(&additionalCfg)->multitoken()->default_value({}, "outBufferSizePower2=18"), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. run --show option, or DefaultUserConfigure.hpp")
+    ("additional", po::value(&additionalCfg)->multitoken()->default_value({"outBufferSizePower2=18", "ipcMessageQueueSizePower2Num=21"}, "outBufferSizePower2=18 ipcMessageQueueSizePower2Num=21"), "specify the additional configs, example: '--additional mtu=64000 ipcTransportOwnership=own'. run --show option, or check out DefaultUserConfigure.hpp")
     ("logging", po::value<bool>(&logging)->default_value(false), "turn on hmbdc internal logging - to stdout")
 ;
 
@@ -510,7 +510,6 @@ main(int argc, char** argv) {
     config.put("netMaxMessageSizeRuntime", sizeof(Ping));
     config.put("pumpMaxBlockingTimeSec", pumpMaxBlockingTimeSec);
     config.put("pumpCpuAffinityHex", 1ul << cpuIndex[0]);
-    config.put("ipcMessageQueueSizePower2Num", 21);
     if (netIface2.size()) config.put("tcpIfaceAddr", netIface2);  
     msgSize = max<uint32_t>(msgSize, 16);
 

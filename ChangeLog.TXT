@@ -1,3 +1,6 @@
+* Mon Sep 4 2023 - 15.17-1
+- fixed tips-ping-pong tool to support document command_line
+
 * Sat Jul 15 2023 - 15.17
 - SingleNodeDomain works when no IPC is specified
 - Message copy / assignment fixes

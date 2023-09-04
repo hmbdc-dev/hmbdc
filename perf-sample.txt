@@ -1,4 +1,4 @@
-                                HMBDC PERFORMANCE SAMPLE (updated with release 12-41*)
+                                HMBDC PERFORMANCE SAMPLE (updated with release 12-41)
 
 transport           reliability/scalability          1-way latency measured on following hardware/OS
 type                notes                            [a] Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz 8 core 16G RAM, CentOs8
@@ -66,5 +66,3 @@ commands and notes when obtaining the above performance data
 4.1)
 [b] ./tips-ping-pong -r pong --cpuIndex 4 -I 192.168.2.0/24 --netprot=rmcast 
 [a] for cfg in "100 500" "1000 500" "10000 500" "100000 500" "1000000 50" "10000000 5"; do a=($cfg); ./tips-ping-pong -r ping --cpuIndex 2 --msgPerSec ${a[1]} --netprot rmcast --msgSize=${a[0]} --runTime 20 -I 192.168.2.0/24; done
-
-* If test shows a series of 'C's, that means we need to allocate more mem for the test. Please add the following param into cmd args: --additional outBufferSizePower2=18
