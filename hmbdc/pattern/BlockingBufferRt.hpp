@@ -4,7 +4,7 @@
 #include "hmbdc/time/Time.hpp"
 #include "hmbdc/Config.hpp"
 
-#include <set>
+#include <functional>
 #include <mutex>              // std::mutex, std::unique_lock
 #include <condition_variable> // std::condition_variable
 #include <malloc.h>
@@ -13,15 +13,15 @@
 
 namespace hmbdc { namespace pattern {
 
-namespace blocking_buffer_detail {
+namespace blocking_buffer_rt_detail {
 struct iterator;
 }
 
-class BlockingBuffer {
+class BlockingBufferRt {
 public:
-    using iterator = blocking_buffer_detail::iterator;
+    using iterator = blocking_buffer_rt_detail::iterator;
     using value_type = void *;
-    BlockingBuffer(size_t maxItemSize, size_t capacity) 
+    BlockingBufferRt(size_t maxItemSize, size_t capacity) 
     : maxItemSize_(maxItemSize)
     , capacity_(capacity)
     , size_(0)
@@ -29,9 +29,9 @@ public:
         store_ = (char*)memalign(SMP_CACHE_BYTES, capacity*maxItemSize);
     }
 
-    BlockingBuffer(BlockingBuffer const&) = delete;
-    BlockingBuffer& operator = (BlockingBuffer const&) = delete;
-    ~BlockingBuffer() {
+    BlockingBufferRt(BlockingBufferRt const&) = delete;
+    BlockingBufferRt& operator = (BlockingBufferRt const&) = delete;
+    ~BlockingBufferRt() {
         ::free(store_);
     }
     
@@ -41,9 +41,15 @@ public:
     
     size_t maxItemSize() const {return maxItemSize_;}
     size_t capacity() const {return capacity_;}
-    void put(void const* item, size_t sizeHint = 0) {
+
+    using PushedOutBytesHandler = std::function<void(void*)>;
+    const PushedOutBytesHandler noopPOH{[](void*){}};
+
+    void put(PushedOutBytesHandler handlePushedOut, void const* item, size_t sizeHint = 0) {
         std::unique_lock<std::mutex> lck(mutex_);
-        hasSlot_.wait(lck, [this]{return capacity_ > size_;});
+        if (capacity_ <= size_) {
+            handlePushedOut(getItem(seq_ - size_--));
+        }
         memcpy(getItem(seq_++), item, sizeHint?sizeHint:maxItemSize_);
         if (++size_ == 1) {
             lck.unlock();
@@ -53,9 +59,11 @@ public:
 
     template <typename T, typename... Ts> 
     void 
-    put(T&& item, Ts&&... items) {
+    put(PushedOutBytesHandler handlePushedOut, T&& item, Ts&&... items) {
         std::unique_lock<std::mutex> lck(mutex_);
-        hasSlot_.wait(lck, [this]{return capacity_ > size_ + sizeof...(Ts);});
+        while (capacity_ <= size_ + sizeof...(Ts)) {
+            handlePushedOut(getItem(seq_ - size_--));
+        }
         fill(std::forward<T>(item), std::forward<Ts>(items)...);
         size_ += sizeof...(items) + 1;
         if (size_ == sizeof...(items) + 1) {
@@ -65,56 +73,52 @@ public:
     }
 
     template <typename It> 
-    bool 
-    tryPutBatch(It begin, size_t n) {
+    void
+    putBatch(PushedOutBytesHandler handlePushedOut, It begin, size_t n) {
         std::unique_lock<std::mutex> lck(mutex_);
-        if (hasSlot_.wait_for(
-            lck, std::chrono::seconds(0), [this, n]{return capacity_ > size_ + n - 1;})) {
-            fillBatch(begin, n);
-            size_ += n;
-            if (size_ == n) {
-                lck.unlock();
-                hasItem_.notify_all();
-            }
-            return true;
+        while (capacity_ <= size_ + n) {
+            handlePushedOut(getItem(seq_ - size_--));
         }
-        return false;
+        fillBatch(begin, n);
+        size_ += n;
+        if (size_ == n) {
+            lck.unlock();
+            hasItem_.notify_all();
+        }
     }
 
     template <typename Item, typename It> 
-    bool 
-    tryPutBatchInPlace(It begin, size_t n) {
+    void
+    putBatchInPlace(PushedOutBytesHandler handlePushedOut, It begin, size_t n) {
         std::unique_lock<std::mutex> lck(mutex_);
-        if (hasSlot_.wait_for(
-            lck, std::chrono::seconds(0), [this, n]{return capacity_ > size_ + n - 1;})) {
-            fillBatchInPlace<Item>(begin, n);
-            size_ += n;
-            if (size_ == n) {
-                lck.unlock();
-                hasItem_.notify_all();
-            }
-            return true;
+        while (capacity_ <= size_ + n) {
+            handlePushedOut(getItem(seq_ - size_--));
         }
-        return false;
+        fillBatchInPlace<Item>(begin, n);
+        size_ += n;
+        if (size_ == n) {
+            lck.unlock();
+            hasItem_.notify_all();
+        }
     }
 
-
-    template <typename T> void putSome(T const& item) {put(&item);}
     template <typename T, typename ...Args>
-    void putInPlace(Args&&... args) {
+    void putInPlace(PushedOutBytesHandler handlePushedOut, Args&&... args) {
         std::unique_lock<std::mutex> lck(mutex_);
-        hasSlot_.wait(lck, [this](){return capacity_ > size_;});
+        if (capacity_ <= size_) {
+            handlePushedOut(getItem(seq_ - size_--));
+        }
         new (getItem(seq_++)) T(std::forward<Args>(args)...);
         if (++size_ == 1) {
             lck.unlock();
             hasItem_.notify_all();
         }
     }
+
     template <typename T, typename ...Args>
     bool tryPutInPlace(Args&&... args) {
         std::unique_lock<std::mutex> lck(mutex_);
-        if (!hasSlot_.wait_for(lck, std::chrono::seconds(0), [this](){return capacity_ > size_;}))
-            return false;
+        if (capacity_ <= size_) return false;
         new (getItem(seq_++)) T(std::forward<Args>(args)...);
         if (++size_ == 1) {
             lck.unlock();
@@ -126,9 +130,7 @@ public:
     bool tryPut(void const* item, size_t sizeHint = 0
         , time::Duration timeout = time::Duration::seconds(0)) {
         std::unique_lock<std::mutex> lck(mutex_);
-        if (!hasSlot_.wait_for(lck, std::chrono::nanoseconds(timeout.nanoseconds())
-            , [this](){return capacity_ > size_;}))
-            return false;
+        if (capacity_ <= size_) return false;
         memcpy(getItem(seq_++), item, sizeHint?sizeHint:maxItemSize_);
         if (++size_ == 1) {
             lck.unlock();
@@ -144,69 +146,47 @@ public:
     }
 
     bool isFull() const {return size_ == capacity_;}
-    void take(void *dest, size_t sizeHint = 0) {
+
+
+    using CopyOutBytesHandler = std::function<void* (void*, void*, size_t)>;
+    void take(CopyOutBytesHandler coh, void *dest, size_t sizeHint = 0) {
         std::unique_lock<std::mutex> lck(mutex_);
         hasItem_.wait(lck, [this](){return size_;});
-        memcpy(dest, getItem(seq_ - size_), sizeHint?sizeHint:maxItemSize_);
-        if (size_-- == capacity_) {
-            lck.unlock();
-            hasSlot_.notify_all();
-        }
+        coh(dest, getItem(seq_ - size_), sizeHint?sizeHint:maxItemSize_);
+        size_--;
     }
 
     template <typename T>
-    T& take(T& dest) {
-        take(&dest, sizeof(T));
-        return dest;
+    T take(CopyOutBytesHandler coh) {
+        T res;
+        take(coh, &res, sizeof(res));
+        return res;
     }
 
-    bool tryTake(void *dest, size_t sizeHint = 0, time::Duration timeout = time::Duration::seconds(0)) {
+    bool tryTake(CopyOutBytesHandler coh, void *dest, size_t sizeHint = 0, time::Duration timeout = time::Duration::seconds(0)) {
         std::unique_lock<std::mutex> lck(mutex_);
         if (!hasItem_.wait_for(lck, std::chrono::nanoseconds(timeout.nanoseconds()), [this](){return size_;})) return false;
-        memcpy(dest, getItem(seq_ - size_), sizeHint?sizeHint:maxItemSize_);
-        if (size_-- == capacity_) {
-            lck.unlock();
-            hasSlot_.notify_all();
-        }
+        coh(dest, getItem(seq_ - size_), sizeHint?sizeHint:maxItemSize_);
+        size_--;
         return true;
     }
 
     template <typename T>
-    bool tryTake(T& dest) {
-        return tryTake(&dest, sizeof(T));
+    bool tryTake(CopyOutBytesHandler coh, T& dest, time::Duration timeout = time::Duration::seconds(0)) {
+        return tryTake(coh, &dest, sizeof(T), timeout);
     }
 
     template <typename itOut>
-    size_t take(itOut b, itOut e) {
+    size_t take(CopyOutBytesHandler coh, itOut b, itOut e) {
         std::unique_lock<std::mutex> lck(mutex_);
         hasItem_.wait(lck, [this](){return size_;});
         auto s = size_;
         while (s && b != e) {
-            memcpy(&*b++, getItem(seq_ - s--), std::min(maxItemSize_, sizeof(*b)));
+            coh(&*b++, getItem(seq_ - s--), std::min(maxItemSize_, sizeof(*b)));
         }
         auto ret = size_ - s;
         size_ = s;
-        if (size_ + ret == capacity_) {
-            lck.unlock();
-            hasSlot_.notify_all();
-        }
         return ret;
-    }
-
-    iterator peekExclusive();
-    size_t peek(iterator& b, iterator& e);
-    void wasteAfterPeek(size_t len) {
-        std::unique_lock<std::mutex> lck(mutex_);
-        if (size_ == capacity_) hasSlot_.notify_all();
-        size_ -= len;
-    }
-
-    void wasteAfterPeekExclusive(iterator const& b);
-
-    void waitItem(time::Duration timeout) {
-        std::unique_lock<std::mutex> lck(mutex_);
-        hasItem_.wait_for(lck, std::chrono::nanoseconds(timeout.nanoseconds())
-            , [this](){return size_;});
     }
 
     size_t remainingSize() const {
@@ -215,9 +195,13 @@ public:
     void reset() {
         size_ = 0;
         seq_ = 0;
-        hasSlot_.notify_all();
     }
 
+    void waitItem(time::Duration timeout) {
+        std::unique_lock<std::mutex> lck(mutex_);
+        hasItem_.wait_for(lck, std::chrono::nanoseconds(timeout.nanoseconds())
+            , [this](){return size_;});
+    }
 private:
     void fill(){}
     template <typename T, typename... Ts> 
@@ -226,16 +210,6 @@ private:
         new (getItem(seq_++)) T(std::forward<T>(item));
         fill(std::forward<Ts>(items)...);
     }
-
-    template <typename It> 
-    void 
-    fillBatch(It begin, size_t n) {
-        for (auto it = begin; n; ++it, --n) {
-            using T = decltype(*begin);
-            new (getItem(seq_++)) T(*it);
-        }
-    }
-
     template <typename Item, typename It> 
     void 
     fillBatchInPlace(It begin, size_t n) {
@@ -251,15 +225,12 @@ private:
     size_t seq_;
     std::mutex mutex_;
     std::condition_variable hasItem_;
-    std::condition_variable hasSlot_;
-    std::set<size_t> outstandingPeekExclusiveSeqs_;
-    size_t peekedExclusiveInSize_{0};
 };
 
-namespace blocking_buffer_detail {
+namespace blocking_buffer_rt_detail {
 struct iterator {
     using Sequence = uint64_t;
-    iterator(BlockingBuffer* HMBDC_RESTRICT buf, Sequence seq)
+    iterator(BlockingBufferRt* HMBDC_RESTRICT buf, Sequence seq)
     : buf_(buf), seq_(seq){}
     iterator() : buf_(nullptr), seq_(0){}
     void clear() {buf_ = nullptr;}
@@ -305,55 +276,9 @@ struct iterator {
     template <typename T>
     T* operator->() HMBDC_RESTRICT {return static_cast<T*>(buf_->getItem(seq_));}
 //private:
-    BlockingBuffer* buf_;
+    BlockingBufferRt* buf_;
     Sequence seq_;
 };
-} //blocking_buffer_detail
-
-inline
-size_t 
-BlockingBuffer::
-peek(iterator& b, iterator& e) {
-    std::unique_lock<std::mutex> lck(mutex_);
-    e = iterator(this, seq_);
-    b = iterator(this, seq_ - size_);
-    return size_;
-}
-
-inline
-BlockingBuffer::iterator 
-BlockingBuffer::
-peekExclusive() {
-    std::unique_lock<std::mutex> lck(mutex_);
-    if (size_ > peekedExclusiveInSize_) {
-        auto seq = seq_ - (size_ - peekedExclusiveInSize_);
-        peekedExclusiveInSize_++;
-        outstandingPeekExclusiveSeqs_.insert(seq);
-        return iterator(this, seq);
-    } else {
-        assert(size_ == peekedExclusiveInSize_);
-    }
-    return iterator();
-}
-
-inline
-void BlockingBuffer::
-wasteAfterPeekExclusive(iterator const& b) {
-    std::unique_lock<std::mutex> lck(mutex_);
-    auto seqLow = *outstandingPeekExclusiveSeqs_.begin();
-    outstandingPeekExclusiveSeqs_.erase(b.seq_);
-    if (outstandingPeekExclusiveSeqs_.size()) {
-        auto reduction = *outstandingPeekExclusiveSeqs_.begin() - seqLow;
-        if (reduction) {
-            if (size_ == capacity_) hasSlot_.notify_all();
-            size_ -= reduction;
-            peekedExclusiveInSize_ -= reduction;
-        }
-    } else {
-        if (size_ == capacity_) hasSlot_.notify_all();
-        size_ -= peekedExclusiveInSize_;
-        peekedExclusiveInSize_ = 0;
-    }
-}
+} //blocking_buffer_rt_detail
 
 }}

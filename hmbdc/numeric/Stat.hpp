@@ -9,14 +9,6 @@
 namespace hmbdc { namespace numeric {
 template <typename T>
 struct Stat {
-    Stat()
-    : min_(std::numeric_limits<T>::max())
-    , max_(std::numeric_limits<T>::min())
-    , sum_(0)
-    , sumSq_(0)
-    , sampleSize_(0ul)
-    {}
-
     void add(T sample) {
         ++sampleSize_;
         sum_ += sample;
@@ -42,11 +34,11 @@ struct Stat {
         return os;
     }
 private:
-    T min_;
-    T max_;
-    T sum_;
-    double sumSq_;
-    size_t sampleSize_;
+    T min_{std::numeric_limits<T>::max()};
+    T max_{std::numeric_limits<T>::min()};
+    T sum_{};
+    double sumSq_{0};
+    size_t sampleSize_{0};
 };
 
 }}

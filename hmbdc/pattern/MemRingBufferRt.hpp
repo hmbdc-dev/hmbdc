@@ -228,6 +228,13 @@ public:
         return res;
     }
 
+    /**
+     * @brief blocking read
+     * 
+     * @tparam T - type of item
+     * @param item - read struct type
+     * @return read out struct
+     */
     template <typename T>
     T take(ReadRecord* readRecord = nullptr) HMBDC_RESTRICT {
         T res;
@@ -259,13 +266,6 @@ public:
         return res;
     }
 
-    /**
-     * @brief 
-     * 
-     * @tparam T 
-     * @param result 
-     * @return T 
-     */
     /**
      * @brief non-blocking read
      * 

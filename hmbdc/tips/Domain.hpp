@@ -4,6 +4,7 @@
 #include "hmbdc/tips/Messages.hpp"
 #include "hmbdc/tips/TypeTagSet.hpp"
 #include "hmbdc/app/BlockingContext.hpp"
+#include "hmbdc/app/BlockingContextRt.hpp"
 #include "hmbdc/app/Client.hpp"
 #include "hmbdc/app/ClientWithStash.hpp"
 #include "hmbdc/app/Context.hpp"
@@ -311,8 +312,10 @@ struct DefaultAttachmentAllocator {
  * being deliverred to the Nodes in this Domain
  * @tparam IpcProp IPC preoperty - see ipc_property template
  * @tparam NetProp Network communication properties - see net_property template
- * @tparam NodeContext the type that manages the nodes and accepts the inter thread
- * messages
+ * @tparam NodeContext the type that manages the nodes and accepts the inter thread messages
+ * the default app::BlockingContext is a relaible delivery NodeContext; Consider use 
+ * app::BlockingContextRt for realtime application that only cares receiving the latest messages and lose
+ * the older ones
  * @tparam AttachmentAllocator the memory allocation policy for attachment - see DefaultAttachmentAllocator
  */
 template <app::MessageTupleC RecvMessageTupleIn

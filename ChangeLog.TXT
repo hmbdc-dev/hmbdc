@@ -1,4 +1,9 @@
-* Mon Sep 4 2023 - 15.17-1
+* Sat Sep 23 2023 - 15.18
+- supported freshest message delievery for some realtime applications that only want the latest messages 
+  instead of reliable/lossless message delivery 
+- improved responsiveness of pooled nodes
+
+* Mon Sep 04 2023 - 15.17-1
 - fixed tips-ping-pong tool to support document command_line
 
 * Sat Jul 15 2023 - 15.17
@@ -333,91 +338,6 @@
 
 * Fri Jul 22 2016 - 1.7
 - Initial release
-
-* Sat Jul 15 2023 - 15.17
-- SingleNodeDomain works when no IPC is specified
-- Message copy / assignment fixes
-
-* Sun Jul 09 2023 - 15.16
-- fixed doc, tryPublish bug, Rmcast and rnetmap SeqAlert init bugs
-
-* Sat Jul 08 2023 - 15.14
-- fixed empty attachment delayed bug
-
-* Wed Jul 05 2023 - 15.11
-- refactored and minor fixes
-
-* Tue Jun 20 2023 - 15.10
-- supports gcc-11 - tested on Ubuntu 22.04
-
-* Sun Mar 27 2022 - 15.9
-- added auto node pub/sub topology support
-
-* Mon Jan 17 2022 - 15.8
-- added timer conversion to/from chrono
-
-* Sat Jan 08 2022 - 15.7
-- Fixed rnetmap corrupt packet bug
-
-* Thu Dec 30 2021 - 15.6
-- improved ping-pong test
-
-* Thu Dec 30 2021 - 15.4
-- fixed ping-pong test
-
-* Wed Dec 29 2021 - 15.3
-- fixes for gcc11
-
-* Sat Dec 25 2021 - 15.2
-- improved the design on the following features
-  0cpy, PCI dev memory, multiple pump config, sending mask, support virtual function callbacks
-
-* Sun Oct 31 2021 - 14.5
-- Added PCI dev pub/sub in Domain
-
-* Sun Oct 24 2021 - 14.4
-- Provided non-blocking publish interface
-- change toHmbdcSerialized to toHmbdcIpcable
-
-* Fri Oct 01 2021 - 14.3
-- provided python module tool for python usage of hmbdc/tips
-- fixed tips timer not fired bug
-
-* Sat Aug 28 2021 - 14.2
-- Made Nodes and Domain pump starting explictly synced by user
-- tool improvement
-
-* Sun Aug 08 2021 - 12.41
-- added publish directly in Node 
-
-- improved tips-ping-pong tool
-
-* Sat Jul 31 2021 - 12.40
-- provided publish support directly in Node
-- provided ping pong performance test
-- merged 0cpy with single copy shm comm
-- fixed clang building issues
-
-* Mon Jul 12 2021 - 12.38
-- turn on concept support and tested with gcc-10
-
-* Sun Jul 11 2021 - 12.37
-- fixed  the gcc10+ compiling using offset_of bug
-
-* Sun Jun 20 2021 - 12.36
-- allowed empty 0cpy buffer case
-- improved share mem initialization
-- fixed zero copy shm transfer in Domain with multiple pumps
-- removed using namespace in headers
-
-* Sun May 16 2021 - 12.32
-- made it all header-only lib/framework!
-
-* Sun May 09 2021 - 12.30
-- Type Inferred Pub/Sub (TIPS) is released with zero copy IPC support
-
-* Thu Dec 17 2020 - 12.7
-- made poll less frequent
 
 * Sun Dec 06 2020 - 12.6
 - shortcut Context hasMemoryAttachment when no IPC is involved

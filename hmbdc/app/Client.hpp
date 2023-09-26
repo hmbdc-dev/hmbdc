@@ -259,6 +259,13 @@ public:
         batchDone_ = false;
         return res;
     }
+
+    bool handleImpl(MessageHead& msgHead, uint16_t threadId) {
+        CcClient& c = static_cast<CcClient&>(*this);
+        return MessageDispacher<CcClient, Interests>()(c, msgHead);
+    }
+
+
     typename std::conditional<MAX_MEMORY_ATTACHMENT != 0
         , client_detail::InBandMemoryAttachmentProcessor<MAX_MEMORY_ATTACHMENT>
         , std::nullptr_t>::type ibmaProc;

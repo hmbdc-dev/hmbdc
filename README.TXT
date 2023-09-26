@@ -29,9 +29,9 @@ Keywords and features:
     netmap multicast
     reliable multicast
     reliable netmap
-- support easy to use symetric (no broker process) type based message 
-  publish / subscribe with automatic pub/sub topology feature, 
-  and message recording / playback tool
+- support easy to use symetric (no broker process) C++ type based message 
+  (both reliable and latest only) publish / subscribe with 
+  automatic pub/sub topology visualization and message recording / playback tools
 - other high performance computing features:
   high speed async logging, timer, rate control ...
 - straightforward integration with any other programming 

@@ -36,7 +36,7 @@ using namespace hmbdc::tips;
 struct Announcement 
 : hasTag<1001> {            //16bit msg tag (>1000) is unique per message type
     char msg[1000];         //1000 char max per chat message
-                            //POD - already serialized - non-POD serialization see chat2.cpp
+                            //POD - already serialized - non-POD, serialization see chat2.cpp
 };
 
 //
@@ -48,12 +48,21 @@ struct Announcement
 struct ChatMessage 
 : hasSharedPtrAttachment<ChatMessage, char[]>   //message text is saved in a shared_ptr<char[]>
                                                 //recipients even in a different host gets valid shared_ptr to use
+                                                //recipients in the same process share the same copy
                                                 //no limit on the attachment length
 , hasTag<1002, 100> {                           //up to 100 chat groups; only configured 3 in the example
+    /**
+     * @brief Construct a new Chat Message object
+     * 
+     * @param myId my chat Id
+     * @param grouId which chat group - tennis(0), basketball(1) or valleybal(2)
+     * @param msg chat content
+     */
     ChatMessage(char const* myId, uint16_t grouId, char const* msg)
     : hasSharedPtrAttachment(std::shared_ptr<char[]>(new char[strlen(msg) + 1]), strlen(msg) + 1)
     , hasTag(grouId) {
         snprintf(id, sizeof(id), "%s", myId);
+        // this copy could be avoided if 'msg' is already in shared_ptr<char[]> form
         snprintf(hasSharedPtrAttachment::attachmentSp.get(), hasSharedPtrAttachment::len
             , "%s", msg);
     }
