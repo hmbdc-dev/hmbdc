@@ -286,6 +286,10 @@ struct Config
         if (!res) {
             res = get_optional<T>(param);
             if (!res) {
+                if (get_child_optional(param)) {
+                    throw boost::property_tree::ptree_bad_data(
+                        section_.dump() + ":invalid data", param); 
+                }
                 if (fallbackConfig_) {
                     return fallbackConfig_->getExt<T>(param, throwIfMissing);
                 } else if (throwIfMissing) {

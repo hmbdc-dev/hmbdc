@@ -2,6 +2,9 @@
 #pragma once 
 #include "hmbdc/os/Thread.hpp"
 #include "hmbdc/Exception.hpp"
+
+#include <boost/smart_ptr/detail/yield_k.hpp>
+
 #include <pthread.h>
 #include <string>
 #include <thread>
@@ -95,4 +98,7 @@ setCurrrentThreadSched(char const* schepolicy, int priority) {
 #endif    
 }
 
+inline void yield(unsigned x) {
+    std::this_thread::yield();
+}
 }}

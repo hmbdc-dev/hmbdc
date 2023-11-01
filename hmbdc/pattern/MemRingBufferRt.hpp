@@ -4,8 +4,6 @@
 #include "hmbdc/Exception.hpp"
 #include "hmbdc/Compile.hpp"
 
-#include <boost/smart_ptr/detail/yield_k.hpp>
-
 #include <iterator>
 #include <thread>
 #include <vector>
@@ -14,7 +12,8 @@
 #include <atomic>
 
 #ifndef HMBDC_YIELD
-#define HMBDC_YIELD(x) boost::detail::yield(x)
+#include "hmbdc/os/Thread.hpp"
+#define HMBDC_YIELD(x) hmbdc::os::yield(x)
 #endif
 
 namespace hmbdc { namespace pattern {

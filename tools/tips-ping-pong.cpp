@@ -311,10 +311,18 @@ void printAdditionalConfig(Config const& config) {
     cout << desc << "\n";
 }
 
+#ifndef PINGPONG_RT
+template <typename ...Args>
+using BlockingContextInUse = hmbdc::app::BlockingContext<Args...>;
+#else
+template <typename ...Args>
+using BlockingContextInUse = hmbdc::app::BlockingContextRt<Args...>;
+#endif
+
 template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingInDomain(Config const& config, uint16_t pingCpu) {
-    using MyDomain = Domain<std::tuple<Pong>, ipc_property<>, net_property<NetProt>>;
+    using MyDomain = Domain<std::tuple<Pong>, ipc_property<>, net_property<NetProt>, BlockingContextInUse<std::tuple<Pong>>>;
     if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0; }
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
@@ -346,8 +354,8 @@ runPingInDomain(Config const& config, uint16_t pingCpu) {
 template <typename NetProt>
 int 
 runPongInDomain(Config const& config, uint16_t pongCpu) {
-    using MyDomain =
-        Domain<std::tuple<Ping, PingGT1K, Ping0cpy>, ipc_property<>, net_property<NetProt>>;
+    using RecvMsgs = std::tuple<Ping, PingGT1K, Ping0cpy>;
+    using MyDomain = Domain<RecvMsgs, ipc_property<>, net_property<NetProt>, BlockingContextInUse<RecvMsgs>>;
     if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     MyDomain domain{config};
@@ -424,8 +432,8 @@ runPongInSingleNodeDomain(Config const& config) {
 template <typename NetProt, typename Ping, typename Pong>
 int 
 runPingPong(Config const& config, uint16_t pingCpu, uint16_t pongCpu) {
-    using MyDomain = Domain<typename aggregate_recv_msgs<Pinger<Ping, Pong>, Ponger>::type
-        , ipc_property<>, net_property<NetProt>>;
+    using RecvMsgs = typename aggregate_recv_msgs<Pinger<Ping, Pong>, Ponger>::type;
+    using MyDomain = Domain<RecvMsgs, ipc_property<>, net_property<NetProt>, BlockingContextInUse<RecvMsgs>>;
     if (show) { printAdditionalConfig(MyDomain::getDftConfig(showSection.c_str())); return 0;}
     SingletonGuardian<NetProt> g;
     Pinger<Ping, Pong> pinger;

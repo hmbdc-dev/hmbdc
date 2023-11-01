@@ -97,6 +97,7 @@ struct hasTag {
     }
 
     uint16_t getTypeTag() const { return typeTagStart + typeTagOffsetInRange; }
+    uint16_t getTypeTagOffset() const { return typeTagOffsetInRange; }
     void resetTypeTagOffsetInRange(uint16_t newOffset) {const_cast<XmitEndian<uint16_t>&>(typeTagOffsetInRange) = newOffset;}
     XmitEndian<uint16_t> const typeTagOffsetInRange{0};
 
@@ -347,7 +348,6 @@ struct LoggingT
  * messages types (WITHOUT the destructor) will be delievered in 
  * byte form to this client. It is normmaly listed as the last Message type to
  * in the interested message type list to catch all
- * See in example hmbdc.cpp @snippet hmbdc.cpp use JustBytes instead of Message types
  */
 struct JustBytes
 : hasTag<4> {

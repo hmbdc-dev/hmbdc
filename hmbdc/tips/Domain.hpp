@@ -255,6 +255,31 @@ struct recv_net_converted<std::tuple<Message, Messages...>> {
     >;
 };
 
+template <app::MessageTupleC RecvMessageTuple>
+struct need_recv_eng_at {
+    bool operator()(uint16_t mod, uint16_t res) const { return false; }
+};
+
+template <app::MessageC M, app::MessageC ...Ms> 
+struct need_recv_eng_at<std::tuple<M, Ms...>> {
+    bool operator()(uint16_t mod, uint16_t res) const {
+        if constexpr (!M::hasRange) {
+            if (M::typeTag % mod == res) return true;
+        } else {
+            if (M::typeTagRange >= mod) return true;
+            for (auto tag = M::typeTagStart; tag < M::typeTagStart + M::typeTagRange; tag++) {
+                if (tag % mod == res) return true;
+            }
+        }
+        return need_recv_eng_at<std::tuple<Ms...>>{}(mod, res);
+    }
+};
+
+template <app::MessageC ...Ms> 
+struct need_recv_eng_at<std::tuple<app::JustBytes, Ms...>> {
+    bool operator()(uint16_t mod, uint16_t res) const { return true; }
+};
+
 template <app::MessageC Message>
 struct ipc_from : Message {
     ipc_from(pid_t from, Message const& m)
@@ -445,18 +470,22 @@ private:
         ThreadCtx& outCtx_;
         OneBuffer netBuffer_;
         std::string hmbdcName_;
-
+        const uint16_t mod;
+        const uint16_t res;
         public:
         typename ThreadCtx::ClientRegisterHandle handleInCtx;
         
-        PumpInThreadCtx(ThreadCtx& outCtx, app::Config const& cfg)
+        PumpInThreadCtx(ThreadCtx& outCtx, app::Config const& cfg
+            , uint16_t mod, uint16_t res)
         : outCtx_(outCtx)
         , netBuffer_{outCtx
             , NetProperty::max_message_size != 0
                 ? NetProperty::max_message_size 
                 : cfg.getExt<uint32_t>("netMaxMessageSizeRuntime")
         }
-        , hmbdcName_(cfg.getExt<std::string>("pumpHmbdcName")) {
+        , hmbdcName_(cfg.getExt<std::string>("pumpHmbdcName"))
+        , mod(mod)
+        , res(res) {
             if constexpr (has_net_send_eng) {
                 uint32_t limit = NetProperty::max_message_size;
                 if (limit == 0) {
@@ -465,16 +494,18 @@ private:
                 sendEng_.emplace(cfg, limit);
             }
             if constexpr (has_net_recv_eng) {
-                recvEng_.emplace(cfg, netBuffer_);
+                if (domain_detail::need_recv_eng_at<NetableRecvMessages>{}(mod, res)) {
+                    recvEng_.emplace(cfg, netBuffer_);
+                }
             }
         }
 
         template <typename CcNode>
-        void subscribeFor(CcNode const& node, uint16_t mod, uint16_t res) {
+        void subscribeFor(CcNode const& node) {
             if constexpr (has_net_recv_eng) {
                 using Messages = typename filter_in_tuple<domain_detail::is_netable
                     , typename CcNode::RecvMessageTuple>::type;
-                recvEng_->template subscribeFor<Messages>(node, mod, res);
+                if (recvEng_) recvEng_->template subscribeFor<Messages>(node, mod, res);
             }
         }
 
@@ -491,7 +522,7 @@ private:
         }
 
         template <typename CcNode>
-        void advertiseFor(CcNode const& node, uint16_t mod, uint16_t res) {
+        void advertiseFor(CcNode const& node) {
             if constexpr (has_net_send_eng) {
                 using Messages = typename filter_in_tuple<domain_detail::is_netable
                     , typename CcNode::SendMessageTuple>::type;
@@ -501,7 +532,7 @@ private:
 
         size_t netSendingPartyDetectedCount() const {
             if constexpr (has_net_recv_eng) {
-                return recvEng_->sessionsRemainingActive();
+                return recvEng_ ? recvEng_->sessionsRemainingActive() : 0;
             }
             return 0;
         }
@@ -582,7 +613,7 @@ private:
             }
 
             if constexpr (has_net_recv_eng) {
-                recvEng_->rotate();
+                if (hmbdc_likely(recvEng_)) recvEng_->rotate();
             }
             if constexpr (has_net_send_eng) {
                 sendEng_->rotate();
@@ -679,6 +710,8 @@ private:
         TypeTagSet inboundSubscriptions_;
         std::string hmbdcName_;
         uint32_t pumpMaxBlockingTimeUs_;
+        const uint16_t mod;
+        const uint16_t res;
 
         public:
         InBandMemoryAttachmentProcessor<
@@ -686,7 +719,8 @@ private:
         pid_t const hmbdcAvoidIpcFrom = getpid();
         PumpInIpcPortal(IpcTransport& ipcTransport
             , TypeTagSet* pOutboundSubscriptions
-            , ThreadCtx& outCtx, app::Config const& cfg)
+            , ThreadCtx& outCtx, app::Config const& cfg
+            , uint16_t mod, uint16_t res)
         : ipcTransport_(ipcTransport)
         , outCtx_(outCtx)
         , netBuffer_{outCtx
@@ -696,7 +730,9 @@ private:
         }
         , pOutboundSubscriptions_(pOutboundSubscriptions)
         , hmbdcName_(cfg.getExt<std::string>("pumpHmbdcName"))
-        , pumpMaxBlockingTimeUs_(cfg.getHex<double>("pumpMaxBlockingTimeSec") * 1000000) {
+        , pumpMaxBlockingTimeUs_(cfg.getHex<double>("pumpMaxBlockingTimeSec") * 1000000)
+        , mod(mod)
+        , res(res) {
             pumpMaxBlockingTimeUs_ = std::min(1000000u, pumpMaxBlockingTimeUs_);
             static_assert(IpcTransport::MAX_MESSAGE_SIZE == 0 || IpcTransport::MAX_MESSAGE_SIZE 
                 >= max_size_in_tuple<IpcSubscribeMessagesPossible>::value);
@@ -709,12 +745,14 @@ private:
                 sendEng_.emplace(cfg, limit);
             }
             if constexpr (has_net_recv_eng) {
-                recvEng_.emplace(cfg, netBuffer_);
+                if (domain_detail::need_recv_eng_at<NetableRecvMessages>{}(mod, res)) {
+                    recvEng_.emplace(cfg, netBuffer_);
+                }
             }
         }
 
         template <typename CcNode>
-        void subscribeFor(CcNode const& node, uint16_t mod, uint16_t res) {
+        void subscribeFor(CcNode const& node) {
             using Messages = typename filter_in_tuple<domain_detail::is_ipcable
                 , typename CcNode::RecvMessageTuple>::type;
             inboundSubscriptions_.markSubsFor<Messages>(node, mod, res
@@ -725,7 +763,7 @@ private:
             if constexpr (has_net_recv_eng) {
                 using Messages = typename filter_in_tuple<domain_detail::is_netable
                     , typename CcNode::RecvMessageTuple>::type;
-                recvEng_->template subscribeFor<Messages>(node, mod, res);
+                if (recvEng_) recvEng_->template subscribeFor<Messages>(node, mod, res);
             }
         }
 
@@ -742,7 +780,7 @@ private:
         }
 
         template <typename CcNode>
-        void advertiseFor(CcNode const& node, uint16_t mod, uint16_t res) {
+        void advertiseFor(CcNode const& node) {
             using Messages = typename filter_in_tuple<domain_detail::is_netable
                 , typename CcNode::SendMessageTuple>::type;
             if constexpr (has_net_send_eng) {
@@ -752,7 +790,7 @@ private:
 
         size_t netSendingPartyDetectedCount() const {
             if constexpr (has_net_recv_eng) {
-                return recvEng_->sessionsRemainingActive();
+                return recvEng_ ? recvEng_->sessionsRemainingActive() : 0;
             }
             return 0;
         }
@@ -1027,7 +1065,7 @@ private:
                 }
             }
             if constexpr (has_net_recv_eng) {
-                recvEng_->rotate();
+                if (hmbdc_likely(recvEng_)) recvEng_->rotate();
             }
             if constexpr (has_net_send_eng) {
                 sendEng_->rotate();
@@ -1169,14 +1207,14 @@ public:
             ipcTransport_->setSecondsBetweenPurge(
                 config_.getExt<uint32_t>("ipcPurgeIntervalSeconds"));
             
-            auto pumpCount = config_.getChildExt("pumpConfigs").size();
+            auto pumpCount = (uint16_t)config_.getChildExt("pumpConfigs").size();
             if (pumpCount > 64) {
                 HMBDC_THROW(std::out_of_range, "pumpCount > 64 is not suppported");
             }
 
             for (auto i = 0u; i < pumpCount; ++i) {
                 auto config = getPumpConfig(i);
-                auto& pump = pumps_.emplace_back(*ipcTransport_, pOutboundSubscriptions_, threadCtx_, config);
+                auto& pump = pumps_.emplace_back(*ipcTransport_, pOutboundSubscriptions_, threadCtx_, config, pumpCount, i);
                 if (pumpRunMode == "manual") {
                     ipcTransport_->registerToRun(pump
                         , config_.getHex<uint64_t>("pumpCpuAffinityHex"));
@@ -1186,10 +1224,10 @@ public:
                 }
             }
         } else if constexpr (run_pump_in_thread_ctx) {
-            auto pumpCount = config_.getChildExt("pumpConfigs").size();
+            auto pumpCount = (uint16_t)config_.getChildExt("pumpConfigs").size();
             for (auto i = 0u; i < pumpCount; ++i) {
                 auto config = getPumpConfig(i);
-                auto& pump = pumps_.emplace_back(threadCtx_, config);
+                auto& pump = pumps_.emplace_back(threadCtx_, config, pumpCount, i);
                 if (pumpRunMode == "manual") {
                     pump.handleInCtx = threadCtx_.registerToRun(pump, 0, 0);
                 } else if (pumpRunMode == "delayed") {
@@ -1263,8 +1301,8 @@ public:
             , "the node expecting messages Domain not covering");
         if constexpr ((run_pump_in_ipc_portal || run_pump_in_thread_ctx)) {
             for (uint16_t i = 0u; i < pumps_.size(); ++i) {
-                pumps_[i].template subscribeFor(node, (uint16_t)pumps_.size(), i);
-                pumps_[i].template advertiseFor(node, (uint16_t)pumps_.size(), i);
+                pumps_[i].template subscribeFor(node);
+                pumps_[i].template advertiseFor(node);
             }
         }
     }
@@ -1343,7 +1381,7 @@ public:
                 }
             }
         } else {
-            HMBDC_THROW(std::logic_error, "pump was not configured a delayed");
+            HMBDC_THROW(std::logic_error, "pump was not configured as delayed");
         }
     }
 
