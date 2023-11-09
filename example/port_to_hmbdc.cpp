@@ -11,7 +11,6 @@
 #include "hmbdc/tips/Tips.hpp"
 #include "hmbdc/os/Signals.hpp"
 
-#include <gtest/gtest.h>
 
 #include <iostream>
 #include <string_view>
