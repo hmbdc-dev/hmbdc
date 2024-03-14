@@ -35,7 +35,7 @@ struct Stat {
     }
 private:
     T min_{std::numeric_limits<T>::max()};
-    T max_{std::numeric_limits<T>::min()};
+    T max_{std::numeric_limits<T>::lowest()};
     T sum_{};
     double sumSq_{0};
     size_t sampleSize_{0};

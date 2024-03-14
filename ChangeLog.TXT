@@ -1,3 +1,7 @@
+* Thu Mar 14 2024 - 15.20
+- Made use of binary pipe for Python extension to improve perf
+- Fixed SingleNodeDomain not invoking some Node's callbacks when no IPC is specified
+
 * Tue Oct 31 2023 - 15.19
 - improved network filtering for Domain with multiple pumps
 
@@ -93,8 +97,4 @@
 
 * Thu Dec 17 2020 - 12.7
 - made poll less frequent
-
-* Sun Dec 06 2020 - 12.6
-- shortcut Context hasMemoryAttachment when no IPC is involved
-- fixed topic reentrant issue for net portal
 

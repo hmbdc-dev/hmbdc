@@ -90,14 +90,16 @@ pubstr <tag> <string>
     example: pubstr 1099 some string in a line
 pub <tag> <msg-len> <space-seprated-hex-for-msg>
     example: pub 1251 4 a1 a2 a3 a4
-pubbin <tag> <msg-len> <after the space, followed by msg-len binary bytes>
-    example: pubbin 1251 4 /* then undisplayable 4 bytes */
-    pub is recommened over pubbin due to safety
+pubbin <tag> <msg-len> <after the newline, followed by msg-len binary bytes>
+    example: pubbin 1251 4
+    /*4 undisplayable binary bytes */
+    used by pipe tools only, pub is recommened over pubbin due to safety
 pubatt <tag> <msg-len> <attachment-len> <space-seprated-hex-for-msg-followed-by-attachment>
     example: pubatt 1201 4 10 01 02 03 04 01 02 03 04 05 06 07 08 09 0a
-pubattbin <tag> <msg-len> <attachment-len> <space-seprated-hex-for-msg-followed-by-attachment>
-    example: pubattbin 1201 4 10 /* then 14 binary bytes */
-    pubatt is recommened over pubattbin due to safety
+pubattbin <tag> <msg-len> <attachment-len> <after the newline, followed by msg-len + att-len binary bytes>
+    example: pubattbin 1201 4 10
+    /*14 undisplayable binary bytes */
+    used by pipe tools only, pubatt is recommened over pubattbin due to safety
 play <bag-file-name>
     play a recorded data bag (in the same relative timing as recorded)
 
@@ -116,11 +118,10 @@ ostr
 obin
     output binary bytes - this only works well when connecting console with pipes, not recommended normally
     obin output example:
-    1099 msgbin= 1024
+    1099 msgbin= 1024,0
     /* after the newline, followed by 1024 binary bytes */
-    1201 msgattbin= 1016 /* after the space, followed by 1016 binary bytes */
-    attbin= 10
-    /* after the newline, followed by 10 binary bytes */
+    1201 msgattbin= 1016 10 
+    /* after the newline, followed by 1016 + 10 binary bytes */
 
 record <bag-file-name> <duration>
     record the output within the next duration seconds with time info in binary bag format into a file (bag) and exit
@@ -191,13 +192,15 @@ exit
                     myCerr_ << "[status] ignored att for tag=" << tag << endl;
                 }
             } else if (outputForm_ == OBIN)  {
-                auto msgLen = bufWidth_ - sizeof(app::hasMemoryAttachment);
-                myCout_ << dec << tag << (att?" msgattbin= ":" msgbin= ")
-                    << msgLen << '\n';
-                myCout_.write((char const*)bytes, msgLen);
-                if (att) {
+                if (!att) {
+                    auto msgLen = bufWidth_;
+                    myCout_ << dec << tag << " msgbin= " << msgLen << '\n';
+                    myCout_.write((char const*)bytes, msgLen);
+                } else {
+                    auto msgLen = bufWidth_ - sizeof(app::hasMemoryAttachment);
                     auto attLen = att->len;
-                    myCout_ << "\nattbin= " << attLen << '\n';
+                    myCout_ << dec << tag << " msgattbin= " << msgLen << ' ' << attLen << '\n';
+                    myCout_.write((char const*)bytes, msgLen);
                     myCout_.write((char const*)att->attachment, attLen);
                     att->release(); /// important for JustBytes
                 }
@@ -230,7 +233,7 @@ exit
     void processCmd(istream& is) {
         while(is) {
             string line;
-            is >> line;
+            getline(is, line);
             if (!is){
                 if (!is.eof()) {
                     myCerr_ << "input error, reset input" << std::endl;
@@ -240,15 +243,6 @@ exit
                 } else {
                     break;
                 }
-            }
-            if (line == "pubbin") {
-                string s1, s2;
-                is >> s1 >> s2;
-                line += " " + s1 + " " + s2;
-            } else {
-                string remaining;
-                getline(is, remaining);
-                line += " " + remaining;
             }
             if (!line.size()) continue;
             istringstream iss{line};
@@ -311,7 +305,6 @@ exit
                     continue;
                 }
                 auto msgBytes = &toSend_[0];
-                is.ignore(1); // the spaces
                 is.read((char*)msgBytes, msgLen);
                 if (iss && pubTags_.find(tag) != pubTags_.end()) {
                     publishJustBytes(tag, toSend_.get(), msgLen, nullptr);
@@ -360,6 +353,48 @@ exit
                         iss >> byte;
                         ((uint8_t*)att->attachment)[i] = (uint8_t)byte;
                     };
+                }
+                if (iss && pubTags_.find(tag) != pubTags_.end()) {
+                    publishJustBytes(tag, toSend_.get(), msgLen + sizeof(*att), att);
+                } else {
+                    myCerr_ << "[status] syntax error or unknown tag in line:" << line << endl;
+                    auto toFree = (char*)att->attachment;
+                    toFree -= sizeof(size_t);
+                    ::free(toFree);
+                    // att->release();
+                }
+            } else if (op == "pubattbin") {
+                uint16_t tag;
+                iss >> tag;
+                size_t msgLen, attLen;
+                iss >> msgLen >> attLen;
+                iss >> hex;
+                auto att = new (toSend_.get()) app::hasMemoryAttachment;
+                if (msgLen + sizeof(*att) > bufWidth_) {
+                    myCerr_ << "[status] msgLen too big" << endl;
+                    continue;
+                }
+                auto msgBytes = &toSend_[sizeof(*att)];
+                is.read((char*)msgBytes, msgLen);
+                if (iss) {
+                    att->len = attLen;
+                    att->attachment = malloc(sizeof(size_t) + att->len);
+                    auto& refCount = *(size_t*)att->attachment;
+                    /// based on what we know set the release called times
+                    /// to be 2 or 1
+                    refCount = this->subscription.check(tag) ? 2 : 1;
+                    att->clientData[0] = (uint64_t)&refCount;
+                    att->attachment = (char*)att->attachment + sizeof(size_t);
+                    att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* att) {
+                        auto& refCount = *((size_t*)att->clientData[0]);
+                        
+                        if (0 == --*reinterpret_cast<std::atomic<size_t>*>(&refCount)) {
+                            auto toFree = (char*)att->attachment;
+                            toFree -= sizeof(size_t);
+                            ::free(toFree);
+                        }
+                    };
+                    is.read((char*)att->attachment, attLen);
                 }
                 if (iss && pubTags_.find(tag) != pubTags_.end()) {
                     publishJustBytes(tag, toSend_.get(), msgLen + sizeof(*att), att);

@@ -40,13 +40,13 @@ struct StatHistogram
 : private StatHistogramBase {
     StatHistogram()
     : threshold_(std::numeric_limits<T>::max())
-    , worst_(std::numeric_limits<T>::min())
+    , worst_(std::numeric_limits<T>::lowest())
     , sampleSize_(0ul)
     {}
 
     explicit StatHistogram(T threshold)
     : threshold_(threshold)
-    , worst_(std::numeric_limits<T>::min())
+    , worst_(std::numeric_limits<T>::lowest())
     , sampleSize_(0ul){}
 
     bool add(T sample) {
@@ -135,7 +135,7 @@ struct StatHistogram<T, false>
     : thresholdMin_(thresholdMin)
     , thresholdMax_(thresholdMax)
     , best_(std::numeric_limits<T>::max())
-    , worst_(std::numeric_limits<T>::min())
+    , worst_(std::numeric_limits<T>::lowest())
     , sampleSize_(0ul)
     , unit_((thresholdMax - thresholdMin) / bucketCount)
     , buckets_(bucketCount + 1) {

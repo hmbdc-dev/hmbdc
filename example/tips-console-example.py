@@ -30,7 +30,8 @@ console = TipsConsole(cmd_line) # example cmd_line="./tips-console --netProt rmc
 console.ostr()                  # output in string format
 console.pubtags([1001, 2001])   # declare pub tags
 console.subtags([1001, 2001])   # declare sub tags - we publish to ourself so the same tags
-console.pubstr(1001, "hello world")             # publish a string
+console.pubbin(1001, bytearray(b"hello world\x00"))             # publish a string
+# console.pubstr(1001, "hello world")
 msgs = console.incoming_msgs()                  # process incoming msgs
 message = next(msgs)                            # a dictionary
 assert message["tag"] == 1001, message
@@ -39,7 +40,7 @@ assert message["msgstr"] == "hello world", message  # called ostr() earlier, so 
 console.ohex()                  # now switch output to be hex numbers
 
 #publish message tagged 2001 with 4 bytes, and 10 bytes attachment using bytearray of 14 bytes
-console.pubatt(2001, 4, bytearray(b'\x01\x02\x03\x04\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'))
+console.pubattbin(2001, 4, bytearray(b'\x01\x02\x03\x04\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'))
 message = next(msgs)
 
 #this is what we get from the above pubatt
@@ -50,7 +51,9 @@ assert message["att"][:10] == bytearray(b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x
 #now record the future message for 1.5 sec into a bag file
 console.record("/tmp/1.bag", 1.5)
 #the following messages, when received, will go to bag file - not showing in incoming_msgs()
-console.pubatt(2001, 4, bytearray(b'\x01\x02\x03\x04\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'))
+console.pubbin(1001, bytearray(b"hello world again\x00"))
+console.pubbin(1001, bytearray(b"hello world3\x00"))
+console.pubattbin(2001, 4, bytearray(b'\x01\x02\x03\x04\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'))
 
 time.sleep(2)   # record must be done
 
@@ -63,14 +66,21 @@ print("recorded a bag")
 
 console2= TipsConsole(cmd_line)
 console2.subtags([2001])        # sub tags from the bag
-console2.ohex()                 # now switch output to be hex numbers
+console2.obin()                 # now switch output to be binary numbers - not displayable but fast
 console2.play("/tmp/1.bag")     # play the recorded bag
-msgs = console2.incoming_msgs()                 # process incoming msgs
-message = next(msgs)                            # a dictionary
 #this is what we get from the above bag
+msgs = console2.incoming_msgs()                 # none blocking, msgs can be iterate thru
+message = next(msgs)                            # a dictionary
+assert message["tag"] == 1001, message
+assert message["msg"][:18] == b'hello world again\x00', message
+message = next(msgs)                            # a dictionary
+assert message["tag"] == 1001, message
+assert message["msg"][:13] == b'hello world3\x00', message
+message = next(msgs)                            # a dictionary
 assert message["tag"] == 2001, message
-assert message["msgatt"][:4] == bytearray(b'\x01\x02\x03\x04'), message
-assert message["att"][:10] == bytearray(b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a'), message
+assert message["msgatt"][:4] == b'\x01\x02\x03\x04', message
+assert message["att"][:10] == b'\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a', message
+
 console2.exit()  # close console
 
 for m in itertools.islice(console2.status_msgs(), 5):

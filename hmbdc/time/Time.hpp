@@ -328,6 +328,8 @@ namespace std {
 template <>
 struct numeric_limits<hmbdc::time::Duration> : numeric_limits<int64_t> {
 public:
+    static hmbdc::time::Duration lowest() throw() 
+        {return hmbdc::time::Duration::nanoseconds(numeric_limits<int64_t>::lowest());}
     static hmbdc::time::Duration min() throw() 
         {return hmbdc::time::Duration::nanoseconds(numeric_limits<int64_t>::min());}
     static hmbdc::time::Duration max() throw() 

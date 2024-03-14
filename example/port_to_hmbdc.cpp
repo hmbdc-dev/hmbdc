@@ -11,7 +11,6 @@
 #include "hmbdc/tips/Tips.hpp"
 #include "hmbdc/os/Signals.hpp"
 
-
 #include <iostream>
 #include <string_view>
 #include <memory>

@@ -598,6 +598,12 @@ private:
             return hmbdcName_.c_str();
         }
 
+        void messageDispatchingStartedCb(size_t const* p) override {
+            if constexpr (domain_detail::has_messageDispatchingStartedCb<ThreadCtx>::value) {
+                outCtx_.messageDispatchingStartedCb(p);
+            }
+        }
+
         void invokedCb(size_t previousBatch) override {
             bool layback = !previousBatch;
             if constexpr (has_net_send_eng) {
@@ -619,6 +625,19 @@ private:
                 sendEng_->rotate();
             }
         }
+
+        void stoppedCb(std::exception const& e) override {
+            if constexpr (domain_detail::has_stoppedCb<ThreadCtx>::value) {
+                outCtx_.stoppedCb(e);
+            }
+        }
+
+        bool droppedCb() override {
+            if constexpr (domain_detail::has_droppedCb<ThreadCtx>::value) {
+                return outCtx_.droppedCb();
+            }
+            return true;
+        };
 
         void stop() {
             if constexpr (has_net_send_eng) {
