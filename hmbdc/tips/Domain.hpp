@@ -9,6 +9,7 @@
 #include "hmbdc/app/ClientWithStash.hpp"
 #include "hmbdc/app/Context.hpp"
 #include "hmbdc/app/Config.hpp"
+#include "hmbdc/app/utils/EpollTask.hpp"
 #include "hmbdc/time/Timers.hpp"
 #include "hmbdc/Exception.hpp"
 #include "hmbdc/pattern/GuardedSingleton.hpp"
@@ -613,16 +614,21 @@ private:
             if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
                 outCtx_.invokedCb(previousBatch);
             }
-            
-            if (layback) {
-                std::this_thread::yield();
-            }
 
             if constexpr (has_net_recv_eng) {
-                if (hmbdc_likely(recvEng_)) recvEng_->rotate();
+                if (hmbdc_likely(recvEng_)) {
+                    recvEng_->rotate();
+                }
             }
             if constexpr (has_net_send_eng) {
                 sendEng_->rotate();
+            }
+            if constexpr (has_net_send_eng || has_net_recv_eng) {
+                layback = layback 
+                    && !(hmbdc::app::utils::EpollTask::initialized() && hmbdc::app::utils::EpollTask::instance().getPollPending());
+            }
+            if (layback) {
+                std::this_thread::yield();
             }
         }
 
@@ -1076,18 +1082,25 @@ private:
             if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
                 outCtx_.invokedCb(previousBatch);
             }
+            if constexpr (has_net_recv_eng) {
+                if (hmbdc_likely(recvEng_)) {
+                    recvEng_->rotate();
+                }
+            }
+            if constexpr (has_net_send_eng) {
+                sendEng_->rotate();
+            }
+
+            if constexpr (has_net_send_eng || has_net_recv_eng) {
+                layback = layback 
+                    && !(hmbdc::app::utils::EpollTask::initialized() && hmbdc::app::utils::EpollTask::instance().getPollPending());
+            }
             if (layback) {
                 if (pumpMaxBlockingTimeUs_) {
                     usleep(pumpMaxBlockingTimeUs_);
                 } else {
                     std::this_thread::yield();
                 }
-            }
-            if constexpr (has_net_recv_eng) {
-                if (hmbdc_likely(recvEng_)) recvEng_->rotate();
-            }
-            if constexpr (has_net_send_eng) {
-                sendEng_->rotate();
             }
         }
 

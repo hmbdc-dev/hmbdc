@@ -1,10 +1,10 @@
 //
-// HMBDC TIPS supportz C++ type based pub/sub since that has the best performance, simplicity and flexibility,
+// HMBDC TIPS supports C++ type and numeric tag based pub/sub due to its optimal performance, simplicity and flexibility.
 // However, many existing apps use string topic based pub/sub middleware and here is an example to show 
-// how to make hmbdc do static string topic based pub/sub from anywhere in the code with minimum effort.
+// how to statically map topic strings into tags in the code with minimum effort.
 // 
-// If you are in need of runtime determined topic base pub/sub when the topic string used cannot be determined
-// at compile time, HMBDC TIPS also supports runtime tagging. 
+// Note: If you are in need of runtime determined topic base pub/sub i.e. the topic strings used cannot be determined
+// at compile time, HMBDC TIPS also supports runtime tagging.
 // Please refer to the use of ChatMesage (tag range) shown in the chat example.
 //
 #include "hmbdc/tips/rmcast/Protocol.hpp"
@@ -15,30 +15,39 @@
 #include <string_view>
 #include <memory>
 #include <unistd.h>
+#include <assert.h>
 
 using namespace hmbdc;
 
+// all string topic ever will be used in the pub/sub domain are listed here at compile time
+// put it in a header, so this can be reused in all compile unit consistently
 static constexpr char const * const TopicsDictionary[] = {
     "topic_1",
     "topic_2",
     "topic_3",
+    // ...
 };
 
+constexpr const uint16_t messageTagStartingAt = app::LastSystemMessage::typeTag + 2; // 1001
+
+// compile time resolving the tag and topic mapping if possible
 constexpr uint16_t tagForTopic(std::string_view topic) {
     for (auto topicIt = std::begin(TopicsDictionary); topicIt != std::end(TopicsDictionary); ++topicIt) {
         if (topic == *topicIt) {
-            return (uint16_t)(topicIt - std::begin(TopicsDictionary) + 1001);
+            return (uint16_t)(topicIt - std::begin(TopicsDictionary) + messageTagStartingAt);
         }
     }
+    assert(false); // the topic is not listed in TopicsDictionary
     return -1;
 }
-
 constexpr std::string_view tagToTopic(uint16_t tag) {
-    auto offset = tag - 1001;
+    auto offset = tag - messageTagStartingAt;
     if (offset < std::begin(TopicsDictionary) - std::end(TopicsDictionary)) {
         return TopicsDictionary[offset];
+    } else {
+        assert(false); // the tag is not listed in TopicsDictionary
+        return std::string_view{};
     }
-    return std::string_view{};
 }
 
 struct MsgForTopic1
@@ -122,7 +131,6 @@ int main(int argc, char** argv) {
         while (!stopped) {
             domain.publish(toPub); // publish anywhere you have access to the domain, threadsafe
             HMBDC_LOG_N("sending");
-            // usleep(1); // suggest pace ur publish - using the Rater class in hmbdc here
         }
         domain.join();
     } else { // recv

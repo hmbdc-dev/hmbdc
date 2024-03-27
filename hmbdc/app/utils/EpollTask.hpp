@@ -38,6 +38,7 @@ struct EpollTask
 	void add(uint32_t events, EpollFd&);
     bool del(EpollFd&);
     void poll();
+    bool getPollPending() const { return pollPending_; }
 
 private:
 	friend pattern::SingletonGuardian<EpollTask>;
@@ -67,11 +68,12 @@ struct EpollTask
     void add(uint32_t events, EpollFd&);
     bool del(EpollFd&);
     void poll();
+    bool getPollPending() { return true; }
 
 private:
     friend pattern::SingletonGuardian<EpollTask>;
     friend EpollFd;
-    void setPollPending() {}
+    void setPollPending() const {}
     EpollTask(size_t maxFdCount = HMBDC_EPOLL_FD_MAX);
 
     ~EpollTask();
