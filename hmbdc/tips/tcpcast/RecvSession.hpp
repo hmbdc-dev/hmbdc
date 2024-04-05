@@ -114,6 +114,9 @@ struct RecvSession {
         }
     }
 
+    void refreshSubscriptions() {
+        sendSubscriptions();
+    }
 private:
     void initializeConn() {
         int flags = fcntl(writeFd_.fd, F_GETFL, 0);
@@ -151,6 +154,7 @@ private:
             }
         });
         auto s = oss.str() + "+\t"; //mark all sent with "+\t"
+        HMBDC_LOG_N("sending subscriptions=", s);
         auto sz = size_t(send(writeFd_.fd, s.c_str(), s.size(), MSG_NOSIGNAL));
         if (hmbdc_unlikely(sz != s.size())) {
             HMBDC_LOG_C("error when sending subscriptions to ", id());

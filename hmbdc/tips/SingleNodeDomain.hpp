@@ -37,7 +37,7 @@ struct ContextCallForwarder {
         node->invokedCb(n);
     }
     
-    void messageDispatchingStartedCb(size_t const*p) {node->messageDispatchingStartedCb(p);}
+    void messageDispatchingStartedCb(std::atomic<size_t> const*p) {node->messageDispatchingStartedCb(p);}
     void stoppedCb(std::exception const& e) {node->stoppedCb(e);}
     bool droppedCb() {return node->droppedCb();}
 

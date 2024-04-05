@@ -149,6 +149,7 @@ struct Chatter
 int main(int argc, char** argv) {
     using namespace std;
     if (argc == 2 && std::string("dot") == argv[1]) {
+        // print out pub/sub documentation DOT graph
         printNodePubSubDot<std::tuple<Chatter, Admin>>("chat", cout);
         return 0;
     } else if (argc != 4) {

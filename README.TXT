@@ -8,7 +8,8 @@ It aims to take most out of the allocated hardware resources
 (memory, cores, NICs and switches) to achieve latency 
 and throughput goals. It works as a framework but it can 
 also be used as libraries to collaborate with other 
-frameworks.
+frameworks or extend existing middleware capability with
+'zero-copy', 'reliable multicast', 'kernel bypassing' etc, etc.
 
 Please refer to: 
 https://www.hummingbirdcode.net

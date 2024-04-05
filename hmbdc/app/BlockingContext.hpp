@@ -738,7 +738,7 @@ private:
                     , schedule, priority);
                 dispStartCount_++;
                 static_assert(sizeof(dispStartCount_) == sizeof(size_t));
-                c.messageDispatchingStartedCb((size_t const*)&dispStartCount_);
+                c.messageDispatchingStartedCb(&dispStartCount_);
             } catch (std::exception const& e) {
                 c.stopped(e);
                 return;

@@ -174,7 +174,7 @@ struct Pinger
         return "pinger"; 
     } 
 
-    void messageDispatchingStartedCb(size_t const*) override {
+    void messageDispatchingStartedCb(std::atomic<size_t> const*) override {
         cout << "Started Pinger with the first " << skipped_ 
             << " values ignored(x), good(.), congested(C), press ctrl-c to get results" << endl;
     };
@@ -243,7 +243,7 @@ struct Ponger
         return "ponger"; 
     }
 
-    void messageDispatchingStartedCb(size_t const*) override {
+    void messageDispatchingStartedCb(std::atomic<size_t> const*) override {
         cout << "Started Ponger, press ctrl-c to stop" << endl;
     };
 

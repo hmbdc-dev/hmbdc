@@ -1,3 +1,7 @@
+* Wed Apr 03 2024 - 15.27
+- fixed runtime subscription refreshing for network msg
+- changed ipc party count reporting param to be atomic
+
 * Wed Mar 27 2024 - 15.21
 - changed layback behavior
 
@@ -94,7 +98,3 @@
 
 * Sun May 16 2021 - 12.32
 - made it all header-only lib/framework!
-
-* Sun May 09 2021 - 12.30
-- Type Inferred Pub/Sub (TIPS) is released with zero copy IPC support
-

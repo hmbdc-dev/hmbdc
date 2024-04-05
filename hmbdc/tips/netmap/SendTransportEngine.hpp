@@ -183,7 +183,7 @@ outBufferSizePower2() {
     if (res) {
         return res;
     }
-    res = hmbdc::numeric::log2Upper(16ul * 1024ul / (8ul + maxMessageSize_));
+    res = hmbdc::numeric::log2Upper(1024ul * 1024ul / (8ul + maxMessageSize_));
     HMBDC_LOG_N("auto set --outBufferSizePower2=", res);
     return res;
 }

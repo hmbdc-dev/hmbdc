@@ -13,7 +13,7 @@
 #include <boost/unordered_map.hpp>
 
 #include <memory>
-#include <regex>
+#include <atomic>
 #include <type_traits>
 #include <mutex>
 
@@ -114,6 +114,13 @@ struct RecvTransportImpl
             return;
         }
         if (t.srcPid == myPid_ && ip == myBackupIp_) return;
+
+        if (subscriptionsDirty_) {
+            for (auto& session : recvSessions_) {
+                session.second->refreshSubscriptions();
+            }
+            subscriptionsDirty_ = false;
+        }
         auto key = std::make_pair(ip, t.port);
         if (recvSessions_.find(key) == recvSessions_.end()) {
             for (auto i = 0u; i < t.typeTagCountContained; ++i) {
@@ -152,12 +159,14 @@ struct RecvTransportImpl
     template <app::MessageTupleC Messages, typename CcNode>
     void subscribeFor(CcNode const& node, uint16_t mod, uint16_t res) {
         subscriptions_.markSubsFor<Messages>(node, mod, res, [](uint16_t){});
+        subscriptionsDirty_ = true;
     }
 private:
     using Session = BackupRecvSession<OutputBuffer, AttachmentAllocator>;
 
     hmbdc::pattern::MonoLockFreeBuffer cmdBuffer_;
     TypeTagSet subscriptions_;
+    std::atomic<bool> subscriptionsDirty_ = false;
     OutputBuffer outputBuffer_;
     in_addr_t myBackupIp_;
     using endpointhash = hmbdc::comm::inet::HashSockAddrIn<sockaddr_in>;

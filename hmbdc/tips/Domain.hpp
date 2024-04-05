@@ -144,7 +144,7 @@ struct NodeProxy
     void handleJustBytesCb(uint16_t tag, uint8_t const* bytes, app::hasMemoryAttachment* att) {
         ccNode_.handleJustBytesCb(tag, bytes, att);
     }
-    void messageDispatchingStartedCb(size_t const*p) override {ccNode_.messageDispatchingStartedCb(p);}
+    void messageDispatchingStartedCb(std::atomic<size_t> const*p) override {ccNode_.messageDispatchingStartedCb(p);}
     void invokedCb(size_t n) override {ccNode_.invokedCb(n);}
     void stoppedCb(std::exception const& e) override {ccNode_.stoppedCb(e);}
     bool droppedCb() override {
@@ -599,7 +599,7 @@ private:
             return hmbdcName_.c_str();
         }
 
-        void messageDispatchingStartedCb(size_t const* p) override {
+        void messageDispatchingStartedCb(std::atomic<size_t> const* p) override {
             if constexpr (domain_detail::has_messageDispatchingStartedCb<ThreadCtx>::value) {
                 outCtx_.messageDispatchingStartedCb(p);
             }
@@ -610,11 +610,9 @@ private:
             if constexpr (has_net_send_eng) {
                 layback = layback && !sendEng_->bufferedMessageCount();
             }
-
             if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
                 outCtx_.invokedCb(previousBatch);
             }
-
             if constexpr (has_net_recv_eng) {
                 if (hmbdc_likely(recvEng_)) {
                     recvEng_->rotate();
@@ -630,6 +628,7 @@ private:
             if (layback) {
                 std::this_thread::yield();
             }
+                
         }
 
         void stoppedCb(std::exception const& e) override {
@@ -1068,19 +1067,19 @@ private:
             return hmbdcName_.c_str();
         }
 
-        void messageDispatchingStartedCb(size_t const*p) override {
+        void messageDispatchingStartedCb(std::atomic<size_t> const*p) override {
             if constexpr (domain_detail::has_messageDispatchingStartedCb<ThreadCtx>::value) {
                 outCtx_.messageDispatchingStartedCb(p);
             }
         };
 
         void invokedCb(size_t previousBatch) override {
+            if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
+                outCtx_.invokedCb(previousBatch);
+            }
             bool layback = !previousBatch;
             if constexpr (has_net_send_eng) {
                 layback = layback && !sendEng_->bufferedMessageCount();
-            }
-            if constexpr (domain_detail::has_invokedCb<ThreadCtx>::value) {
-                outCtx_.invokedCb(previousBatch);
             }
             if constexpr (has_net_recv_eng) {
                 if (hmbdc_likely(recvEng_)) {
@@ -1090,7 +1089,6 @@ private:
             if constexpr (has_net_send_eng) {
                 sendEng_->rotate();
             }
-
             if constexpr (has_net_send_eng || has_net_recv_eng) {
                 layback = layback 
                     && !(hmbdc::app::utils::EpollTask::initialized() && hmbdc::app::utils::EpollTask::instance().getPollPending());
@@ -1328,7 +1326,8 @@ public:
      * @param node the Node
      */
     template <typename CcNode>
-    void addPubSubFor(CcNode const& node) {
+    void addPubSubFor(CcNode& node) {
+        node.updateSubscription();
         static_assert(hmbdc::is_subset<typename CcNode::RecvMessageTuple, RecvMessageTuple>::value
             , "the node expecting messages Domain not covering");
         if constexpr ((run_pump_in_ipc_portal || run_pump_in_thread_ctx)) {
@@ -1379,7 +1378,6 @@ public:
             && capacity == 0) {
                 HMBDC_THROW(std::out_of_range, "capacity cannot be 0 when receiving messages");
         }
-        node.updateSubscription();
         addPubSubFor(node);
         nodeIn.setDomain(*this);
         threadCtx_.start(node, capacity, node.maxMessageSize()

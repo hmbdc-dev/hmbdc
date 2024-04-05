@@ -20,7 +20,7 @@ struct PoolConsumer {
     template <typename Buffer>
     friend struct PoolTImpl;
     friend struct PoolMinusImpl;
-    PoolConsumer(bool interestedInMessages, time::TimerManager* tmPtr, size_t* pDispStartCount);
+    PoolConsumer(bool interestedInMessages, time::TimerManager* tmPtr, std::atomic<size_t>* pDispStartCount);
     PoolConsumer(PoolConsumer const&) = delete;
     PoolConsumer& operator = (PoolConsumer const&) = delete;
     virtual ~PoolConsumer();
@@ -29,8 +29,7 @@ struct PoolConsumer {
     void messageDispatchingStarted() {
         if (hmbdc_unlikely(!messageDispatchingStarted_)) {
             messageDispatchingStartedCb(pDispStartCount_
-            ? (++*reinterpret_cast<std::atomic<size_t>*>(pDispStartCount_), pDispStartCount_)
-            // ?(__atomic_add_fetch(pDispStartCount_, 1, __ATOMIC_RELEASE), pDispStartCount_)
+            ? (++*pDispStartCount_, pDispStartCount_)
             :nullptr);
             messageDispatchingStarted_ = true;
         }
@@ -45,7 +44,7 @@ private:
     bool handleRange(BufIt begin, 
         BufIt end, uint16_t threadId) noexcept;
     bool handleInvokeOnly(uint16_t threadId) noexcept;
-    virtual void messageDispatchingStartedCb(size_t const*) {}
+    virtual void messageDispatchingStartedCb(std::atomic<size_t> const*) {}
     virtual size_t handleRangeImpl(BufIt begin, 
         BufIt end, uint16_t threadId){ return 0; };
     virtual void invokedCb(size_t) {}
@@ -59,7 +58,7 @@ private:
     alignas(SMP_CACHE_BYTES) HMBDC_SEQ_TYPE nextSeq_;
     bool interestedInMessages;
     bool messageDispatchingStarted_;
-    size_t* pDispStartCount_ = nullptr;
+    std::atomic<size_t>* pDispStartCount_ = nullptr;
 };
 
 }} // end namespace hmbdc::pattern
@@ -69,7 +68,7 @@ namespace hmbdc { namespace pattern {
 
 inline
 PoolConsumer::
-PoolConsumer(bool interestedInMessages, time::TimerManager* tmPtr, size_t* pDispStartCount)
+PoolConsumer(bool interestedInMessages, time::TimerManager* tmPtr, std::atomic<size_t>* pDispStartCount)
 : tmPtr(tmPtr)
 , poolThreadAffinity(0xfffffffffffffffful)
 , droppedCount(0u)

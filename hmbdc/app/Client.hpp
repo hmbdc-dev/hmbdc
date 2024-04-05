@@ -161,7 +161,7 @@ public:
      * Note: Since ipc_creator Context has an implicitly purger Client, this value would be 
      * 1 greater than the user Clients count
      */
-    virtual void messageDispatchingStartedCb(size_t const* pClientDispatchingStarted) {
+    virtual void messageDispatchingStartedCb(std::atomic<size_t> const* pClientDispatchingStarted) {
         //default do nothing
     };
 

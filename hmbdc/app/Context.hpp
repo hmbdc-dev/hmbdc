@@ -632,7 +632,7 @@ protected:
             , messageQueueSizePower2Num) + sizeof(*pDispStartCount_) + 4096 -1)
             / 4096 * 4096)
     , allocator_(shmName, offset, footprint_, ownership)
-    , pDispStartCount_(allocator_.template allocate<size_t>(SMP_CACHE_BYTES, 0)) 
+    , pDispStartCount_(allocator_.template allocate<std::atomic<size_t>>(SMP_CACHE_BYTES, 0)) 
     , bufferptr_(allocator_.template allocate<Buffer>(SMP_CACHE_BYTES
         , maxMessageSizeRuntime + sizeof(MessageHead), messageQueueSizePower2Num
         , allocator_)
@@ -709,7 +709,7 @@ protected:
     }
     size_t footprint_;
     Allocator allocator_;
-    size_t* pDispStartCount_;
+    std::atomic<size_t>* pDispStartCount_;
     Buffer* HMBDC_RESTRICT bufferptr_;
     Buffer& HMBDC_RESTRICT buffer_;
     
@@ -1375,8 +1375,7 @@ private:
                         , schedule, priority);
                     
                     hmbdcNumber = clientParticipateInMessaging?hmbdcNumber:0xffffu;
-                    reinterpret_cast<std::atomic<size_t>*>(this->pDispStartCount_)
-                        ->fetch_add(1, std::memory_order_release);
+                    ++(*this->pDispStartCount_);
                     c.messageDispatchingStartedCb(this->pDispStartCount_);
                 } catch (std::exception const& e) {
                     c.stopped(e);

@@ -120,13 +120,8 @@ struct BackupRecvSessionT
         }
     }
 
-    void sendSubscribe(uint16_t t) {
-        char buf[70];
-        auto l = sprintf(buf, "+%d\t", t) - 1;
-        if (hmbdc_unlikely(send(writeFd_.fd, buf, l, MSG_NOSIGNAL) != l)) {
-            HMBDC_LOG_C("error when sending subscribe to ", id());
-            stopped_ = true;
-        }
+    void refreshSubscriptions () {
+        sendSubscriptions();
     }
 
     void sendUnsubscribe(uint16_t const& t) {
@@ -202,6 +197,7 @@ private:
             }
         });
         auto s = oss.str() + "+\t"; //mark all sent with "+\t"
+        HMBDC_LOG_N("sending subscriptions=", s);
         auto sz = size_t(send(writeFd_.fd, s.c_str(), s.size(), MSG_NOSIGNAL));
         if (hmbdc_unlikely(sz != s.size())) {
             HMBDC_LOG_C("error when sending subscriptions to ", id());

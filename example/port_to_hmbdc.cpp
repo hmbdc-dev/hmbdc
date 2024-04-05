@@ -70,7 +70,7 @@ struct MsgForTopic3
 
 struct RecvNode
 : tips::Node<RecvNode, std::tuple<MsgForTopic2, MsgForTopic3>> {
-    void messageDispatchingStartedCb(size_t const*) override {
+    void messageDispatchingStartedCb(std::atomic<size_t> const*) override {
         HMBDC_LOG_N("RecvNode ready");
     }
 

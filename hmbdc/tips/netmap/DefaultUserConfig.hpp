@@ -25,7 +25,7 @@ constexpr char const* const DefaultUserConfig = R"|(
          "maxSendBatch"         : 60,                   "__maxSendBatch"         :"up to how many messages to send in a batch (within one udp packet)",
          "mtu"                  : 1500,                 "__mtu"                  :"mtu, check ifconfig output for this value for each NIC in use",
          "nmOpenFlags"          : 4096,                 "__nmOpenFlags"          :"flags when open the netmap device for sending, default to be 0x1000, which is NETMAP_NO_TX_POLL",
-         "outBufferSizePower2"  : 0,                    "__outBufferSizePower2"  :"2^outBufferSizePower2 is the number of message that can be buffered in the engine, default 0 means automatically calculated based on 16KB as the low bound",
+         "outBufferSizePower2"  : 0,                    "__outBufferSizePower2"  :"2^outBufferSizePower2 is the number of message that can be buffered in the engine, default 0 means automatically calculated based on 1MB as the low bound",
          "sendBytesBurst"       : 0,                    "__sendBytesBurst"       :"rate control for how many bytes can be sent in a burst, us the OS buffer size (131071) as reference, 0 means no rate control.",
          "sendBytesPerSec"      : 110000000,            "__sendBytesPerSec"      :"rate control for how many bytes per second - it is turned off by sendBytesBurst==0.",
          "srcEthAddr"           : "00:00:00:00:00:00",  "__srcEthAddr"           :"used in the ethernet frame composed by the send engine",

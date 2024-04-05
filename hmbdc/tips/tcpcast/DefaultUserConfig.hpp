@@ -20,7 +20,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
         "maxSendBatch"                  : 60,                       "__maxSendBatch"                  :"up to how many messages to send in a batch (used as a hint only)",
         "minRecvToStart"                : 0,                        "__minRecvToStart"                :"start send when there are that many recipients (processes) online, otherwise hold the message in buffer - NOTE: buffer might get full and blocking", 
         "nagling"                       : false,                    "__nagling"                       :"should the tcp channel do nagling",
-        "outBufferSizePower2"           : 0,                        "__outBufferSizePower2"           :"2^outBufferSizePower2 is the number of message that can be buffered in the engine, default 0 means automatically calculated based on 128KB as the low bound",
+        "outBufferSizePower2"           : 0,                        "__outBufferSizePower2"           :"2^outBufferSizePower2 is the number of message that can be buffered in the engine, default 0 means automatically calculated based on 1MB as the low bound",
         "sendBytesBurst"                : 0,                        "__sendBytesBurst"                :"rate control for how many bytes can be sent in a burst, us the OS buffer size (131071) as reference, 0 means no rate control.",
         "sendBytesPerSec"               : 100000000,                "__sendBytesPerSec"               :"rate control for how many bytes per second - it is turned off by sendBytesBurst==0",
         "tcpSendBufferBytes"            : 0,                        "__tcpSendBufferBytes"            :"OS buffer byte size for outgoing tcp, 0 means OS default value",

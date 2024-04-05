@@ -52,7 +52,7 @@ struct SendTransport
     typename std::enable_if<std::is_base_of<app::hasMemoryAttachment
         , typename std::decay<MemoryAttachementMessage>::type>::value, void>::type
     queue(MemoryAttachementMessage&& msg) {
-        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
+        if (!outboundSubscriptions_.check(msg.getTypeTag())) {
             msg.release();
             return;
         }
@@ -80,7 +80,7 @@ struct SendTransport
     typename std::enable_if<std::is_base_of<app::hasMemoryAttachment
         , typename std::decay<MemoryAttachementMessage>::type>::value, bool>::type
     tryQueue(MemoryAttachementMessage&& msg) {
-        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
+        if (!outboundSubscriptions_.check(msg.getTypeTag())) {
             msg.release();
             return true;
         }
@@ -152,7 +152,7 @@ struct SendTransport
             }
             buffer_.commit(it);
         } else {
-            if (!minRecvToStart_ && !outboundSubscriptions_.check(tag)) {
+            if (!outboundSubscriptions_.check(tag)) {
                 att->release();
                 return;
             }
@@ -424,7 +424,7 @@ outBufferSizePower2() {
     if (res) {
         return res;
     }
-    res =hmbdc::numeric::log2Upper(128ul * 1024ul / (8ul + maxMessageSize_));
+    res =hmbdc::numeric::log2Upper(1024ul * 1024ul / (8ul + maxMessageSize_));
     HMBDC_LOG_N("auto set --outBufferSizePower2=", res);
     return res;
 }

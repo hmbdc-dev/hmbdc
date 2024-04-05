@@ -17,7 +17,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
         "loopback"              : false,                    "__loopback"              :"should the message be visible in local machine. not effective when using loopback interface.",
         "maxSendBatch"          : 60,                       "__maxSendBatch"          :"up to how many messages to send in a batch (within one udp packet)",
         "udpcastDests"          : "232.43.212.234:4321",    "__udpcastDests"          :"list UDP address port pairs all udpcast traffic go to (each of them), for example \"127.0.0.1:3241 192.168.0.1:3241\" - can be a mix of multicast addresses and unicast addresses",
-        "outBufferSizePower2"   : 0,                        "__outBufferSizePower2"   :"2^outBufferSizePower2 is the number of message that can be buffered in the engine, default 0 means automatically calculated based on 8KB as the low bound",
+        "outBufferSizePower2"   : 0,                        "__outBufferSizePower2"   :"2^outBufferSizePower2 is the number of message that can be buffered in the engine, default 0 means automatically calculated based on 1MB as the low bound",
         "sendBytesBurst"        : 0,                        "__sendBytesBurst"        :"rate control for how many bytes can be sent in a burst, us the OS buffer size (131071) as reference, 0 means no rate control",
         "sendBytesPerSec"       : 100000000,                "__sendBytesPerSec"       :"rate control for how many bytes per second - it is turned off by sendBytesBurst==0",
         "ttl"                   : 1,                        "__ttl"                   :"the switch hop number",

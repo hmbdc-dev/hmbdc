@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <thread>
 #include <utility>
+#include <atomic>
 
 namespace hmbdc { namespace app { namespace context_detail {
 
@@ -25,14 +26,14 @@ struct PoolConsumerProxy
 : pattern::PoolConsumer {
     template <typename U = CcClient>
     PoolConsumerProxy(U& client
-        , size_t* pDispStartCount
+        , std::atomic<size_t>* pDispStartCount
         , typename std::enable_if<std::is_base_of<time::TimerManagerTrait, U>::value>::type* = nullptr)
     : pattern::PoolConsumer(CcClient::INTERESTS_SIZE != 0, &client, pDispStartCount)
     , client_(client){}
 
     template <typename U = CcClient>
     PoolConsumerProxy(U& client
-        , size_t* pDispStartCount
+        , std::atomic<size_t>* pDispStartCount
         , typename std::enable_if<!std::is_base_of<time::TimerManagerTrait, U>::value>::type* = nullptr)
     : pattern::PoolConsumer(CcClient::INTERESTS_SIZE != 0, nullptr, pDispStartCount)
     , client_(client){}
@@ -41,7 +42,7 @@ struct PoolConsumerProxy
         BufIt end, uint16_t threadSerialNumber) override {
         return client_.CcClient::handleRangeImpl(it, end, threadSerialNumber);
     }
-    virtual void messageDispatchingStartedCb(size_t const* dispStartCount) override {
+    virtual void messageDispatchingStartedCb(std::atomic<size_t> const* dispStartCount) override {
         client_.CcClient::messageDispatchingStartedCb(dispStartCount);
     }
     virtual void invokedCb(size_t n) override {

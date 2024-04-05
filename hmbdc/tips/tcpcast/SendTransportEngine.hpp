@@ -209,7 +209,7 @@ SendTransport(hmbdc::app::Config  cfg
 , buffer_(maxMessageSize + sizeof(TransportMessageHeader) + sizeof(app::MessageHead)
     , config_.getExt<uint16_t>("outBufferSizePower2")
         ?config_.getExt<uint16_t>("outBufferSizePower2")
-        :hmbdc::numeric::log2Upper(128ul * 1024ul / maxMessageSize)
+        :hmbdc::numeric::log2Upper(1024ul * 1024ul / maxMessageSize)
 ) 
 , rater_(hmbdc::time::Duration::seconds(1u)
     , config_.getExt<size_t>("sendBytesPerSec")

@@ -11,7 +11,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/unordered_map.hpp>
 #include <mutex>
-#include <regex>
+#include <atomic>
 
 #include <memory>
 
@@ -145,6 +145,7 @@ struct RecvTransportEngine
     template <app::MessageTupleC Messages, typename CcNode>
     void subscribeFor(CcNode const& node, uint16_t mod, uint16_t res) {
         subscriptions_.markSubsFor<Messages>(node, mod, res, [](uint16_t){});
+        subscriptionsDirty_ = true;
     }
 
 /**
@@ -155,6 +156,13 @@ struct RecvTransportEngine
         if (ip == myIp_ 
             && !t.loopback) {
             return;
+        }
+
+        if (subscriptionsDirty_) {
+            for (auto& session : recvSessions_) {
+                session.second->refreshSubscriptions();
+            }
+            subscriptionsDirty_ = false;
         }
 
         if (t.srcPid == myPid_ && ip == myIp_) return;
@@ -188,6 +196,7 @@ private:
     std::optional<udpcast::RecvTransportImpl<decltype(buffer_)>> mcReceiver_;
 
     TypeTagSet subscriptions_;
+    std::atomic<bool> subscriptionsDirty_ = false;
     boost::unordered_map<std::pair<uint64_t, uint16_t>
         , typename Session::ptr> recvSessions_;
     uint32_t myIp_;

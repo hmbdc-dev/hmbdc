@@ -186,7 +186,7 @@ struct Node {
      * @brief one time callback when the node starts runs in its own thread
      * @param ignore
      */
-    virtual void messageDispatchingStartedCb(size_t const*){}
+    virtual void messageDispatchingStartedCb(std::atomic<size_t> const*){}
 
     /**
      * @brief callback when Node's running has thrown an exception
@@ -261,7 +261,7 @@ struct Node {
     }
 
     /**
-     * @brief Domain calls this first before handles the subscritions for this Node
+     * @brief ignore, Domain calls this first before handles the subscritions for this Node
      * 
      */
     void updateSubscription() {

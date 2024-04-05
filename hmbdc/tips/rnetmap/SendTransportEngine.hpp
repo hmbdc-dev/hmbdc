@@ -51,7 +51,7 @@ struct SendTransport
     typename std::enable_if<!std::is_base_of<app::hasMemoryAttachment
         , typename std::decay<Message>::type>::value, bool>::type
     tryQueue(Message&& msg) HMBDC_RESTRICT {
-        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) return true;
+        if (!outboundSubscriptions_.check(msg.getTypeTag())) return true;
         auto n = 1;
         auto it = buffer_.tryClaim(n);
         if (it) {
@@ -66,7 +66,7 @@ struct SendTransport
     typename std::enable_if<std::is_base_of<app::hasMemoryAttachment
         , typename std::decay<MemoryAttachementMessage>::type>::value, void>::type
     queue(MemoryAttachementMessage&& msg) {
-        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
+        if (!outboundSubscriptions_.check(msg.getTypeTag())) {
             msg.release();
             return;
         }
@@ -94,7 +94,7 @@ struct SendTransport
     typename std::enable_if<std::is_base_of<app::hasMemoryAttachment
         , typename std::decay<MemoryAttachementMessage>::type>::value, bool>::type
     tryQueue(MemoryAttachementMessage&& msg) {
-        if (!minRecvToStart_ && !outboundSubscriptions_.check(msg.getTypeTag())) {
+        if (!outboundSubscriptions_.check(msg.getTypeTag())) {
             msg.release();
             return true;
         }
@@ -125,7 +125,7 @@ struct SendTransport
     void queueJustBytes(uint16_t tag, void const* bytes, size_t len
         , app::hasMemoryAttachment* att) {
         if (!att) {
-            if (!minRecvToStart_ && !outboundSubscriptions_.check(tag)) return;
+            if (!outboundSubscriptions_.check(tag)) return;
             auto it = buffer_.claim();
             auto s = *it;
             char* addr = static_cast<char*>(s);
@@ -141,7 +141,7 @@ struct SendTransport
             }
             buffer_.commit(it);
         } else {
-            if (!minRecvToStart_ && !outboundSubscriptions_.check(tag)) {
+            if (!outboundSubscriptions_.check(tag)) {
                 att->release();
                 return;
             }
@@ -461,7 +461,7 @@ outBufferSizePower2() {
     if (res) {
         return res;
     }
-    res =hmbdc::numeric::log2Upper(512ul * 1024ul / (8ul + maxMessageSize_));
+    res =hmbdc::numeric::log2Upper(1024ul * 1024ul / (8ul + maxMessageSize_));
     HMBDC_LOG_N("auto set --outBufferSizePower2=", res);
     return res;
 }
