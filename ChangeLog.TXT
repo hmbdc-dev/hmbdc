@@ -1,3 +1,6 @@
+* Mon Apr 08 2024 - 15.28
+- add logging
+
 * Wed Apr 03 2024 - 15.27
 - fixed runtime subscription refreshing for network msg
 - changed ipc party count reporting param to be atomic
@@ -95,6 +98,3 @@
 - improved share mem initialization
 - fixed zero copy shm transfer in Domain with multiple pumps
 - removed using namespace in headers
-
-* Sun May 16 2021 - 12.32
-- made it all header-only lib/framework!

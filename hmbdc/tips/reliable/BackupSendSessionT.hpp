@@ -240,11 +240,13 @@ private:
                 else if (data_[0] == '+') {
                     auto tag = (uint16_t)std::stoi(t);
                     if (clientSubscriptions_.set(tag)) {
+                        HMBDC_LOG_N(id_, " add outboundSubscriptions ", tag);
                         outboundSubscriptions_.add(tag);
                     }
                 } else if (data_[0] == '-') {
                     auto tag = (uint16_t)std::stoi(t);
                     if (clientSubscriptions_.unset(tag)) {
+                        HMBDC_LOG_N(id_, " drop outboundSubscriptions ", tag);
                         outboundSubscriptions_.sub(tag);
                     }
                 } else if (data_[0] == '=') {
