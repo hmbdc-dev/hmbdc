@@ -656,12 +656,13 @@ protected:
             size_t retry = 3;
             while (true) {
                 try {
+                    boost::interprocess::permissions perms(0660);
                     auto name = std::string(shmName) + "-att-pool";
                     if (ownership > 0) {
                         shm_unlink(name.c_str());
                         shmAttAllocator_.emplace(
                             ownership > 0, boost::interprocess::create_only
-                            , name.c_str(), ipcShmForAttPoolSize);
+                            , name.c_str(), ipcShmForAttPoolSize, nullptr, perms);
                     } else {
                         shmAttAllocator_.emplace(ownership > 0
                             , boost::interprocess::open_only, name.c_str());

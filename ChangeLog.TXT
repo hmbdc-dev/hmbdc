@@ -1,3 +1,6 @@
+* Tue Apr 16 2024 - 15.29
+- fixed shm perm to allow different users in the same group to comm
+
 * Mon Apr 08 2024 - 15.28
 - add logging
 
@@ -95,6 +98,3 @@
 
 * Sun Jun 20 2021 - 12.36
 - allowed empty 0cpy buffer case
-- improved share mem initialization
-- fixed zero copy shm transfer in Domain with multiple pumps
-- removed using namespace in headers
