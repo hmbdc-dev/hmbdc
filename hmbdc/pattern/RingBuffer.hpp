@@ -28,8 +28,15 @@ public:
 ///
 /// a forward iterator to access elements
 ///
-    struct iterator : std::iterator<std::forward_iterator_tag, T> {
+    struct iterator {
         friend class RingBuffer<T, parallel_consumer_count>;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
 
     private:
         using IMPL_IT = typename IMPL::iterator;
@@ -74,11 +81,11 @@ public:
         value_type* operator->(){return reinterpret_cast<value_type *>(*impl_);}
         // value_type const* operator->() const{return reinterpret_cast<value_type const*>(*impl_);}
     };
-    RingBuffer(uint32_t ringSizePower2Num) 
+    RingBuffer(uint32_t ringSizePower2Num)
     : impl_(ringbuffer_detail::itemSizePower2Num<T, typename IMPL::Sequence>(), ringSizePower2Num)
     , CAPACITY(impl_.CAPACITY){}
 
-    
+
     void put(T const & item) {impl_.put(&item, sizeof(T));}
     bool tryPut(T const & item) {return impl_.tryPut(&item, sizeof(T));}
     void killPut(T const & item) {impl_.killPut(&item, sizeof(T));}
@@ -100,7 +107,7 @@ public:
         impl_.take(PARALLEL_CONSUMER_INDEX, &res, sizeof(res));
         return res;
     }
-    
+
     T takeReentrant(uint32_t PARALLEL_CONSUMER_INDEX) {
         T res;
         impl_.takeReentrant(PARALLEL_CONSUMER_INDEX, &res, sizeof(res));
@@ -135,8 +142,15 @@ public:
 ///
 /// a forward iterator to access elements
 ///
-    struct iterator : std::iterator<std::forward_iterator_tag, T> {
+    struct iterator {
         friend class RingBuffer<T, 0>;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
 
     private:
         using IMPL_IT = typename IMPL::iterator;
@@ -165,7 +179,7 @@ public:
             tmp = tmp + dis;
             return iterator(tmp);
         }
-        
+
         size_t operator - (iterator const& other) const {
             return impl_ - other.impl_;
         }
@@ -181,11 +195,11 @@ public:
         value_type* operator->(){return reinterpret_cast<value_type *>(*impl_);}
         // value_type const* operator->() const{return reinterpret_cast<value_type const*>(*impl_);}
     };
-    RingBuffer(uint32_t ringSizePower2Num) 
+    RingBuffer(uint32_t ringSizePower2Num)
     : impl_(ringbuffer_detail::itemSizePower2Num<T, typename IMPL::Sequence>(), ringSizePower2Num)
     , CAPACITY(impl_.CAPACITY){}
 
-    
+
     void put(T const & item) {impl_.put(&item, sizeof(T));}
     bool tryPut(T const & item) {return impl_.tryPut(&item, sizeof(T));}
 
