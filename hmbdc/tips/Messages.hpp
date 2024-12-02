@@ -48,23 +48,15 @@ struct tag_base {
  * 
  * @tparam Mesasge the concrete Message type thatderived from this tmeplate
  * @tparam T the underlying POD data type
- * @tparam use_shm_pool Use the shm pool to hold the attachment for the IPC transfer
- * - see ipcShmForAttPoolSize config. If the attachment is allocated via Domain::allocateInShmFor0cpy,
- * no extra copy will happen in IPC transfer; If not, exact 1 copy will happen to copy the attachment 
- * to shm pool
  */
-template <typename Message, typename T, bool use_shm_pool = false>
+template <typename Message, typename T>
 struct hasSharedPtrAttachment {
-    enum {
-        att_via_shm_pool = use_shm_pool,
-    };
-
     using SP = std::shared_ptr<T>;
     static_assert(std::is_trivially_copyable<T>::value);
 
     const SP attachmentSp;          /// the attachment
     const size_t len = 0;               /// the length of the POD data
-    const bool isAttInShm = false;          /// the attachment is in the shm pool alreadyq
+    const bool isAttInShm = false;      /// the attachment is in the shm pool already
     uint8_t reserved[7] = {0};      /// it is imperative for the struct to have a multiple
                                     /// of 8 as its size so the inheritance packing is not
                                     /// wierd
@@ -77,12 +69,13 @@ struct hasSharedPtrAttachment {
      * - via Domain::allocateInShmFor0cpy or Node::allocateInShmFor0cpy
      * @param attachmentSpIn    input shared_ptr
      * @param lenIn             byte size of the attachment
+     * @param isAttInShmIn      if the attachment is allocated in the shm pool 
+     * - via Domain::allocateInShmFor0cpy or Node::allocateInShmFor0cpy 
      */
     hasSharedPtrAttachment(SP attachmentSpIn = SP{}
-        , size_t lenIn = sizeof(typename SP::element_type), bool isAttInShmIn = false)
+        , size_t lenIn = sizeof(typename SP::element_type))
     : attachmentSp(attachmentSpIn)
-    , len(attachmentSpIn.get() ? lenIn : 0)
-    , isAttInShm(isAttInShmIn) {
+    , len(attachmentSpIn.get() ? lenIn : 0) {
     }
 
     hasSharedPtrAttachment(hasSharedPtrAttachment const& other) {
@@ -93,13 +86,13 @@ struct hasSharedPtrAttachment {
         *this = std::move(other);
     }
 
-    template <typename Message2, bool use_shm_pool2>
-    hasSharedPtrAttachment(hasSharedPtrAttachment<Message2, T, use_shm_pool2> const& other) {
+    template <typename Message2>
+    hasSharedPtrAttachment(hasSharedPtrAttachment<Message2, T> const& other) {
         *this = other;
     }
 
-    template <typename Message2, bool use_shm_pool2>
-    hasSharedPtrAttachment(hasSharedPtrAttachment<Message2, T, use_shm_pool2>&& other) {
+    template <typename Message2>
+    hasSharedPtrAttachment(hasSharedPtrAttachment<Message2, T>&& other) {
         *this = std::move(other);
     }
 
@@ -119,30 +112,16 @@ struct hasSharedPtrAttachment {
         return *this;
     }
 
-    template <typename Message2, bool use_shm_pool2>
-    auto& operator = (hasSharedPtrAttachment<Message2, T, use_shm_pool2> const& other) {
+    template <typename Message2>
+    auto& operator = (hasSharedPtrAttachment<Message2, T> const& other) {
         reset(other.isAttInShm, other.attachmentSp, other.len);
         return *this;
     }
 
-    template <typename Message2, bool use_shm_pool2>
-    auto& operator = (hasSharedPtrAttachment<Message2, T, use_shm_pool2>&& other) {
+    template <typename Message2>
+    auto& operator = (hasSharedPtrAttachment<Message2, T>&& other) {
         reset(other.isAttInShm, other.attachmentSp, other.len);
         return *this;
-    }
-
-    /**
-     * @brief reset to a new state
-     * 
-     * @param isAttInShmIn if the attachment is allocated in the shm pool 
-     * - via Domain::allocateInShmFor0cpy or Node::allocateInShmFor0cpy
-     * @param attachmentSpIn    input shared_ptr
-     * @param lenIn             byte size of the attachment
-     */
-    void reset(bool isAttInShmIn = false, SP attachmentSpIn = SP{}, size_t lenIn = sizeof(T)) {
-        const_cast<bool&>(isAttInShm) = use_shm_pool ? isAttInShmIn : false;
-        const_cast<size_t&>(len) = attachmentSpIn.get() ? lenIn : 0;
-        const_cast<SP&>(attachmentSp) = attachmentSpIn;
     }
 
     /**
@@ -159,9 +138,6 @@ struct hasSharedPtrAttachment {
         char meat[sizeof(Message) - meatOffsetInMessage];
 
     public:
-        enum {
-            att_via_shm_pool = Message::att_via_shm_pool,
-        };
         bool hmbdcIsAttInShm = false;
 
         static size_t& getHmbdc0cpyShmRefCount(app::hasMemoryAttachment const& att) {
@@ -222,6 +198,25 @@ struct hasSharedPtrAttachment {
      */
     auto toHmbdcIpcable() const {
         return hmbdcSerialized{static_cast<Message const&>(*this)};
+    }
+
+
+    private:
+    template <app::MessageTupleC, typename, typename, typename, typename> friend struct Domain;
+    template <typename, app::MessageTupleC, app::MessageTupleC, bool> friend struct Node;
+
+    /**
+     * @brief reset to a new state
+     * 
+     * @param isAttInShmIn if the attachment is allocated in the shm pool 
+     * - via Domain::allocateInShmFor0cpy or Node::allocateInShmFor0cpy
+     * @param attachmentSpIn    input shared_ptr
+     * @param lenIn             byte size of the attachment
+     */
+    void reset(bool isAttInShmIn = false, SP attachmentSpIn = SP{}, size_t lenIn = sizeof(T)) {
+        const_cast<bool&>(isAttInShm) = isAttInShmIn;
+        const_cast<size_t&>(len) = attachmentSpIn.get() ? lenIn : 0;
+        const_cast<SP&>(attachmentSp) = attachmentSpIn;
     }
 };
 

@@ -389,7 +389,7 @@ struct Node {
      * @param args args for T's ctor
      */
     template <app::MessageC Message, typename T, typename ...Args>
-    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T, true> & att
+    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T> & att
         , size_t actualSize, Args&& ...args) {
         static_assert(is_in_tuple_v<Message, SendMessageTuple>, "not a publishable Message type");
         auto p = domainNonPubFuncForwarder_.allocateInShmFor0cpy(actualSize);

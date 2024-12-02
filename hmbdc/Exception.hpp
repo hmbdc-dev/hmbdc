@@ -31,14 +31,14 @@ namespace hmbdc {
 	struct ExitCode 
     : std::exception {
 		explicit ExitCode(int c) {
-			sprintf(code, "%d", c);
+			sprintf(code, "ExitCode=%d", c);
 		}
         char const* what() const noexcept override {
         	return code;
         }
 
     private:
-        char code[16];
+        char code[24];
 	};
 }
 

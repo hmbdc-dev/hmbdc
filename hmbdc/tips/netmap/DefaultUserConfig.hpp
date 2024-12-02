@@ -8,7 +8,7 @@ namespace hmbdc { namespace tips { namespace netmap {
 constexpr char const* const DefaultUserConfig = R"|(
 {
     "doChecksum"    : false,                            "__doChecksum"           :"calculating checksum when sending or receiving",
-    "netmapPort"    : "netmapPort UNSPECIFIED",         "__netmapPort"           :"the default netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side NEEDS TO be specific on which tx ring to use to avoid out of order message on receiving side",
+    "netmapPort"    : "UNSPECIFIED",                    "__netmapPort"           :"the default netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side NEEDS TO be specific on which tx ring to use to avoid out of order message on receiving side",
     "nmResetWaitSec": 2,                                "__nmResetWaitSec"       :"when starting the engine, netmap dev is reset for read and write this is the delay for it to finish",
     "schedPolicy"   : "SCHED_OTHER",                    "__schedPolicy"          :"engine thread schedule policy - check man page for allowed values",
     "schedPriority" : 0,                                "__schedPriority"        :"engine thread schedule priority - check man page for allowed values",

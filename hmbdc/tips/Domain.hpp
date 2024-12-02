@@ -82,7 +82,7 @@ using NoNet = net_property<NoProtocol, 0>;
  * @tparam MaxMessageSize the compile time specified max size of the IPC transferred
  * message, this does not include the attachment size, it could be simply set to be 
  * something like hmbdc::max_size_in_tuple<AllSendMessagesTuple>
- * If set to be 0, the value becomes runtime configured.
+ * If set to be 0, the value becomes configured by ipcMaxMessageSizeRuntime.
  * @tparam UseDevMem set this to true if using the PCI dev shared memory (beta)
  * This is useful when doing pub/sub between processes distributed on both 
  * PCI dev and its host
@@ -857,7 +857,7 @@ private:
                         }
                         auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
 
-                        if constexpr (ToSendType::att_via_shm_pool) {
+                        if constexpr (app::has_hmbdcIsAttInShm<ToSendType>::value) {
                             static_assert(!IpcProperty::use_dev_mem, "not implemented");
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
@@ -870,7 +870,7 @@ private:
                         ipcTransport_.send(std::move(toSend));
                     } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
                         auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
-                        if constexpr (ToSendType::att_via_shm_pool) {
+                        if constexpr (app::has_hmbdcIsAttInShm<ToSendType>::value) {
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
                                 auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
@@ -940,7 +940,7 @@ private:
                         }
                         auto toSend = ToSendType{hmbdcAvoidIpcFrom, *serializedCached};
 
-                        if constexpr (ToSendType::att_via_shm_pool) {
+                        if constexpr (app::has_hmbdcIsAttInShm<ToSendType>::value) {
                             static_assert(!IpcProperty::use_dev_mem, "not implemented");
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
@@ -952,7 +952,7 @@ private:
                         }
                         res = ipcTransport_.trySend(toSend);
                         if (!res) {
-                            if constexpr (ToSendType::att_via_shm_pool) {
+                            if constexpr (app::has_hmbdcIsAttInShm<ToSendType>::value) {
                                 if (toSend.template holdShmHandle<ToSendType>()) {
                                     toSend.hmbdcIsAttInShm = true;
                                     auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
@@ -964,7 +964,7 @@ private:
                         }
                     } else if constexpr(std::is_base_of<app::hasMemoryAttachment, M>::value) {
                         auto toSend = ToSendType{hmbdcAvoidIpcFrom, message};
-                        if constexpr (ToSendType::att_via_shm_pool) {
+                        if constexpr (app::has_hmbdcIsAttInShm<ToSendType>::value) {
                             if (toSend.template holdShmHandle<ToSendType>()) {
                                 toSend.hmbdcIsAttInShm = true;
                                 auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
@@ -975,7 +975,7 @@ private:
                         }
                         res = ipcTransport_.trySend(toSend);
                         if (!res) {
-                            if constexpr (ToSendType::att_via_shm_pool) {
+                            if constexpr (app::has_hmbdcIsAttInShm<ToSendType>::value) {
                                 if (toSend.template holdShmHandle<ToSendType>()) {
                                     toSend.hmbdcIsAttInShm = true;
                                     auto hmbdc0cpyShmRefCount = &toSend.getHmbdc0cpyShmRefCount();
@@ -1673,7 +1673,7 @@ public:
      * @param args args for T's ctor
      */
     template <app::MessageC Message, typename T, typename ...Args>
-    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T, true> & att
+    void allocateInShmFor0cpy(hasSharedPtrAttachment<Message, T> & att
         , size_t actualSize, Args&& ...args) {
         auto p = ipcTransport_->allocateInShm(actualSize);
         using ELE_T = typename std::shared_ptr<T>::element_type;

@@ -101,6 +101,16 @@ public:
         return *this;
     }
 
+    template <app::MessageC Message>
+    void publish(Message&& m) {
+        if (hmbdc_unlikely(!tryPublish(std::forward<Message>(m)))) {
+            HMBDC_THROW(std::out_of_range, "ipcMessageQueueSizePower2Num=" 
+                << getConfig().template getExt<uint32_t>("ipcMessageQueueSizePower2Num")
+                << " is too small - immediate deadlock is detected for " 
+                << this->threadCtx_.node->hmbdcName());
+        }
+    }
+
     /**
      * @brief exposed from Domain - see Domain documentation
      * 

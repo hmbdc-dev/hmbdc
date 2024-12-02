@@ -4,8 +4,7 @@
 // how to statically map topic strings into tags in the code with minimum effort.
 // 
 // Note: If you are in need of runtime determined topic base pub/sub i.e. the topic strings used cannot be determined
-// at compile time, HMBDC TIPS also supports runtime tagging.
-// Please refer to the use of ChatMesage (tag range) shown in the chat example.
+// at compile time, please see hello-pots.cpp example
 //
 #include "hmbdc/tips/rmcast/Protocol.hpp"
 #include "hmbdc/tips/Tips.hpp"

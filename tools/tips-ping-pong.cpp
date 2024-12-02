@@ -93,7 +93,7 @@ struct Payload0cpy {
 };
 
 struct Ping0cpy
-: hasSharedPtrAttachment<Ping0cpy, Payload0cpy, true>
+: hasSharedPtrAttachment<Ping0cpy, Payload0cpy>
 , hasTag<1003> {
     Ping0cpy(size_t payloadLen) {
         assert(payloadLen == toSend_s.len);
@@ -112,7 +112,7 @@ struct Ping0cpy
     static void fini() {
         /// this is needed because when alloc is out of scope, all the allocated mmeory is freed
         /// need to explictly call this before that
-        toSend_s.reset();
+        toSend_s = Ping0cpy{};
     }
 
 private:
@@ -121,10 +121,10 @@ private:
 Ping0cpy Ping0cpy::toSend_s;
 
 struct Pong0cpy
-: hasSharedPtrAttachment<Pong0cpy, Payload0cpy, true>
+: hasSharedPtrAttachment<Pong0cpy, Payload0cpy>
 , hasTag<1004> {
-    Pong0cpy(Ping0cpy const& ping) {
-        reset(ping.isAttInShm, ping.attachmentSp, ping.len);
+    Pong0cpy(Ping0cpy const& ping)
+    : hasSharedPtrAttachment(ping) {
         ts = ping.ts;
     }
     SysTime ts;
@@ -132,11 +132,11 @@ struct Pong0cpy
 
 struct PingGT1K
 : hasSharedPtrAttachment<PingGT1K, uint8_t[]>
-, hasTag<1005> {
+, hasTag<1005>
+, do_not_send_via<INTER_PROCESS> {
     PingGT1K(size_t payloadLen)
-    : ts(SysTime::now()) {
-        hasSharedPtrAttachment::reset(false, attachment_s, payloadLen);
-    }
+    : hasSharedPtrAttachment{attachment_s, payloadLen}
+    , ts(SysTime::now()) {}
     SysTime ts;
     static std::shared_ptr<uint8_t[]> attachment_s;
     static constexpr const char* type = "PingGT1K";
@@ -156,11 +156,12 @@ std::shared_ptr<uint8_t[]> PingGT1K::attachment_s;
 
 struct PongGT1K
 : hasSharedPtrAttachment<PongGT1K, uint8_t[]>
-, hasTag<1006> {
+, hasTag<1006>
+, do_not_send_via<INTER_PROCESS> {
     PongGT1K(PingGT1K const& ping)
-    : ts(ping.ts) {
-        hasSharedPtrAttachment::reset(false, ping.attachmentSp, ping.len);
-    }
+    : hasSharedPtrAttachment{ping.attachmentSp, ping.len}
+    , ts(ping.ts) {}
+
     SysTime ts;
 };
 

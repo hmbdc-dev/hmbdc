@@ -140,7 +140,6 @@ struct alignas(8) hasMemoryAttachment {
     }
     enum {
         flag = 1,
-        att_via_shm_pool = 0,
     };
 
     /**
@@ -450,7 +449,7 @@ struct alignas(8) InBandHasMemoryAttachment
     void shmConvert(ShmAllocator&& allocator) {
         hasMemoryAttachment& att = underlyingMessage;
         assert(att.holdShmHandle<Message>());
-        if constexpr (Message::att_via_shm_pool) {
+        if constexpr (has_hmbdcIsAttInShm<Message>::value) {
             if (underlyingMessage.hmbdcIsAttInShm) {
                 /// already in shm
                 att.shmHandle = allocator.getHandle(att.attachment);
@@ -458,7 +457,7 @@ struct alignas(8) InBandHasMemoryAttachment
             } else {
                 assert(0);
             }
-        } 
+        }
         auto shmAddr = allocator.allocate(att.len);
         memcpy(shmAddr, att.attachment, att.len);
         att.shmHandle = allocator.getHandle(shmAddr);

@@ -47,7 +47,7 @@ struct Announcement
 //be assigned a unique tag number ranging from 1002 - (1002 + 100)
 //
 struct ChatMessage 
-: hasSharedPtrAttachment<ChatMessage, char[], true>         /// true means using shm pool for IPC transfer <======
+: hasSharedPtrAttachment<ChatMessage, char[]>
 , hasTag<1002, 100> {       //up to 100 chat groups; only configured 3 in the example
     template <typename Node>
     ChatMessage(char const* myId, uint16_t grouId, char const* msg, Node& node)

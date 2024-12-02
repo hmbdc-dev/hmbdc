@@ -1,3 +1,16 @@
+* Sun Nov 10 2024 - 16.2
+- simplified and the zero copy usage
+- gaurded SingleNodeDomain deadlock caused by not enough buffers by throwing the exception for reason
+
+* Sat Sep 21 2024 - 15.33
+- hid reset of attachment shared messgage
+
+* Sat Sep 21 2024 - 15.31
+- added pots
+
+* Wed Apr 24 2024 - 15.30
+- allow log macro replacement
+
 * Tue Apr 16 2024 - 15.29
 - fixed shm perm to allow different users in the same group to comm
 
@@ -85,16 +98,3 @@
 - improved tips-ping-pong tool
 
 * Sat Jul 31 2021 - 12.40
-- provided publish support directly in Node
-- provided ping pong performance test
-- merged 0cpy with single copy shm comm
-- fixed clang building issues
-
-* Mon Jul 12 2021 - 12.38
-- turn on concept support and tested with gcc-10
-
-* Sun Jul 11 2021 - 12.37
-- fixed  the gcc10+ compiling using offset_of bug
-
-* Sun Jun 20 2021 - 12.36
-- allowed empty 0cpy buffer case

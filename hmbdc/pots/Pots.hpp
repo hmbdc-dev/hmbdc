@@ -1,32 +1,24 @@
 #include "hmbdc/Copyright.hpp"
 #pragma once
 
-#include "hmbdc/tips/Node.hpp"
-#include "hmbdc/tips/Domain.hpp"
-#include "hmbdc/tips/SingleNodeDomain.hpp"
-#include "hmbdc/tips/Messages.hpp"
+#include "hmbdc/pots/Domains.hpp"
+#include "hmbdc/pots/Node.hpp"
+#include "hmbdc/pots/Messages.hpp"
+#include "hmbdc/tips/Tips.hpp"
 
-namespace hmbdc { namespace tips {
+namespace hmbdc { namespace pots {
 /**
- * @brief TIPS stands for Type Inferred Pub / Sub
- * It is a C++ Typed based (vs string topic based) messgage delivery
- * system covers inter thread, inter process and network communication.
- *  
- * Most - but not all - Message filterring decision is based 
- * on the compile time (through C++ template) Message type information.
+ * @brief POTS stands for Publish On Topic String
+ * It is a C++ string topic based messgage delivery lib built on top of Type Inferred Pub/Sub (see tips dir)
+ * The purpose of pots is to provide the string topic based systems a strightforward path to 
+ * use hmbdc.
  * 
- * Runtime message filterring is provided through a special Message
- * category runtime-tagged Message - where a message type could be associated 
- * with a runtime decided tag value - this enables the Message type 
- * filterring decision to be made on a runtime configured criteria.
- * For example, an ImageFrame Message if defnined as runtime-tagged, it 
- * could be used by both the left camera and the right camera, and this Message
- * could be filterred by TIPS depending on its origin (left vs right) by associate
- * different tags to the Message runtime instances
+ * Just like TIPS, POTS covers inter thread, inter process and network communication. 
+ * Unlike TIPS that supports type based filtering, POTS only uses runtime filtering on topic strings.
  * 
  **/
 
-/* LOGIC (concept) VIEW
+/* LOGIC (concept) VIEW - same as TIPS
                                                                                   +--------+
                                                                                   |Node    |
                                                           XXXXXXXXXXX             |        |
@@ -34,10 +26,10 @@ namespace hmbdc { namespace tips {
     | Node               |     Nodes join         XX                      XXXXXX     |
     |an OS thread        +---------------------+XX                              +----+
     +--------------------+  same domain receive X           domain               X
-    | (static)           |      pub / sub       X                                +------+
-    |handleMessageCb(M1) |       messges.        X                              X       |
-    | ...                |   pub can happen       XXXXX+XX      XXXXXXXXXXXXXXXX    +---+----+
-    |handleMessageCb(Mn) |  anywhere through the       |  XXXXXX                    |Node    |
+    |                    |      pub / sub       X                                +------+
+    | potsCb(topic,bytes)|       messges.        X                              X       |
+    |                    |   pub can happen       XXXXX+XX      XXXXXXXXXXXXXXXX    +---+----+
+    |                    |  anywhere through the       |  XXXXXX                    |Node    |
     |                    |   domain handle             |                            |        |
     +--------------------+                             |                            +--------+
     |                    |                       +-----+--+
@@ -48,7 +40,7 @@ namespace hmbdc { namespace tips {
     |                    |                                +---+
     +--------------------+
 
-   PHYSICAL (deployment) VIEW
+   PHYSICAL (deployment) VIEW - same as TIPS
   +---------------------------+               +---------------------------------------------+
   |   +--------------------+  |               | +-------------+                             |
   |   | +--------+         |  |               | |process      |          +---------------+  |

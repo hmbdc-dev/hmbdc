@@ -15,11 +15,24 @@
 #define HMBDC_LOG_r(...)
 #endif
 
+#ifndef HMBDC_LOG_D
 #define HMBDC_LOG_D(...)   if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_D(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[0], __VA_ARGS__, hmbdc::app::LogTrailer(__FILE__, __LINE__))
+#endif
+
+#ifndef HMBDC_LOG_N
 #define HMBDC_LOG_N(...)   if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_N(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[2], __VA_ARGS__, hmbdc::app::LogTrailer(__FILE__, __LINE__))
+#endif
+
+#ifndef HMBDC_LOG_W
 #define HMBDC_LOG_W(...)   if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_W(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[3], __VA_ARGS__, hmbdc::app::LogTrailer(__FILE__, __LINE__))
+#endif
+
+#ifndef HMBDC_LOG_C
 #define HMBDC_LOG_C(...)   if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_C(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[4], __VA_ARGS__, hmbdc::app::LogTrailer(__FILE__, __LINE__))
-#define HMBDC_LOG_DEBUG(x) 		if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_D(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[0], #x "=", x,   hmbdc::app::LogTrailer(__FILE__, __LINE__))
+#endif
+
+#define HMBDC_LOG_DEBUG(x) if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_D(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[0], #x "=", x,   hmbdc::app::LogTrailer(__FILE__, __LINE__))
+
 #define HMBDC_LOG_NOTICE(x)		if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_N(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[2], #x "=", x,   hmbdc::app::LogTrailer(__FILE__, __LINE__))
 #define HMBDC_LOG_WARNING(x)	if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_W(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[3], #x "=", x,   hmbdc::app::LogTrailer(__FILE__, __LINE__))
 #define HMBDC_LOG_CRITICAL(x)	if (hmbdc::app::SyncLogger::initialized()) hmbdc::app::SyncLogger::instance().LOG_C(hmbdc::time::SysTime::now(), hmbdc::app::g_SyncLogLevelStr[4], #x "=", x,   hmbdc::app::LogTrailer(__FILE__, __LINE__))

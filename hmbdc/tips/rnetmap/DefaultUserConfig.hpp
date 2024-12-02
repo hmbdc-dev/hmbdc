@@ -11,7 +11,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "loopback"      : false,                            "__loopback"                     :"set this to true if processes within the same host need to communicate via rnetmap",    
     "mtu"           : 1500,                             "__mtu"                          :"mtu, check ifconfig output for this value for each NIC in use",
     "nagling"       : false,                            "__nagling"                      :"should the backup tcp channel do nagling",
-    "netmapPort"    : "netmapPort UNSPECIFIED",         "__netmapPort"                   :"the netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side must be specific on which tx ring to use",
+    "netmapPort"    : "UNSPECIFIED",                    "__netmapPort"                   :"the netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side must be specific on which tx ring to use",
     "nmResetWaitSec": 2,                                "__nmResetWaitSec"               :"when starting the engine, netmap dev is reset for read and write this is the delay for it to finish",
     "nmRxRings"     : "0",                              "__nmRxRings"                    :"only effective on software ports created on the fly:how many rx rings in the device, 0 mean use default, no change",
     "nmRxSlots"     : "0",                              "__nmRxSlots"                    :"only effective on software ports created on the fly:how many slots in a rx ring, 0 mean use default, no change",
@@ -19,7 +19,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "nmTxSlots"     : "0",                              "__nmTxSlots"                    :"only effective on software ports created on the fly:how many slots in a tx ring, 0 mean use default, no change",
     "schedPolicy"   : "SCHED_OTHER",                    "__schedPolicy"                  :"engine thread schedule policy - check man page for allowed values",
     "schedPriority" : 0,                                "__schedPriority"                :"engine thread schedule priority - check man page for allowed values",
-    "tcpIfaceAddr"  : "tcpIfaceAddr UNSPECIFIED",       "__tcpIfaceAddr"                 :"ip address for the NIC interface for TCP (backup) traffic IO, it needs  to be a different one from the netmapPort NIC. no default provided",
+    "tcpIfaceAddr"  : "UNSPECIFIED",                    "__tcpIfaceAddr"                 :"ip address for the NIC interface for TCP (backup) traffic IO, it needs  to be a different one from the netmapPort NIC. no default provided",
     "tcpPort"       : 0,                                "__tcpPort"                      :"tcp port number used as backup communication channel - 0 means let the OS pick",
 
     "tx" :   

@@ -21,15 +21,15 @@ namespace sendtransportengine_detail {
 HMBDC_CLASS_HAS_DECLARE(hmbdc_net_queued_ts);
 using Buffer = hmbdc::pattern::MonoLockFreeBuffer;
 
-struct SendTransport 
+struct SendTransport
 : Transport {
-    SendTransport(Config, size_t); 
+    SendTransport(Config, size_t);
     ~SendTransport();
 
     size_t bufferedMessageCount() const {
         return buffer_.remainingSize();
     }
-    
+
     size_t subscribingPartyDetectedCount(uint16_t tag) const {
         return 0; //not supported
     }
@@ -77,7 +77,7 @@ struct SendTransport
 
     /// not threadsafe - call it in runOnce thread
     void eraseDest(comm::inet::Endpoint const& dest) {
-        std::remove(udpcastDests_.begin(), udpcastDests_.end(), dest);
+        (void)std::remove(udpcastDests_.begin(), udpcastDests_.end(), dest);
     }
 
 private:
@@ -118,13 +118,13 @@ private:
         queue(++it, std::forward<Messages>(msgs)...);
     }
 
-    void queue(typename Buffer::iterator it) {} 
+    void queue(typename Buffer::iterator it) {}
     void resumeSend();
 };
 
 struct SendTransportEngine
 : SendTransport
-, hmbdc::app::Client<SendTransportEngine> {  
+, hmbdc::app::Client<SendTransportEngine> {
     using SendTransport::SendTransport;
     using SendTransport::hmbdcName;
     using SendTransport::schedSpec;
@@ -133,7 +133,7 @@ struct SendTransportEngine
         SendTransportEngine::invokedCb(0);
     }
 
-    /*virtual*/ 
+    /*virtual*/
     void invokedCb(size_t) HMBDC_RESTRICT override  {
         runOnce();
     }
@@ -159,7 +159,7 @@ namespace sendtransportengine_detail {
 inline
 SendTransport::
 SendTransport(Config cfg
-    , size_t maxMessageSize) 
+    , size_t maxMessageSize)
 : Transport((cfg.setAdditionalFallbackConfig(Config(DefaultUserConfig))
     , cfg.resetSection("tx", false)))
 , maxMessageSize_(maxMessageSize)
@@ -168,7 +168,7 @@ SendTransport(Config cfg
     , config_.getExt<size_t>("sendBytesPerSec")
     , config_.getExt<size_t>("sendBytesBurst")
     , config_.getExt<size_t>("sendBytesBurst") != 0ul) //no rate control by default
-, maxSendBatch_(config_.getExt<size_t>("maxSendBatch")) 
+, maxSendBatch_(config_.getExt<size_t>("maxSendBatch"))
 , toSendMsgs_(new iovec[maxSendBatch_])
 , toSendMsgsHead_(0)
 , toSendMsgsTail_(0)
@@ -220,7 +220,7 @@ SendTransport::
 }
 
 inline
-void 
+void
 SendTransport::
 stop() {
     buffer_.reset();
@@ -240,7 +240,7 @@ outBufferSizePower2() {
 }
 
 inline
-void 
+void
 SendTransport::
 resumeSend() HMBDC_RESTRICT {
     bool rateOk = true;
@@ -262,7 +262,7 @@ resumeSend() HMBDC_RESTRICT {
             packetBytes += item->wireSize();
             if (hmbdc_unlikely(packetBytes > mtu_)) {
                 toSendPkts_[toSendPktsTail_].msg_hdr.msg_iov = toSendMsgs_ + toSendMsgsHead_;
-                toSendPkts_[toSendPktsTail_++].msg_hdr.msg_iovlen 
+                toSendPkts_[toSendPktsTail_++].msg_hdr.msg_iovlen
                     = toSendMsgsTail_ - toSendMsgsHead_;
                 toSendMsgsHead_ = toSendMsgsTail_;
                 packetBytes = item->wireSize();
@@ -276,7 +276,7 @@ resumeSend() HMBDC_RESTRICT {
         if (packetBytes) {
             //wrap up current packet
             toSendPkts_[toSendPktsTail_].msg_hdr.msg_iov = toSendMsgs_ + toSendMsgsHead_;
-            toSendPkts_[toSendPktsTail_++].msg_hdr.msg_iovlen 
+            toSendPkts_[toSendPktsTail_++].msg_hdr.msg_iovlen
                 = toSendMsgsTail_ - toSendMsgsHead_;
             toSendMsgsHead_ = toSendMsgsTail_;
         }

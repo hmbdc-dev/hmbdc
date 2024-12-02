@@ -304,7 +304,7 @@ struct ThreadCommBase
         	    buffer_.put(MessageWrap<M>(std::forward<Message>(m)));
             }
         } else {
-            if constexpr (cpa::ipc && !cpa::dev_mem && M::att_via_shm_pool) {
+            if constexpr (cpa::ipc && !cpa::dev_mem) {
                 if (m.template holdShmHandle<M>()) {
                     auto it = buffer_.claim(1);
                     auto wrap = (new (*it) MessageWrap<InBandHasMemoryAttachment<M>>(m)); (void)wrap;
@@ -434,7 +434,7 @@ struct ThreadCommBase
         	    return buffer_.tryPut(MessageWrap<M>(std::forward<Message>(m)));
             }
         } else {
-            if constexpr (cpa::ipc && !cpa::dev_mem && M::att_via_shm_pool) {
+            if constexpr (cpa::ipc && !cpa::dev_mem) {
                 if (m.template holdShmHandle<M>()) {
                     auto it = buffer_.tryClaim(1);
                     if (!it) {
