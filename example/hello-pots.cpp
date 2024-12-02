@@ -1,5 +1,5 @@
 // hello-world for hmbdc POTS 
-// - see concepts of domain and Node https://www.hummingbirdcode.net/p/concept-model.html
+// - see concepts of domain and Node https://github.com/hmbdc-dev/hmbdc
 // to build:
 // g++ hello-world-pots.cpp -O3 -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw-pots
 //

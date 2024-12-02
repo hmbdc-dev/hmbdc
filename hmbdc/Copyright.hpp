@@ -1,5 +1,5 @@
 /* Copyright (C) Hummingbird Code Software, LLC 2021
- * Please direct all questions to dev@hummingbirdcode.net or hummingbirdcode@gmail.com
+ * Please direct all questions to hummingbirdcode@gmail.com
  * 
  *                                      The MIT License
  * 

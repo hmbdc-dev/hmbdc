@@ -65,12 +65,6 @@ API are in doxygen format.
   (make sure you have the QNX or aarch64 cross compiling tools ready if you are building for them. for QNX, source the qnx set env script now)
 1. in hmbdc root dir, type ```make```
 
-## Contribution guidelines ##
-* all suggestions and issue reports are welcome
-* please report the issue using the issues function on 
-  the downloading website, or contact 
-  dev@hummingbirdcode.net or hummingbirdcode@gmail.com
-
 ## Who do I talk to? ##
 * MIT Licensed
 * please direct questions to hummingbirdcode@gmail.com and thank you for your interests in hmbdc!
