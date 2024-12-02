@@ -26,15 +26,15 @@ Keywords and features:
 hmbdc offers both C++ Type Inferred Pub/Sub (TIPS) and the higher level Pub/sub On String Topics(POTS). You can either publish in form of C++ types or in form of bytes on different topics. 
 Here is an example pub/sub [topology](https://dreampuf.github.io/GraphvizOnline/#digraph%20chat%20%7B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22Announcement%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Announcement%22%20-%3E%20%22Chatter%22%3B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22ChatMessage%22%20-%3E%20%22Chatter%22%3B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Chatter%22%20-%3E%20%22ChatMessage%22%3B%0D%0A%22Admin%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22ChatMessage%22%20-%3E%20%22Admin%22%3B%0D%0A%22Admin%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22Announcement%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Admin%22%20-%3E%20%22Announcement%22%3B%0D%0A%7D) automatically generated from C++ code:
 
-![](pubsub.png)
+![](image/pubsub.png)
 
 Serialization/copying is only performed when it is absolutely necessary. The key concepts are [Node](https://www.dre.vanderbilt.edu/~schmidt/PDF/Active-Objects.pdf) and Domain
 
-![](tips.png)
+![](image/tips.png)
 
 The communications within local host nodes are automatically carried out via shared memory. On top of that, user can also opt to use zero-copy messages to acheive the best latecy for communicating large messages between Nodes on the same host.
 
-![](0cpy.png)
+![](image/0cpy.png)
 
 ## Performance ##
 ### Test environment ###
@@ -44,9 +44,9 @@ The communications within local host nodes are automatically carried out via sha
 - All results are also compared with qperf in the same enviroment
 
 ### Intra-host IPC ###
-![hmbdc IPC regular, 0cpy vs qperf](hmbdc-ipc.png)
+![hmbdc IPC regular, 0cpy vs qperf](image/hmbdc-ipc.png)
 ### Inter-host Network ###
-![hmbdc tcpcast, rmcast vs qperf](hmbdc-net.png)
+![hmbdc tcpcast, rmcast vs qperf](image/hmbdc-net.png)
 
 ### How to reproduce the performance in your own env ###
 See [perf-sample.txt](perf-sample.txt)
@@ -54,11 +54,11 @@ See [perf-sample.txt](perf-sample.txt)
 ## Design/Doc ##
 hmbdc design uses a mix of OO and C++ generic programming:
 
-![](design.drawio.png)
+![](image/design.drawio.png)
 
 API are in doxygen format.
 
-![](teared.jpg)
+![](image/teared.jpg)
 
 ## How do I build code in example and tools dir ##
 0. make sure you have the required lib in place: boost-dev package; 

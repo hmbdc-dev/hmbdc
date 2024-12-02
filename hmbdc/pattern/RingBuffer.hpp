@@ -36,13 +36,6 @@ public:
         using pointer = T*;
         using reference = T&;
 
-    public:
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = T;
-        using difference_type = std::ptrdiff_t;
-        using pointer = T*;
-        using reference = T&;
-
     private:
         using IMPL_IT = typename IMPL::iterator;
         IMPL_IT impl_;
@@ -149,13 +142,6 @@ public:
 ///
     struct iterator {
         friend class RingBuffer<T, 0>;
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = T;
-        using difference_type = std::ptrdiff_t;
-        using pointer = T*;
-        using reference = T&;
-
-    public:
         using iterator_category = std::forward_iterator_tag;
         using value_type = T;
         using difference_type = std::ptrdiff_t;
