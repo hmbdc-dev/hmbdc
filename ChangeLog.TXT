@@ -1,3 +1,7 @@
+* Mon Feb 17 2025 - 16.5
+- added message bagging and playback simnulation
+- added Tick support
+
 * Sun Nov 10 2024 - 16.2
 - simplified and the zero copy usage
 - gaurded SingleNodeDomain deadlock caused by not enough buffers by throwing the exception for reason
@@ -94,7 +98,3 @@
 
 * Sun Aug 08 2021 - 12.41
 - added publish directly in Node 
-
-- improved tips-ping-pong tool
-
-* Sat Jul 31 2021 - 12.40

@@ -27,30 +27,16 @@ using namespace std;
 using namespace hmbdc::app;
 using namespace hmbdc::tips;
 
-/// write a message type to publish later
-struct Hello
-: hasTag<1001> {            //16bit msg tag (>1000) is unique per message type
+/// write a POC message type to publish later
+struct Hello : hasTag<1001> { //16bit msg tag (>1000) is unique per message type
     char msg[6] = "hello";
 };
 
-/// write a Node publish the message periodically
-struct Sender
-: Node<Sender
-    , std::tuple<>      // does not subscibe to anything
-    , std::tuple<Hello> // will publish Hello
-> { 
-    void invokedCb(size_t) {    // this is called once whenever this Sender
-                                // thread is unblocked - by new message arriving
-                                // or max blocking timeouts 
-                                // - see domain.add() call below
-        cout << "sending a Hello" << endl;
-        publish(Hello{});
-    }
-};
-
-/// write a Node subscribe to the message
-struct Receiver
-: Node<Receiver, std::tuple<Hello>> { //only subscribe Hello, no publish
+/// write a simple Node subscribe to the above message
+struct Receiver : Node<Receiver
+    , std::tuple<Hello> // only subscribe Hello
+    , std::tuple<>      // not publishing anything
+> {
     /// message callback - won't compile if missing
     void handleMessageCb(Hello const& m) {
         cout << m.msg << endl;
@@ -66,31 +52,32 @@ int main(int argc, char** argv) {
     }
     std::string ifaceAddr = argv[1];
     bool isSender = argc <= 2;
-    if (!isSender) {
-        cout << "running as receiver, ctrl-c to exit" << endl;
-    }
 
     Config config; //other config values are default
     config.put("ifaceAddr", ifaceAddr);//which net IP to use for net communication
     
     SingletonGuardian<tcpcast::Protocol> g; //RAII for tcpcast::Protocol resources
 
-    if (isSender) { //running as sender
+    if (isSender) {
+        cout << "running as sender, ctrl-c to exit" << endl;
         using MyDomain = Domain<std::tuple<>    /// no subscribing
             , ipc_property<>                    /// default IPC params (using shared mem)
             , net_property<tcpcast::Protocol>>; /// use tcpcast as network transport
         auto domain = MyDomain{config};
-        Sender sender;
-        domain.add(sender);                     /// start sender as a thread, by default, 
-                                                /// the thread blocks for 1 second max
-                                                    /// sender.invokdeCb() is called
-                                                    /// when the above 1 second expires
-        domain.startPumping();                      /// start process-level message IO
-        sleep(10); //let the sender thread run for 10 seconds - ~10 Hellos sent out
-        domain.stop();      //wrap up and exit
+        domain.startPumping();
+        /// handle ctrl-c
+        auto stopped = std::atomic<bool>{false};
+        hmbdc::os::HandleSignals::onTermIntDo([&](){stopped = true;});
+        while (!stopped) { // until ctrl-c pressed
+            // publish is a fast/async and theadsafe call, all subscribing Nodes in the domain receive it
+            domain.publish(Hello{});
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        domain.stop();
         domain.join();
-    } else {  //as a receiver
-        using MyDomain = Domain<std::tuple<Hello>   /// subscribe to Hello
+    } else {
+        cout << "running as receiver, ctrl-c to exit" << endl;
+        using MyDomain = Domain<std::tuple<Hello>   /// subscribe to Hello - compile time checked
             , ipc_property<>                        /// match sender side
             , net_property<tcpcast::Protocol>>;     /// match sender side
         auto domain = MyDomain{config};

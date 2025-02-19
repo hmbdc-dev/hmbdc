@@ -11,9 +11,26 @@
 #include <chrono>
 
 namespace hmbdc { namespace time {
+
+#ifdef HMBDC_SIMULATION
+namespace time_detail {
+template <bool = true>
+struct static_data_holder {
+    static int64_t offsetNsecSinceEpochSimStart;
+};
+
+template <bool in_sim>int64_t static_data_holder<in_sim>::offsetNsecSinceEpochSimStart = 0;
+}
+#endif
+
 struct Duration;
 struct SysTime
 {
+#ifdef HMBDC_SIMULATION
+    static void setNow(SysTime now) {
+        time_detail::static_data_holder<>::offsetNsecSinceEpochSimStart = wallclockNow().nsecSinceEpoch() - now.nsecSinceEpoch();
+    }
+#endif
     SysTime() : nsecSinceEpoch_(0) 
     {}
     
@@ -21,13 +38,15 @@ struct SysTime
     explicit SysTime(int64_t sec, int64_t usec = 0, int64_t nsec = 0) {
         nsecSinceEpoch_ = sec * 1000000000l + usec*1000l + nsec;
     }
-    
-    static SysTime now() {
-        struct timespec spec;
-        clock_gettime(CLOCK_REALTIME, &spec);
-        return SysTime(spec.tv_sec, 0, spec.tv_nsec);
-    }
 
+    static SysTime now() {
+#ifdef HMBDC_SIMULATION
+        auto wcNsSinceEpoch = wallclockNow().nsecSinceEpoch();
+        return SysTime{0, 0, wcNsSinceEpoch - time_detail::static_data_holder<>::offsetNsecSinceEpochSimStart};
+#else      
+        return wallclockNow();
+#endif
+    }
     int64_t nsecSinceEpoch() const { return nsecSinceEpoch_; }
     int64_t usecSinceEpoch() const { return nsecSinceEpoch_ / 1000l; }
     Duration sinceMidnight() const;
@@ -128,7 +147,12 @@ struct SysTime
     }
 
 private:
-   int64_t nsecSinceEpoch_;
+    int64_t nsecSinceEpoch_;
+    static SysTime wallclockNow() {
+        struct timespec spec;
+        clock_gettime(CLOCK_REALTIME, &spec);
+        return SysTime(spec.tv_sec, 0, spec.tv_nsec);
+    }
     friend std::ostream& operator << (std::ostream& os, SysTime const& t);
 };
 

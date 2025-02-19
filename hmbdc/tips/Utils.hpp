@@ -55,7 +55,7 @@ struct printDot<std::tuple<Node, Nodes...>, IgnoredMessagesTuple> {
  * @tparam IgnoredMessagesTuple std tuple of ignored message types
  * @param name dot graph name - cannot contain special char like /
  * @param os send output to this stream
- * @param ignoreNodeNames set of Nodes names (such as my_ns::Chatter) to exclude from the diagram
+ * @param IgnoredMessagesTuple set of Message to exclude from the diagram
  */
 template <typename NodeTuple, typename IgnoredMessagesTuple = std::tuple<>>
 void printNodePubSubDot(std::string const& name, std::ostream & os

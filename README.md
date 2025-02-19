@@ -6,6 +6,8 @@ Keywords and features:
 - Supports x86_64, aarch64, Linux, gcc(>=8.4.1), clang(>=10)and QNX/qcc(>=11, beta)
 - multithreaded without the headache
 - low latency / high throughput / supports kernel bypassing (via netmap drivers)
+- support easy to use symetric (no broker process) C++ type based message (both reliable and latest only) publish / subscribe with automatic pub/sub topology visualization and message recording / playback tools
+- support message recording (bags) and playback in real-time simulation
 - support multiple types of transport mechanisms with the consistent look and feel C++17 API:
     interthread
     interprocess
@@ -14,7 +16,6 @@ Keywords and features:
     netmap multicast
     reliable multicast
     reliable netmap
-- support easy to use symetric (no broker process) C++ type based message (both reliable and latest only) publish / subscribe with automatic pub/sub topology visualization and message recording / playback tools
 - other high performance computing features: high speed async logging, timer, rate control ...
 - straightforward integration with any other programming languages that supports Linux piping
 - provide performance measurement tools
@@ -23,8 +24,8 @@ Keywords and features:
 * it is used in areas that are cpu / network intensive with high performance (latency / throughput) requirements such as high frequency trading, high performance server-backend, robotics, distributed real-time systems, etc. hmbdc helps you get it done quick and fast.
 
 ## Communication model ##
-hmbdc offers both C++ Type Inferred Pub/Sub (TIPS) and the higher level Pub/sub On String Topics(POTS). You can either publish in form of C++ types or in form of bytes on different topics. 
-Here is an example pub/sub [topology](https://dreampuf.github.io/GraphvizOnline/#digraph%20chat%20%7B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22Announcement%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Announcement%22%20-%3E%20%22Chatter%22%3B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22ChatMessage%22%20-%3E%20%22Chatter%22%3B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Chatter%22%20-%3E%20%22ChatMessage%22%3B%0D%0A%22Admin%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22ChatMessage%22%20-%3E%20%22Admin%22%3B%0D%0A%22Admin%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22Announcement%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Admin%22%20-%3E%20%22Announcement%22%3B%0D%0A%7D) automatically generated from C++ code:
+hmbdc offers both C++ Type Inferred Pub/Sub (TIPS) and the higher level Pub/sub On Topic String (POTS). You can either publish in form of C++ types or in form of bytes on different string topics.
+Here is an example pub/sub [topology](https://dreampuf.github.io/GraphvizOnline/#digraph%20chat%20%7B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22Announcement%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Announcement%22%20-%3E%20%22Chatter%22%3B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22ChatMessage%22%20-%3E%20%22Chatter%22%3B%0D%0A%22Chatter%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Chatter%22%20-%3E%20%22ChatMessage%22%3B%0D%0A%22Admin%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22ChatMessage%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22ChatMessage%22%20-%3E%20%22Admin%22%3B%0D%0A%22Admin%22%20%5Bshape%3Dellipse%5D%3B%0D%0A%22Announcement%22%20%5Bshape%3Dnote%5D%3B%0D%0A%22Admin%22%20-%3E%20%22Announcement%22%3B%0D%0A%7D) generated from C++ code (see TIPS function *printNodePubSubDot*):
 
 ![](image/pubsub.png)
 
@@ -38,8 +39,8 @@ The communications within local host nodes are automatically carried out via sha
 
 ## Performance ##
 ### Test environment ###
-- Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz 8 core 16G RAM, CentOs8
-- Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz, Ubuntu 18.04
+- Intel(R) Core(TM) i7-4770K CPU @ 3.50GHz 8 core 16G RAM, Ubuntu 20.04
+- Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz, Ubuntu 21.04
 - 1G CISCO SG200 switch (intel 82574L and 82579LM NIC)
 - All results are also compared with qperf in the same enviroment
 

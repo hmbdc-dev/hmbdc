@@ -628,7 +628,7 @@ protected:
         , size_t offset
         , IntLvOrRv&& ownership
         , size_t ipcShmForAttPoolSize)
-    : footprint_((Buffer::footprint(maxMessageSizeRuntime + sizeof(MessageHead)
+    try : footprint_((Buffer::footprint(maxMessageSizeRuntime + sizeof(MessageHead)
             , messageQueueSizePower2Num) + sizeof(*pDispStartCount_) + 4096 -1)
             / 4096 * 4096)
     , allocator_(shmName, offset, footprint_, ownership)
@@ -674,6 +674,11 @@ protected:
                 }
             }
         }
+    }
+    catch (std::exception const& e) {
+        HMBDC_LOG_C("Domain mismatched in existing shm while using: maxMessageSizeRuntime=", maxMessageSizeRuntime
+            , " messageQueueSizePower2Num=", messageQueueSizePower2Num);
+        throw;
     }
 
     ~ThreadCommBase() {

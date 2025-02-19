@@ -5,8 +5,9 @@
 #include <tuple>
 #include <string>
 #include <string_view>
-#include <array>   // std::array
-#include <utility> // std::index_sequence
+#include <array>
+#include <utility>
+#include <optional>
 
 #define HMBDC_CLASS_HAS_DECLARE(member_name)                                    \
     template <typename T>                                                       \
@@ -87,20 +88,46 @@ public:
         >::type;
 };
 
-template <typename Tuple1, typename Tuple2>
-struct merge_tuple_unique;
 
-template <typename Tuple1>
-struct merge_tuple_unique<Tuple1, std::tuple<>> {
-    using type = Tuple1;
+namespace metautils_detail {
+template <typename T, typename... Ts>
+struct unique { using type = T; };
+
+template <typename... Ts, typename U, typename... Us>
+struct unique<std::tuple<Ts...>, U, Us...>
+    : std::conditional_t<(std::is_same_v<U, Ts> || ...)
+                       , unique<std::tuple<Ts...>, Us...>
+                       , unique<std::tuple<Ts..., U>, Us...>> {};
+} // metautils_detail
+
+template <typename Tuple> struct remove_duplicate;
+template <typename... Ts>
+struct remove_duplicate<std::tuple<Ts...>> {
+    using type = typename metautils_detail::unique<std::tuple<>, Ts...>::type;
 };
 
-template <typename Tuple1, typename T, typename ...Types>
-struct merge_tuple_unique<Tuple1, std::tuple<T, Types...>> {
-private:
-    using step1 = typename add_if_not_in_tuple<T, Tuple1>::type;
-public:
-    using type = typename merge_tuple_unique<step1, std::tuple<Types...>>::type;
+template <typename Tuple1, typename Tuple2>
+struct cat_tuple_unique;
+
+template <typename ...T1, typename ...T2>
+struct cat_tuple_unique<std::tuple<T1...>, std::tuple<T2...>> {
+    using type = typename remove_duplicate<std::tuple<T1..., T2...>>::type;
+};
+
+template <typename ...Tuples>
+struct merge_tuple_unique;
+
+template <typename Tuple>
+struct merge_tuple_unique<Tuple> {
+    using type = typename remove_duplicate<Tuple>::type;
+};
+
+template <typename Tuple1, typename Tuple2, typename ...Tuples>
+struct merge_tuple_unique<Tuple1, Tuple2, Tuples...> {
+    using type = typename merge_tuple_unique<
+        typename cat_tuple_unique<Tuple1, Tuple2>::type
+        , Tuples...
+    >::type;
 };
 
 template <typename Tuple>
@@ -336,11 +363,6 @@ struct apply_template_on<apply, std::tuple<T, Ts...>> {
     >::type;
 };
 
-template <typename Tuple>
-struct remove_duplicate {
-    using type = typename merge_tuple_unique<std::tuple<>, Tuple>::type;
-};
-
 template <typename TupleSub, typename TupleSup>
 struct is_subset {
     enum {
@@ -391,11 +413,83 @@ template <typename T>
 struct type_name_holder {
   static inline constexpr auto value = type_name_array<T>();
 };
+
+template <typename F, typename Tuple, std::size_t... I>
+void expand_tuple(F func, Tuple&& tuple, std::index_sequence<I...>) {
+    if constexpr (std::is_rvalue_reference_v<decltype(tuple)>)
+        func(std::move(std::get<I>(tuple))...);
+    else
+        func(std::get<I>(tuple)...);
+}
+
+template <typename F, typename Tuple, std::size_t... I>
+auto expand_tuple_ret(F func, Tuple&& tuple, std::index_sequence<I...>) {
+    if constexpr (std::is_rvalue_reference_v<decltype(tuple)>)
+        return func(std::move(std::get<I>(tuple))...);
+    else
+        return func(std::get<I>(tuple)...);
+}
+
+template <typename T, typename F, typename Tuple, std::size_t... I>
+void expand_member_tuple(T* ptr, F func, Tuple&& tuple, std::index_sequence<I...>) {
+    if constexpr (std::is_rvalue_reference_v<decltype(tuple)>)
+        (ptr->*func)(std::move(std::get<I>(tuple))...);
+    else
+        (ptr->*func)(std::get<I>(tuple)...);
+}
+
+template <typename T, typename F, typename Tuple, std::size_t... I>
+auto expand_member_tuple_ret(T* ptr, F func, Tuple&& tuple, std::index_sequence<I...>) {
+    if constexpr (std::is_rvalue_reference_v<decltype(tuple)>)
+        return (ptr->*func)(std::move(std::get<I>(tuple))...);
+    else 
+        return (ptr->*func)(std::get<I>(tuple)...);
+}
+
+template <typename OptionalTuple, typename Func, std::size_t... I>
+void tuple_for_each_impl(Func f, std::index_sequence<I...>) {
+    (void)std::initializer_list<int>{(f(*std::get<I>(OptionalTuple{})), 0)...};
+}
 } // metautils_detail
 
 template <typename T>
 constexpr auto type_name() -> std::string_view {
   constexpr auto& value = metautils_detail::type_name_holder<T>::value;
   return std::string_view{value.data(), value.size() - 1};
+}
+
+template <typename F, typename Tuple>
+void call_in_arg_pack(F func, Tuple&& pack_args_tuple) {
+    using RT = std::decay_t<Tuple>;
+    metautils_detail::expand_tuple(func, std::forward<Tuple>(pack_args_tuple)
+        , std::make_index_sequence<std::tuple_size_v<RT>>{});
+}
+
+template <typename F, typename Tuple>
+auto call_in_arg_pack_ret(F func, Tuple&& pack_args_tuple) {
+    using RT = std::decay_t<Tuple>;
+    return metautils_detail::expand_tuple_ret(func, std::forward<Tuple>(pack_args_tuple)
+        , std::make_index_sequence<std::tuple_size_v<RT>>{});
+}
+
+template <typename T, typename F, typename Tuple>
+void call_member_in_arg_pack(T* ptr, F func, Tuple&& pack_args_tuple) {
+    using RT = std::decay_t<Tuple>;
+    metautils_detail::expand_member_tuple(ptr, func, std::forward<Tuple>(pack_args_tuple)
+        , std::make_index_sequence<std::tuple_size_v<RT>>{});
+}
+
+template <typename T, typename F, typename Tuple>
+auto call_member_in_arg_pack_ret(T* ptr, F func, Tuple&& pack_args_tuple) {
+    using RT = std::decay_t<Tuple>;
+    return metautils_detail::expand_member_tuple_ret(ptr, func, std::forward<Tuple>(pack_args_tuple)
+        , std::make_index_sequence<std::tuple_size_v<RT>>{});
+}
+
+template <typename Tuple, typename Func>
+void tuple_for_each(Func f) {
+    metautils_detail::tuple_for_each_impl<
+        typename apply_template_on<std::optional, Tuple>::type
+    >(f, std::make_index_sequence<std::tuple_size_v<Tuple>>());
 }
 }

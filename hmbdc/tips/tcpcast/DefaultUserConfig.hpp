@@ -12,7 +12,8 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "loopback"                          : false,                    "__loopback"                      :"set this to true if processes within the same host need to communicate using tcpcast",
     "mtu"                               : 1500,                     "__mtu"                           :"mtu, check ifconfig output for this value for each NIC in use",
     "schedPolicy"                       : "SCHED_OTHER",            "__schedPolicy"                   :"engine thread schedule policy - check man page for allowed values",
-    "schedPriority"                     : 0,                        "__schedPriority"                 :"engine thread schedule priority - check man page for allowed values",      
+    "schedPriority"                     : 0,                        "__schedPriority"                 :"engine thread schedule priority - check man page for allowed values",
+    "tcpKeepAlive"                      : 0,                        "__tcpKeepAlive"                  :"drop TCP connection when host is down",
     "udpcastDests"                      : "232.43.212.235:4321",    "__udpcastDests"                  :"this is the multicast address (default matches udpcastListenAddr udpcastListenPort), it could be a list of multicast address, unicast addresses",
     "tx" :
     {

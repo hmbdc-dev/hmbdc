@@ -84,7 +84,7 @@ public:
     : SingleNodeDomain::Domain(cfg) {
     }
 
-/**
+    /**
      * @brief add THE Node within this Domain as a thread - handles its subscribing here too
      * @details should only call this once since it is a SingleNodeDomain
      * @tparam Node a concrete Node type that send and/or recv Messages
@@ -101,6 +101,15 @@ public:
         return *this;
     }
 
+    /**
+     * @brief See Domain::publish. Additional note:
+     * Since we do not use a dedicated Domain thread in SingleNodeDomain, it is important to
+     * allocate enough ipcMessageQueueSizePower2Num for IPC use to avoid deadlock. Would throw
+     * std::out_of_range when immidiate deadlock is detected.
+     * 
+     * @tparam Message See Domain::publish
+     * @param m See Domain::publish
+     */
     template <app::MessageC Message>
     void publish(Message&& m) {
         if (hmbdc_unlikely(!tryPublish(std::forward<Message>(m)))) {
@@ -126,7 +135,6 @@ public:
     using SingleNodeDomain::Domain::ipcSubscribingPartyCount;
     using SingleNodeDomain::Domain::netSubscribingPartyCount;
     using SingleNodeDomain::Domain::ownIpcTransport;
-    using SingleNodeDomain::Domain::publish;
     using SingleNodeDomain::Domain::tryPublish;
     using SingleNodeDomain::Domain::publishJustBytes;
     using SingleNodeDomain::Domain::allocateInShmFor0cpy;

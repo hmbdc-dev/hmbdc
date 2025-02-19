@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <memory>
 #include <string>
+#include <stdexcept>
 
 #include <sys/types.h>         
 #include <sys/socket.h>
@@ -35,7 +36,14 @@ struct EpollFd : app::utils::EpollFd {
         if (setsockopt(fd, SOL_SOCKET,SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
             HMBDC_LOG_C("failed to set reuse address errno=", errno);
         }
-        
+
+        if (cfg.getExt<bool>("tcpKeepAlive")) {
+            int keepAlive = 1;
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(keepAlive)) < 0) {
+                HMBDC_LOG_C("failed to set KEEPALIVE, errno=", errno);
+            }
+        }
+
         localAddr.sin_family = AF_INET;
         localAddr.sin_addr.s_addr = inet_addr(hmbdc::comm::inet::getLocalIpMatchMask(
             cfg.getExt<std::string>("ifaceAddr")).c_str());

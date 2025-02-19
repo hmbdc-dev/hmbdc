@@ -593,7 +593,7 @@ main(int argc, char** argv) {
 #endif        
 
     } else if (netprot == "nonet") {
-        return run((NoProtocol*)nullptr);
+        return run((nonet::Protocol*)nullptr);
     } else {
         cerr << desc << "\n";
         return -3;

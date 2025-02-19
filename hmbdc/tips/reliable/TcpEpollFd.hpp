@@ -4,6 +4,7 @@
 #include "hmbdc/app/Config.hpp"
 #include "hmbdc/comm/inet/Misc.hpp"
 #include <string>
+#include <stdexcept>
 
 #include <sys/types.h>         
 #include <sys/socket.h>
@@ -18,6 +19,13 @@ struct TcpEpollFd : app::utils::EpollFd {
         fd = socket(AF_INET, SOCK_STREAM, 0);
         if(fd < 0) {
             HMBDC_THROW(std::runtime_error, "failed to create socket, errno=" << errno);
+        }
+
+        if (cfg.getExt<bool>("tcpKeepAlive")) {
+            int keepAlive = 1;
+            if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(keepAlive)) < 0) {
+                HMBDC_THROW(std::runtime_error, "failed to set KEEPALIVE, errno=" << errno);
+            }
         }
 
         int flags = fcntl(fd, F_GETFL, 0);

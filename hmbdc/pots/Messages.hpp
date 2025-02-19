@@ -13,8 +13,7 @@
 namespace hmbdc { namespace pots {
 /**
  * @brief Singleton class that holds POTS message delivery resources and configurations
- * Need to be contructed as the first step of POTS use
- * 
+ * Need to be contructed as the first step of POTS use - like in the early stage of main()
  */
 class MessageConfigurator final : public hmbdc::pattern::GuardedSingleton<MessageConfigurator> {
     friend hmbdc::pattern::SingletonGuardian<MessageConfigurator>;
@@ -39,6 +38,17 @@ class MessageConfigurator final : public hmbdc::pattern::GuardedSingleton<Messag
             topic2Tag_[topic] = tagIndex++;
         }
     }
+
+     /**
+     * @brief Construct a the Message Configurator object with all topics passed in
+     * 
+     * @tparam StringIterator topic iterator
+     * @param topicStringBegin iterator for topics begin
+     * @param topicStringEnd  iterator for topics end
+     */
+    template <typename TopicList>
+    MessageConfigurator(TopicList const& allTopics)
+    : MessageConfigurator(std::begin(allTopics), std::end(allTopics)) {}
 
     public:
     static constexpr uint16_t kPotsMsgStartTag = 10001;

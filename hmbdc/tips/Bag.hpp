@@ -1,8 +1,13 @@
+#pragma once
 #include "hmbdc/time/Time.hpp"
 #include "hmbdc/app/Config.hpp"
+#include "hmbdc/app/Message.hpp"
 #include <iostream>
 #include <fstream>
+#include <atomic>
+#include <future>
 #include <sstream>
+#include <unordered_map>
 
 /**
  * @brief a bag is a file that contains a sequence of timestamped TIPS messages
@@ -100,6 +105,7 @@ struct OutputBag {
         if (att) {
             recordBag_.write((char*)att->attachment, att->len);
         }
+        recordBagStats_[tag]++;
     }
 
     /**
@@ -113,6 +119,27 @@ struct OutputBag {
     }
 
     /**
+     * @brief a map from tag to counts in the bag
+     * 
+     * @return auto& the map
+     */
+    auto& stats() const {
+        return recordBagStats_;
+    }
+
+    /**
+     * @brief dump t he above int a stream
+     * 
+     * @param os output stream
+     */
+    void dumpStats(std::ostream& os) const {
+        for (auto const& [tag, count] : stats()) {
+            os << tag << " : " << count << std::endl;
+        }
+    }
+
+
+    /**
      * @brief close the bag file
      * 
      */
@@ -123,6 +150,7 @@ struct OutputBag {
 private:
     size_t bufWidth_;
     std::ofstream recordBag_;
+    std::unordered_map<uint16_t, size_t> recordBagStats_;
 };
 
 /**
@@ -130,13 +158,23 @@ private:
  * 
  */
 struct InputBag {
+    std::optional<std::unordered_set<int16_t>> const runtimeFilterinTags;
+    std::optional<std::pair<time::SysTime, time::Duration>> const bagPlayRange; /// passed in
+
     /**
      * @brief Construct a new Input Bag object
      * 
      * @param file the bag file
+     * @param runtimeFilterinTags an optional tag filering hash set
+     * @param bagPlayRange an optional pair specifying the time range in the bag to play in the simulation
+     * 
      */
-    InputBag(char const* file)
-    : playBag_(file, std::ofstream::in | std::ios::binary) {
+    InputBag(char const* file
+        , std::optional<std::unordered_set<int16_t>> const& runtimeFilterinTags = std::nullopt
+        , std::optional<std::pair<time::SysTime, time::Duration>> bagPlayRange = std::nullopt)
+    : runtimeFilterinTags{runtimeFilterinTags}
+    , bagPlayRange{bagPlayRange} 
+    , playBag_(file, std::ofstream::in | std::ios::binary) {
         playBag_ >> bh_;
         std::ostringstream oss;
         char conf[bh_.cfgLen + 1];
@@ -203,36 +241,56 @@ struct InputBag {
      * @return BagMessageHead - it also contains the tag and other info
      */
     BagMessageHead play(uint16_t& tag, uint8_t* bytes, app::hasMemoryAttachment*& att) {
+        auto playOk = false;
         BagMessageHead bmh;
-        playBag_ >> bmh;
-        if (playBag_) {
-            tag = bmh.tag;
-            playBag_.read((char*)bytes, bufWidth_);
-            if (bmh.attLen != 0xfffffffffffffffful) {
-                att = new (bytes) app::hasMemoryAttachment;
-                att->len = bmh.attLen;
-                att->attachment = malloc(sizeof(size_t) + att->len);
-                auto& refCount = *(size_t*)att->attachment;
-                refCount = 1;
-                att->clientData[0] = (uint64_t)&refCount;
-                att->attachment = (char*)att->attachment + sizeof(size_t);
-                att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* att) {
-                    auto& refCount = *((size_t*)att->clientData[0]);
-                    if (0 == --*reinterpret_cast<std::atomic<size_t>*>(&refCount)) {
-                    // if (0 == __atomic_sub_fetch(&refCount, 1, __ATOMIC_RELAXED)) {
-                        auto toFree = (char*)att->attachment;
-                        toFree -= sizeof(size_t);
-                        ::free(toFree);
-                    }
-                };
-
-                if (!playBag_.read((char*)att->attachment, att->len)) {
-                    att->release();
-                    playBag_.close();
-                }
-            } else {
-                att = nullptr;
+        while(!playOk) {
+            playBag_ >> bmh;
+            if (!playBag_ || 
+                (bagPlayRange && bmh.createdTs >= bagPlayRange->first + bagPlayRange->second)) {
+                break;
             }
+            if ((!runtimeFilterinTags || runtimeFilterinTags->count(bmh.tag))
+                && (!bagPlayRange || bmh.createdTs >= bagPlayRange->first)) {
+                tag = bmh.tag;
+                if (!playBag_.read((char*)bytes, bufWidth_)) {
+                    break;
+                }
+                if (bmh.attLen != 0xfffffffffffffffful) {
+                    att = new (bytes) app::hasMemoryAttachment;
+                    att->len = bmh.attLen;
+                    att->attachment = malloc(sizeof(size_t) + att->len);
+                    auto& refCount = *(size_t*)att->attachment;
+                    refCount = 1;
+                    att->clientData[0] = (uint64_t)&refCount;
+                    att->attachment = (char*)att->attachment + sizeof(size_t);
+                    att->afterConsumedCleanupFunc = [](app::hasMemoryAttachment* att) {
+                        auto& refCount = *((size_t*)att->clientData[0]);
+                        if (0 == --*reinterpret_cast<std::atomic<size_t>*>(&refCount)) {
+                            auto toFree = (char*)att->attachment;
+                            toFree -= sizeof(size_t);
+                            ::free(toFree);
+                        }
+                    };
+
+                    if (!playBag_.read((char*)att->attachment, att->len)) {
+                        att->release();
+                        playBag_.close();
+                        break;
+                    }
+                } else {
+                    att = nullptr;
+                }
+                playOk = true; // only place for playOk true
+            } else {
+                playBag_.seekg(bufWidth_, std::ios::cur);
+                if (bmh.attLen != 0xfffffffffffffffful) {
+                    playBag_.seekg(bmh.attLen, std::ios::cur);
+                }
+            }
+        };
+        if (!playOk) {
+            playBag_.close();
+            bmh = BagMessageHead{};
         }
         return bmh;
     }

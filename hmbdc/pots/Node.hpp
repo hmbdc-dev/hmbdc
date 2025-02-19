@@ -18,9 +18,8 @@ namespace hmbdc { namespace pots {
  */
 template <typename CcNode>
 class Node 
-: public tips::Node<CcNode, std::tuple<Message>, std::tuple<Message>>
-, public time::TimerManager {
-    using Base = tips::Node<CcNode, std::tuple<Message>, std::tuple<Message>>;
+: public tips::Node<CcNode, std::tuple<Message>, std::tuple<Message>, tips::will_schedule_timer> {
+    using Base = tips::Node<CcNode, std::tuple<Message>, std::tuple<Message>, tips::will_schedule_timer>;
     std::unordered_set<uint16_t> subs_;
     std::unordered_set<uint16_t> pubs_;
 

@@ -10,7 +10,7 @@ namespace hmbdc { namespace pots {
 /**
  * @brief POTS stands for Publish On Topic String
  * It is a C++ string topic based messgage delivery lib built on top of Type Inferred Pub/Sub (see tips dir)
- * The purpose of pots is to provide the string topic based systems a strightforward path to 
+ * The purpose of POTS is to provide the string topic based systems a strightforward path to 
  * use hmbdc.
  * 
  * Just like TIPS, POTS covers inter thread, inter process and network communication. 

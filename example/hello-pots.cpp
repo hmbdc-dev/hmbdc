@@ -1,7 +1,7 @@
-// hello-world for hmbdc POTS 
+// hello world for hmbdc POTS 
 // - see concepts of domain and Node https://github.com/hmbdc-dev/hmbdc
 // to build:
-// g++ hello-world-pots.cpp -O3 -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw-pots
+// g++ hello-pots.cpp -O3 -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw-pots
 //
 // example screenshot on localhost - start receiver first on term 1, then sender on term 2:
 // [term1] /tmp/hw-pots 127.0.0.1 recv
@@ -45,21 +45,21 @@ char const* AllTopics[] = {
     "/hi-back",
 };
 
-/// write a Node publish the message @1HZ for 10 times
+/// write a Node to publish on the topic "/hello" @1HZ for 10 times and print out the echoing "/hi-back"
 struct Sender : pots::Node<Sender> {
     Sender() 
     : Node{
-        {"/hi-back"}        // 1 subscription
-        , {"/hello"}        // publish 1 topic
+        {"/hi-back"}        // subscribe topics
+        , {"/hello"}        // publish topics
     } {
         // schedule the 1HZ timer - first firing asap from now
-        TimerManager::schedule(time::SysTime::now(), timer1Hz);
+        Node::schedule(time::SysTime::now(), timer1Hz);
     }
 
     /// node/thread name
     char const* hmbdcName() const {return "Sender";}
 
-    /// called only once before any message dispatching happens
+    /// called only once before any message dispatching (or timer callback) happens
     virtual void messageDispatchingStartedCb(std::atomic<size_t> const*) override {
         std::cout << "start messaging and timers" << std::endl;
     }
@@ -77,7 +77,7 @@ struct Sender : pots::Node<Sender> {
     }
 
     /// timer
-    time::ReoccuringTimer timer1Hz{time::Duration::seconds(1) // reoccure every 1 sec
+    time::ReoccuringTimer timer1Hz{time::Duration::seconds(1) // re-occure every 1 sec
         , [this](auto&&, auto&&) {                            // do this when timer fires  
         static auto count = 10;
         if (count--) { 
@@ -85,12 +85,12 @@ struct Sender : pots::Node<Sender> {
             auto msg = "hello world!";
             publish("/hello", msg, strlen(msg) + 1);
         } else {
-            throw (ExitCode(0)); // node finished and exit it by throw an exception
+            throw (ExitCode(0)); // node finished and exits it by throw an exception
         }
     }};
 };
 
-/// write a Node subscribe to the message
+/// write a Node subscribe to the topic "/hellow" and echo back on "/hi-back"
 struct Receiver : pots::Node<Receiver> {
     Receiver()
     : Node(
@@ -116,23 +116,20 @@ int main(int argc, char** argv) {
     }
     auto ifaceAddr = argv[1];
     bool isSender = argc <= 2;
-    if (!isSender) {
-        cout << "running as receiver, ctrl-c to exit" << endl;
-    }
     
-    hmbdc::pattern::SingletonGuardian<pots::MessageConfigurator> 
-        g{std::begin(AllTopics), std::end(AllTopics)}; //Step 1: RAII
+    hmbdc::pattern::SingletonGuardian<pots::MessageConfigurator> g{AllTopics}; //Step 1: RAII
     auto domain = pots::DefaultDomain{ifaceAddr};
 
-    if (isSender) { //running as sender
+    if (isSender) {
+        cout << "running as sender for 10 sec and exit" << endl;
         Sender sender;
         domain.add(sender);                     /// start sender as a thread
         domain.startPumping();                  /// start process-level message IO
         sleep(10);           // let the sender thread run for a while
         domain.stop();       // wrap up and exit
         domain.join();
-    } else {  //as a receiver
-        auto domain = pots::DefaultDomain{ifaceAddr};
+    } else {
+        cout << "running as receiver, ctrl-c to exit" << endl;
         Receiver recv;
         domain.add(recv).startPumping();            /// recv Node and IO started
         /// handle ctrl-c

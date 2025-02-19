@@ -887,7 +887,5 @@ private:
 
     private:
     std::atomic<size_t> dispStartCount_ = 0;
-    
-
 };
 }}

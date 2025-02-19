@@ -20,6 +20,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "schedPolicy"   : "SCHED_OTHER",                    "__schedPolicy"                  :"engine thread schedule policy - check man page for allowed values",
     "schedPriority" : 0,                                "__schedPriority"                :"engine thread schedule priority - check man page for allowed values",
     "tcpIfaceAddr"  : "UNSPECIFIED",                    "__tcpIfaceAddr"                 :"ip address for the NIC interface for TCP (backup) traffic IO, it needs  to be a different one from the netmapPort NIC. no default provided",
+    "tcpKeepAlive"  : 0,                                "__tcpKeepAlive"                 :"drop TCP connection when host is down",
     "tcpPort"       : 0,                                "__tcpPort"                      :"tcp port number used as backup communication channel - 0 means let the OS pick",
 
     "tx" :   

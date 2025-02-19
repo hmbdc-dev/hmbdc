@@ -203,7 +203,7 @@ struct hasSharedPtrAttachment {
 
     private:
     template <app::MessageTupleC, typename, typename, typename, typename> friend struct Domain;
-    template <typename, app::MessageTupleC, app::MessageTupleC, bool> friend struct Node;
+    template <typename, app::MessageTupleC, app::MessageTupleC, typename...> friend struct Node;
 
     /**
      * @brief reset to a new state

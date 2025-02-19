@@ -40,13 +40,14 @@ struct net_property {
     using protocol = Protocol;
 };
 
+namespace nonet {
 /**
  * @brief Placeholder for the Protocol within net_property
  * that turns off network communication at compile time
  * 
  */
-struct NoProtocol
-: pattern::GuardedSingleton<NoProtocol> {
+struct Protocol : pattern::GuardedSingleton<Protocol> {
+    static constexpr char const* name() { return "nonet"; }
     using SendTransportEngine = void*;
     template <typename Buffer, typename AttachmentAllocator>
     using RecvTransportEngine = void*;
@@ -64,15 +65,16 @@ struct NoProtocol
     }
 
     private:
-    friend pattern::SingletonGuardian<NoProtocol>;
-    NoProtocol(){}
+    friend pattern::SingletonGuardian<Protocol>;
+    Protocol(){}
 };
+}
 
 /**
  * @brief net_property that turns off network communication at compile time
  * 
  */
-using NoNet = net_property<NoProtocol, 0>;
+using NoNet = net_property<nonet::Protocol, 0>;
 
 /**
  * @brief template that Domain uses for the IPC communication properties
@@ -339,9 +341,9 @@ struct DefaultAttachmentAllocator {
  * @tparam IpcProp IPC preoperty - see ipc_property template
  * @tparam NetProp Network communication properties - see net_property template
  * @tparam NodeContext the type that manages the nodes and accepts the inter thread messages
- * the default app::BlockingContext is a relaible delivery NodeContext; Consider use 
- * app::BlockingContextRt for realtime application that only cares receiving the latest messages and lose
- * the older ones
+ * the default app::BlockingContext is a reliable delivery NodeContext with blocking behavior.
+ * Consider using app::BlockingContextRt for realtime application that only cares receiving the latest 
+ * messages and lose the older ones - no blocking behavior that way
  * @tparam AttachmentAllocator the memory allocation policy for attachment - see DefaultAttachmentAllocator
  */
 template <app::MessageTupleC RecvMessageTupleIn
@@ -366,10 +368,10 @@ private:
     enum {
         run_pump_in_ipc_portal = IpcProperty::capacity != 0,
         run_pump_in_thread_ctx = run_pump_in_ipc_portal
-            ? 0 : !std::is_same<NoProtocol, typename NetProperty::protocol>::value,
+            ? 0 : !std::is_same<nonet::Protocol, typename NetProperty::protocol>::value,
         has_a_pump = run_pump_in_ipc_portal || run_pump_in_thread_ctx,
-        has_net_send_eng = !std::is_same<NoProtocol, typename NetProperty::protocol>::value,
-        has_net_recv_eng = !std::is_same<NoProtocol, typename NetProperty::protocol>::value
+        has_net_send_eng = !std::is_same<nonet::Protocol, typename NetProperty::protocol>::value,
+        has_net_recv_eng = !std::is_same<nonet::Protocol, typename NetProperty::protocol>::value
             && std::tuple_size<NetableRecvMessages>::value,
     };
     
@@ -1394,24 +1396,26 @@ public:
      * this function start all the pumps
      */
     void startPumping() {
-        auto pumpRunMode = config_.getExt<std::string>("pumpRunMode");
-        static_assert(run_pump_in_ipc_portal || run_pump_in_thread_ctx
-            , "no pump or it does not need to be started for this Domain type, do not call this");
-        if (pumpRunMode == "delayed") {
-            if constexpr (run_pump_in_ipc_portal) {
-                for (auto& pump : pumps_) {
-                    ipcTransport_->start(pump
-                        , config_.getHex<uint64_t>("pumpCpuAffinityHex"));
-                }
-            } else if constexpr (run_pump_in_thread_ctx) {
-                for (auto& pump : pumps_) {
-                    threadCtx_.start(pump, 0, 0
-                        , config_.getHex<uint64_t>("pumpCpuAffinityHex")
-                        , config_.getHex<time::Duration>("pumpMaxBlockingTimeSec"));
-                }
-            }
+        if constexpr (!(run_pump_in_ipc_portal || run_pump_in_thread_ctx)) {
+            return; // no-op
         } else {
-            HMBDC_THROW(std::logic_error, "pump was not configured as delayed");
+            auto pumpRunMode = config_.getExt<std::string>("pumpRunMode");
+            if (pumpRunMode == "delayed") {
+                if constexpr (run_pump_in_ipc_portal) {
+                    for (auto& pump : pumps_) {
+                        ipcTransport_->start(pump
+                            , config_.getHex<uint64_t>("pumpCpuAffinityHex"));
+                    }
+                } else if constexpr (run_pump_in_thread_ctx) {
+                    for (auto& pump : pumps_) {
+                        threadCtx_.start(pump, 0, 0
+                            , config_.getHex<uint64_t>("pumpCpuAffinityHex")
+                            , config_.getHex<time::Duration>("pumpMaxBlockingTimeSec"));
+                    }
+                }
+            } else {
+                HMBDC_THROW(std::logic_error, "pump was not configured as delayed");
+            }
         }
     }
 
@@ -1542,10 +1546,10 @@ public:
      * the Nodes within local process only.
      * enum of DisableSendMask could also be used to disable local, IPC or network paths.
      * 
-     * @tparam Message The type that need to fit into the max_message_size specified by the
+     * @tparam Message The type that needs to fit into the max_message_size specified by the
      * ipc_property and net_property. Its copy ctor is used to push it to the outgoing buffer.
-     * With that in mind, the user can do partial copy using the copy ctor to implement just publish
-     * the starting N bytes
+     * With that in mind, the user can do partial copy using the copy ctor to implement just
+     * publish the starting N bytes
      * @param m message
      */
     template <app::MessageC Message>
@@ -1713,10 +1717,11 @@ public:
      * 
      */
     void join() {
+        threadCtx_.join();
         if constexpr (run_pump_in_ipc_portal) {
+            ipcTransport_->stop(); // no need to run, no clients
             ipcTransport_->join();
         }
-        threadCtx_.join();
     }
 };
 

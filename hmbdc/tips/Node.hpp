@@ -1,6 +1,7 @@
 #include "hmbdc/Copyright.hpp"
 #pragma once
 #include "hmbdc/tips/TypeTagSet.hpp"
+#include "hmbdc/time/Timers.hpp"
 #include "hmbdc/MetaUtils.hpp"
 
 #include <functional>
@@ -117,6 +118,14 @@ struct aggregate_send_msgs<Node, Nodes ...> {
     >::type;
 };
 
+struct null_type{};
+/**
+ * @brief traits defined for Node - see Node doc below
+ * 
+ */
+struct has_message_stash{};
+struct will_schedule_timer{};
+
 /**
  * @brief a Node is a thread of execution that can suscribe and receive Messages
  * @details There are two categories of callback functions "Cb" and "Cfg" and 
@@ -128,21 +137,25 @@ struct aggregate_send_msgs<Node, Nodes ...> {
  * pub/sub configurations before message dispatching in the main thread; at that time the Node's 
  * thread has not been started (loadCb() is NOT called yet)
  * @tparam CcNode The concrete Node type
- * @tparam RecvMessageTuple The std tuple list all the received Message types.
+ * @tparam RecvMessageTupleIn The std tuple list all the received Message types.
  * The matching handleMessageCb for the above type needs to be provided for each type
  * so this message is handled - othewise cannot not compile. For example:
  * void handleMessageCb(MessageA const& m){...}
- * @tparam HasMessageStash - if the Node needs Message reorderring support
- * See ClientWithStash.hpp
+ * @tparam SendMessageTupleIn The std tuple list all the publish Message types.
+ * Cannot not compile if trying to publish a message not listed here.
+ * @tparam Traits - can be any combination of the following:
+ *  has_message_stash - if the Node needs Message reordering support, see ClientWithStash.hpp
+ *  will_schedule_timer - if the Node schedule Timers on its thread 
  */
 template <typename CcNode
     , app::MessageTupleC RecvMessageTupleIn
     , app::MessageTupleC SendMessageTupleIn = std::tuple<>
-    , bool HasMessageStashIn = false>
-struct Node {
-    enum {
-        HasMessageStash = HasMessageStashIn
-    };
+    , typename ...Traits>
+struct Node
+: std::conditional_t<is_in_tuple_v<will_schedule_timer, std::tuple<Traits...>>
+    , time::TimerManager, null_type> {
+    using TraitTuple = std::tuple<Traits...>;
+    enum { HasMessageStash = is_in_tuple_v<has_message_stash, TraitTuple>, };
     /**
      * @brief Concrete Node needs to specify a list of Messages that would be sent out
      * if this Node is active to help IPC and network delivering filtering.

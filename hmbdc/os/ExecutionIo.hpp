@@ -86,11 +86,6 @@ struct ExecutionIo {
 
 	ExecutionIo& readErr(std::string& output) {
 		return read(exeStderrFd, output, errbuf_, sizeof(errbuf_), errbufLen_, errStatus);
-
-		// char buf[1024];
-		// int s = read(exeStderrFd, buf, sizeof(buf));
-		// output = std::string(buf, s);
-		// return *this;
 	}
 
 private:

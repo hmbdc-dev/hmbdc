@@ -38,7 +38,8 @@ protected:
 /**
  * @brief stash a message that will be delivered later to the same callback
  * @details when the Client decide a message is not ready to be handled now but is needed later,
- * it calls this message to stash it, see also openStash()
+ * it calls this method to stash it, see also openStash()
+ * This can also be used to inject an extra message for the Client to process
  * 
  * @param message the message to be stashed
  */

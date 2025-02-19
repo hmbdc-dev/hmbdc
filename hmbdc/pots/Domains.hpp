@@ -22,10 +22,18 @@ namespace hmbdc::pots {
          * @brief Construct a new Default Domain object
          * 
          * @param ip the local net interface used in communication - can use loopback for testing 
+         * @param udpServiceAddr, udpServicePort these pair identifies a domain, set this differently if you want to isolate communications 
+         * for different domains
          */
-        DefaultDomain(char const* ip) 
-        : Domain(app::Config{}.put("ifaceAddr", ip))
-        {}
+        DefaultDomain(char const* ip
+            , char const* udpServiceAddr = "232.43.212.235"
+            , uint16_t udpServicePort = 4322)
+        : Domain(app::Config{}
+            .put("ifaceAddr", ip)
+            .put("udpcastListenAddr", udpServiceAddr)
+            .put("udpcastListenPort", udpServicePort)
+            .put("udpcastDests", std::string(udpServiceAddr) + ":" + std::to_string(udpServicePort))
+        ) {}
     };
 
     /**
@@ -44,9 +52,16 @@ namespace hmbdc::pots {
          * @brief Construct a new Default Domain object
          * 
          * @param ip the local net interface used in communication - can use loopback for testing 
+         * @param udpServiceAddr, udpServicePort these pair identifies a domain, set this differently if you want to isolate communications
          */
-        RtDomain(char const* ip) 
-        : Domain(app::Config{}.put("ifaceAddr", ip))
-        {}
+        RtDomain(char const* ip
+            , char const* udpServiceAddr = "232.43.212.235"
+            , uint16_t udpServicePort = 4322)
+        : Domain(app::Config{}
+            .put("ifaceAddr", ip)
+            .put("udpcastListenAddr", udpServiceAddr)
+            .put("udpcastListenPort", udpServicePort)
+            .put("udpcastDests", std::string(udpServiceAddr) + ":" + std::to_string(udpServicePort))
+        ) {}
     };
 }
