@@ -122,7 +122,7 @@ struct hasTag {
 HMBDC_CLASS_HAS_DECLARE(hmbdcIsAttInShm);
 /**
  * @class hasMemoryAttachment
- * @brief if a specific hmbdc network transport (for example tcpcast, rmcast, and rnetmap) supports message 
+ * @brief if a specific hmbdc network transport (for example tcpcast, rmcast) supports message 
  * with memory attachment, the message needs to be derived from this base - as the FIRST base, 
  * so it can be handled properly by the hmbdc network transport when sending and receiving it.
  * @details user on the sending side cannot directly free the attachment, instead the user can provide 

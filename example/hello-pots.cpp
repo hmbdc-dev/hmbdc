@@ -1,4 +1,4 @@
-// hello world for hmbdc POTS 
+// hello world for hmbdc POTS (Pubish On Text Strings) messaging system
 // - see concepts of domain and Node https://github.com/hmbdc-dev/hmbdc
 // to build:
 // g++ hello-pots.cpp -O3 -std=c++1z -pthread -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Ipath-to-boost -lrt -o /tmp/hw-pots
@@ -39,14 +39,14 @@
 
 using namespace hmbdc;
 
-// list all topic - in the same order in each compiling unit
+// list all topics - in the same order in each compiling unit (usually in a header file)
 char const* AllTopics[] = {
     "/hello",
     "/hi-back",
 };
 
 /// write a Node to publish on the topic "/hello" @1HZ for 10 times and print out the echoing "/hi-back"
-struct Sender : pots::Node<Sender> {
+struct Sender : pots::Node {
     Sender() 
     : Node{
         {"/hi-back"}        // subscribe topics
@@ -57,7 +57,7 @@ struct Sender : pots::Node<Sender> {
     }
 
     /// node/thread name
-    char const* hmbdcName() const {return "Sender";}
+    char const* potsName() const override {return "Sender";}
 
     /// called only once before any message dispatching (or timer callback) happens
     virtual void messageDispatchingStartedCb(std::atomic<size_t> const*) override {
@@ -91,15 +91,15 @@ struct Sender : pots::Node<Sender> {
 };
 
 /// write a Node subscribe to the topic "/hellow" and echo back on "/hi-back"
-struct Receiver : pots::Node<Receiver> {
+struct Receiver : pots::Node {
     Receiver()
     : Node(
         {"/hello"}          // 1 subscription
         , {"/hi-back"})     // publish 1 topic
     {}
-    char const* hmbdcName() const {return "Receiver";}
+    char const* potsName() const override {return "Receiver";}
     /// message callback - won't compile if missing
-    void potsCb(std::string_view topic, void const* msg, size_t msgLen) {
+    void potsCb(std::string_view topic, void const* msg, size_t msgLen) override {
         std::cout << static_cast<char const*>(msg) << std::endl;
 
         std::string back{"world hi back"};

@@ -1,5 +1,5 @@
 //
-// HMBDC TIPS supports C++ type and numeric tag based pub/sub due to its optimal performance, simplicity and flexibility.
+// HMBDC TIPS (Topic Inferred Pub/Sub) supports C++ type and numeric tag based pub/sub due to its optimal performance, simplicity and flexibility.
 // However, many existing apps use string topic based pub/sub middleware and here is an example to show 
 // how to statically map topic strings into tags in the code with minimum effort.
 // 

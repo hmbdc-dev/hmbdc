@@ -8,6 +8,9 @@
 #include <stdexcept>
 #include <type_traits>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+
 namespace hmbdc { namespace text {
 
 namespace lfb_stream {
@@ -23,9 +26,9 @@ template <uint32_t SIZE_LIMIT, typename T>
 struct TypedStreamable
 : Streamable {
     using RT = std::decay_t<T>;
-    TypedStreamable(RT const& m)
+    explicit TypedStreamable(RT const& m)
     : payload(m){}
-    TypedStreamable(RT&& m)
+    explicit TypedStreamable(RT&& m)
     : payload(std::move(m)){}
     RT payload;
     virtual void dump(std::ostream& os) const override {os << payload;}
@@ -140,3 +143,5 @@ private:
 };
 
 }}}
+
+#pragma GCC diagnostic pop

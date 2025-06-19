@@ -13,15 +13,41 @@ namespace hmbdc { namespace pots {
  * All messages are received through "Cb" callback functions. All "Cb"callback functions
  * are called in this Node's thread sequentially, so there is no data protection needs
  * within a Node from this perspective.
- * 
- * @tparam CcNode The concrete node type
  */
-template <typename CcNode>
 class Node 
-: public tips::Node<CcNode, std::tuple<Message>, std::tuple<Message>, tips::will_schedule_timer> {
-    using Base = tips::Node<CcNode, std::tuple<Message>, std::tuple<Message>, tips::will_schedule_timer>;
+: public tips::Node<Node, std::tuple<Message>, std::tuple<Message>, tips::will_schedule_timer> {
+    using Base = tips::Node<Node, std::tuple<Message>, std::tuple<Message>, tips::will_schedule_timer>;
     std::unordered_set<uint16_t> subs_;
     std::unordered_set<uint16_t> pubs_;
+
+    /**
+     * @brief unimplemented callback for when a msg is received
+     * 
+     * @param topic topic of the message
+     * @param msg msg bytes ptr
+     * @param msgLen msg length
+     */
+    virtual void potsCb(std::string_view topic, void const* msg, size_t msgLen) = 0;
+
+    /**
+     * @brief overridable, the thread name used to identify the thread the Node is running on
+     *  - only for display purpose
+     * 
+     * @return char const* a string - less than 8 char typically
+     */
+    virtual char const* potsName() const {return "potsnode";}
+
+    /**
+     * @brief an overrideable method.
+     * returns the schedule policy and priority this need to be running with, override if necessary
+     * priority OS priority when used with "SCHED_RR", or "SCHED_FIFO", for "SCHD_OTHER", it is the nice value
+     * the default (nulptr) is to use the current thread's policy and priority without changing it
+     * @details supported policies are nullptr, "SCHED_OTHER", "SCHED_RR", "SCHED_FIFO"
+     * @return a tuple made of schedule policy and priority, default to be SCHED_OTHER
+     */
+    virtual std::tuple<char const*, int> potsSchedSpec() const {
+        return std::make_tuple<char const*, int>(nullptr, 0);
+    }
 
     public:
     /**
@@ -57,14 +83,6 @@ class Node
         }
     }
 
-    /**
-     * @brief unimplemented callback for when a msg is received
-     * 
-     * @param topic topic of the message
-     * @param msg msg bytes ptr
-     * @param msgLen msg length
-     */
-    virtual void potsCb(std::string_view topic, void const* msg, size_t msgLen) = 0;
     /**
      * @brief publish some bytes (a message) on a topic
      * 
@@ -103,20 +121,11 @@ class Node
     }
 
     /**
-     * @brief overridable, the thread name used to identify the thread the Node is running on
-     *  - only for display purpose
-     * 
-     * @return char const* a string - less than 8 char typically
-     */
-    char const* hmbdcName() const {return "potsnode";}
-
-    /**
      * @brief one time callback when the node starts runs in its own thread
      * @param ignore
      */
     virtual void messageDispatchingStartedCb(std::atomic<size_t> const*) override {
-        auto& ccNode = static_cast<CcNode&>(*this);
-        HMBDC_LOG_N(ccNode.hmbdcName(), " starting");
+        HMBDC_LOG_N(hmbdcName(), " starting");
     }
 
     /**
@@ -124,8 +133,7 @@ class Node
      * @param exception
      */
     virtual void stoppedCb(std::exception const& e) override {
-        auto& ccNode = static_cast<CcNode&>(*this);
-        HMBDC_LOG_N(ccNode.hmbdcName(), " stopped, reason: ", e.what());
+        HMBDC_LOG_N(hmbdcName(), " stopped, reason: ", e.what());
     }
 
     /**
@@ -153,14 +161,14 @@ class Node
     /**
      * @brief functions below are impl details - do not change
      */
-
+    char const* hmbdcName() const {return potsName();}
+    std::tuple<char const*, int> schedSpec() const { return potsSchedSpec(); }
     void handleMessageCb(Message const& msg) {
-        auto& ccNode = static_cast<CcNode&>(*this);
         if (msg.inPlacePayloadLen) {
-            ccNode.potsCb(MessageConfigurator::instance().map2Topic(msg.getTypeTag())
+            potsCb(MessageConfigurator::instance().map2Topic(msg.getTypeTag())
                 , msg.inPlacePayload, msg.inPlacePayloadLen);
         } else {
-            ccNode.potsCb(MessageConfigurator::instance().map2Topic(msg.getTypeTag())
+            potsCb(MessageConfigurator::instance().map2Topic(msg.getTypeTag())
                 , msg.hasSharedPtrAttachment::attachmentSp.get()
                 , msg.hasSharedPtrAttachment::len);
         }

@@ -265,7 +265,7 @@ public:
         auto t = registerToRun(c, capacity, maxItemSize, std::forward<DeliverPred>(pred));
         auto thrd = kickOffClientThread(blocking_context_detail::runOnceImpl<Client>
             , c, t.use_count() == 1?nullptr:&t->buffer, cpuAffinity, maxBlockingTime);
-        threads_.push_back(move(thrd));
+        threads_.push_back(std::move(thrd));
         while (dispStartCount_ != threads_.size()) {
             std::this_thread::yield();
         }
@@ -731,9 +731,6 @@ private:
             try {
                 auto cpuAffinityMask = mask; 
                 std::tie(schedule, priority) = c.schedSpec();
-
-                if (!schedule) schedule = "SCHED_OTHER";
-
                 os::configureCurrentThread(name.c_str(), cpuAffinityMask
                     , schedule, priority);
                 dispStartCount_++;

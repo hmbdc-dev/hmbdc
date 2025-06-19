@@ -2,7 +2,7 @@
 # the Makefile is for reference purpose, if you need netmap functions in the tools remove the HMBDC_NO_NETMAP definition
 #
 exes := $(basename $(wildcard example/*.cpp)) $(basename $(wildcard tools/*.cpp)) tools/tips-ping-pong-rt
-COMPILE_OPTIONS:=-std=c++1z -fconcepts -Wno-parentheses -D HMBDC_NO_NETMAP -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Wall -Werror -lboost_program_options -pthread -lrt -O3 -ldl -I.
+COMPILE_OPTIONS:=-std=c++1z -fconcepts -Wno-parentheses -Wno-attribute-warning -Wno-vla-cxx-extension -D BOOST_BIND_GLOBAL_PLACEHOLDERS -Wall -Werror -lboost_program_options -pthread -lrt -O3 -ldl -I.
 ifdef tsan
 COMPILE_OPTIONS += -fsanitize=thread
 else ifdef asan

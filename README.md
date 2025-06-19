@@ -3,9 +3,8 @@
 hmbdc is an open source *headers only* C++ framework and library built on top of various real-world tested lockfree algorithms that facilitate ultra low latency and high throughput messagin (inter-thread, inter-process and thru network) programming. It aims to take most out of the allocated hardware resources (memory, cores, NICs and switches) to achieve latency and throughput goals. It works as a framework but it can also be used as libraries to collaborate with other frameworks or extend existing middleware capability with 'zero-copy', 'reliable multicast', 'kernel bypassing' etc, etc.
 
 Keywords and features:
-- Supports x86_64, aarch64, Linux, gcc(>=8.4.1), clang(>=10)and QNX/qcc(>=11, beta)
+- Supports x86_64, aarch64, Linux, gcc(>=8.4.1>), clang(>=10)and QNX/qcc(>=11, beta)
 - multithreaded without the headache
-- low latency / high throughput / supports kernel bypassing (via netmap drivers)
 - support easy to use symetric (no broker process) C++ type based message (both reliable and latest only) publish / subscribe with automatic pub/sub topology visualization and message recording / playback tools
 - support message recording (bags) and playback in real-time simulation
 - support multiple types of transport mechanisms with the consistent look and feel C++17 API:
@@ -13,9 +12,7 @@ Keywords and features:
     interprocess
     UDP multicast
     TCP
-    netmap multicast
     reliable multicast
-    reliable netmap
 - other high performance computing features: high speed async logging, timer, rate control ...
 - straightforward integration with any other programming languages that supports Linux piping
 - provide performance measurement tools

@@ -3,10 +3,6 @@
 #include "hmbdc/tips/rmcast/Protocol.hpp"
 #include "hmbdc/tips/ConsoleNode.hpp"
 
-#ifndef HMBDC_NO_NETMAP
-#include "hmbdc/tips/rnetmap/Protocol.hpp"
-#endif
-
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 
@@ -74,10 +70,9 @@ This program provides a console for a TIPS domain.
     std::string cfgString =
 R"|(
 {
-    "ifaceAddr"     : "127.0.0.1",      "__ifaceAddr"   : "(non-rnetmap) ip address for the NIC interface for IO, 0.0.0.0/0 pointing to the first intereface that is not a loopback",
-    "netmapPort"    : "UNSPECIFIED",    "__netmapPort"  : "(rnemtap) the netmap device (i.e. netmap:eth0-2, netmap:ens4) for sending/receiving, no default value. When multiple tx rings exists for a device (like 10G NIC), the sender side must be specific on which tx ring to use",
+    "ifaceAddr"     : "127.0.0.1",      "__ifaceAddr"   : "ip address for the NIC interface for IO, 0.0.0.0/0 pointing to the first intereface that is not a loopback",
     "ipcCapacity"   : 64,               "__ipcCapacity" : "See capacity in ipc_property in Domain.hpp: 4 8 ... 256  - this needs to match ipc_property's IpcCapacity value of the monitored system",
-    "netProt"       : "tcpcast",        "__netProt"     : "one of tcpcast udpcast rmcast netmap rnetmap and nonet",
+    "netProt"       : "tcpcast",        "__netProt"     : "one of tcpcast udpcast rmcast and nonet",
     "bufWidth"      : 1000,             "__bufWidth"    : "max message that the console handles (excluding attachment) - this needs to match ipcMaxMessageSizeRuntime value of the monitored system",
     "logLevel"      : 3,                "__logLevel"    : "only log Warning and above by default"
 }
@@ -106,9 +101,6 @@ R"|(
         RUNNER_LIST(nonet)
         , RUNNER_LIST(tcpcast)
         , RUNNER_LIST(rmcast)
-#ifndef HMBDC_NO_NETMAP        
-        , RUNNER_LIST(rnetmap)
-#endif        
     >;
     config = Config{};
     for (auto it = params.begin(); it != params.end(); ++it) {

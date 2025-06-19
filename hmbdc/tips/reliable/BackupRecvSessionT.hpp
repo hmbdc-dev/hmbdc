@@ -16,7 +16,7 @@
 #include <memory>
 #include <utility>
 #include <regex>
-
+#include <assert.h>
 #include <iostream>
 
 namespace hmbdc { namespace tips { namespace reliable {
@@ -240,6 +240,7 @@ private:
         bufCur_ = buf_;
 
         if (readFd_.isFdReady()) {
+            assert(filledLen_ <= bufSize_);
             auto l = recv(readFd_.fd, buf_ + filledLen_, bufSize_ - filledLen_
                 , MSG_NOSIGNAL|MSG_DONTWAIT);
             if (hmbdc_unlikely(l < 0)) {

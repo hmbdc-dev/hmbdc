@@ -1332,7 +1332,7 @@ private:
         if (kickoffThread) {
             auto thrd = kickOffClientThread(
                 c, cpuAffinity, hmbdcNumber, hmbdcNumbers_.size());
-            threads_.push_back(move(thrd));
+            threads_.push_back(std::move(thrd));
         }
         hmbdcNumbers_.push_back(hmbdcNumber);
         startWithContextPropertyImpl<cpa>(kickoffThread, slots, std::forward<Args>(args) ...);
@@ -1369,8 +1369,6 @@ private:
                 try {
                     auto cpuAffinityMask = mask; 
                     std::tie(schedule, priority) = c.schedSpec();
-
-                    if (!schedule) schedule = "SCHED_OTHER";
 
                     if (!mask) {
                         auto cpuCount = std::thread::hardware_concurrency();

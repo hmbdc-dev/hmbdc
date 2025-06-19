@@ -65,7 +65,7 @@ Ret forward_tuple_to_func(std::tuple<Args...>& tuple, Ret (*func) (Args...)) {
 template<class... Args, class Ret>
 Ret forward_tuple_to_func(std::tuple<Args...>&& tuple, Ret (*func) (Args...)) {
    typedef typename forwardtupletofunc_detail::make_indices<Args...>::type Indexes;
-   return forwardtupletofunc_detail::forward_impl(Indexes(), move(tuple), func);
+   return forwardtupletofunc_detail::forward_impl(Indexes(), std::move(tuple), func);
 }
 
 }

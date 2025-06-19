@@ -71,9 +71,9 @@ class BagReplayNode
             tuple_for_each<FilterinMessages>(
                 [&tags](auto const& msg) mutable {
                     using RawMsg = std::decay_t<decltype(msg)>;
-                    std::remove_if(tags.begin(), tags.end(), [](auto&& tag) {
+                    tags.erase(std::remove_if(tags.begin(), tags.end(), [](auto&& tag) {
                         return app::typeTagMatch<RawMsg>(tag);
-                    });
+                    }), tags.end());
                 }
             );
             if (tags.size()) {

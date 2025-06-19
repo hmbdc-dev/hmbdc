@@ -1334,25 +1334,10 @@ public:
             , "the node expecting messages Domain not covering");
         if constexpr ((run_pump_in_ipc_portal || run_pump_in_thread_ctx)) {
             for (uint16_t i = 0u; i < pumps_.size(); ++i) {
-                pumps_[i].template subscribeFor(node);
-                pumps_[i].template advertiseFor(node);
+                pumps_[i].subscribeFor(node);
+                pumps_[i].advertiseFor(node);
             }
         }
-    }
-
-    /**
-     * @brief depricated - use add() instead and following by startPumping()
-     * 
-     */
-    template <typename Node>
-    void start(Node& nodeIn
-        , size_t capacity = 1024
-        , time::Duration maxBlockingTime = time::Duration::seconds(1)
-        , uint64_t cpuAffinity = 0
-    ) {
-        static_assert(!sizeof(Node)
-            , R"(please replace start() with add() to start a Node in the Domain.
-                When all Nodes are added into the Domain, call startPumping())");
     }
 
     /**
@@ -1392,8 +1377,9 @@ public:
     }
 
     /**
-     * @brief if pumpRunMode is set to be delayed
-     * this function start all the pumps
+     * @brief if pumpRunMode is set to be delayed this function start all the pumps
+     * 
+     * @details pump threads inherits the SCHED policiy of the calling threads - SCHED_OTHER in most cases
      */
     void startPumping() {
         if constexpr (!(run_pump_in_ipc_portal || run_pump_in_thread_ctx)) {

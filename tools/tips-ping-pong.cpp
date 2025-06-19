@@ -1,10 +1,6 @@
 #include "hmbdc/tips/tcpcast/Protocol.hpp"
 #include "hmbdc/tips/rmcast/Protocol.hpp"
 
-#ifndef HMBDC_NO_NETMAP        
-#include "hmbdc/tips/rnetmap/Protocol.hpp"
-#endif
-
 #include "hmbdc/tips/SingleNodeDomain.hpp"
 #include "hmbdc/tips/Tips.hpp"
 #include "hmbdc/numeric/Stat.hpp"
@@ -486,13 +482,13 @@ main(int argc, char** argv) {
     ;
     desc.add_options()
     ("help", helpStr)
-    ("netprot,n", po::value<string>(&netprot)->default_value("tcpcast"), "tcpcast, rmcast, rnetmap or nonet(localhost)")
+    ("netprot,n", po::value<string>(&netprot)->default_value("tcpcast"), "tcpcast, rmcast or nonet(localhost)")
     ("role,r", po::value<string>(&role)->default_value("pong"), "ping (sender process), pong (echoer process) or both (sender and echoer in the same process")
     ("use0cpy", po::value<bool>(&use0cpy)->default_value(true), "use 0cpy IPC for intra-host communications when msgSize > 1000B")
     ("msgSize", po::value<uint32_t>(&msgSize)->default_value(16), "msg size in bytes, 16B-100MB - the limit is specific to the test, hmbdc does not put limits")
     ("msgPerSec", po::value<uint32_t>(&msgPerSec)->default_value(500), "try send msg per second - would skip if blocking is expected, the test uses default config - if you see poor performance, reduce the rate or msgSize of increase the default config via --additional options")
     ("netIface,I", po::value<string>(&netIface)->default_value("127.0.0.1"), "interface to use, for example: 192.168.0.101 or 192.168.1.0/24.")
-    ("netIface2", po::value<string>(&netIface2)->default_value(""), "if netprot uses a second (backup) interface (rmcast, rnetmap) - specify here, otherwise it uses the netIface.")
+    ("netIface2", po::value<string>(&netIface2)->default_value(""), "if netprot uses a second (backup) interface (rmcast) - specify here, otherwise it uses the netIface.")
     ("cpuIndex", po::value(&cpuIndex)->multitoken()->default_value({0}, "0"), "specify the cpu index numbers to use - net results can benefit from 2 CPUs (pump, ping/pong), expect exact 3 CPUs when role=both (pump, pinger, ponger)")
     ("skipFirst", po::value<size_t>(&skipFirst)->default_value(1u), "skipp the first N results (buffering & warming up stage) when collecting latency stats")
     ("runTime", po::value<uint32_t>(&runTime)->default_value(0), "how many seconds does the test last before exit. By default it runs forever")
@@ -585,12 +581,6 @@ main(int argc, char** argv) {
     } else if (netprot == "rmcast") {
         config.put("ifaceAddr", netIface);
         return run((rmcast::Protocol*)nullptr);
-
-#ifndef HMBDC_NO_NETMAP                
-    } else if (netprot == "rnetmap") {
-        config.put("netmapPort", netIface);
-        return run((rnetmap::Protocol*)nullptr);
-#endif        
 
     } else if (netprot == "nonet") {
         return run((nonet::Protocol*)nullptr);

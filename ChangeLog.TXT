@@ -1,3 +1,10 @@
+* Sun Jun 15 2025 - 17.2
+- avoided buggy optimization of g++12-g++-15
+
+* Sun Jun 15 2025 - 17.1
+- built with g++-11 and clang 20
+- dropped netmap support
+
 * Mon Feb 17 2025 - 16.5
 - added message bagging and playback simnulation
 - added Tick support
@@ -91,10 +98,3 @@
 * Fri Oct 01 2021 - 14.3
 - provided python module tool for python usage of hmbdc/tips
 - fixed tips timer not fired bug
-
-* Sat Aug 28 2021 - 14.2
-- Made Nodes and Domain pump starting explictly synced by user
-- tool improvement
-
-* Sun Aug 08 2021 - 12.41
-- added publish directly in Node 

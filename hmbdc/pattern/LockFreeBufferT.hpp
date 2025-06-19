@@ -12,6 +12,10 @@
 #include <limits>
 #include <cstddef>
 
+#if defined(__GNUC__) && __GNUC__ >= 12
+  #pragma GCC optimize ("O0")  // Force no optimization for newer GCC
+#endif
+
 namespace hmbdc { namespace pattern {
 
 #pragma GCC diagnostic push
@@ -117,6 +121,5 @@ private:
 }} // end namespace hmbdc::pattern
 
 #include "hmbdc/pattern/LockFreeBufferT.ipp"
-
 
 #pragma GCC diagnostic pop

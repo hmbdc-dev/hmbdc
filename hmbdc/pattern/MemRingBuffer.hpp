@@ -64,22 +64,12 @@ private:
     my_spin_lock locks_[PARALLEL_CONSUMER_COUNT];
 
     Sequence readSeqLow() const HMBDC_RESTRICT {
-        Sequence res = readSeq_[0];
-        for (uint16_t i = 1;
-                i < PARALLEL_CONSUMER_COUNT; ++i)
-            if (res > readSeq_[i]) res = readSeq_[i];
-        return res;
+        return *std::min_element(readSeq_, readSeq_ + PARALLEL_CONSUMER_COUNT);
     }
 
     uint16_t findSlowestReader() const HMBDC_RESTRICT {
-        Sequence smallest = readSeq_[0];
-        uint16_t smallestLoc = 0;
-        for (uint16_t i = 1; i < PARALLEL_CONSUMER_COUNT; ++i)
-            if (smallest > readSeq_[i]) {
-                smallest = readSeq_[i];
-                smallestLoc = i;
-            }
-        return smallestLoc;
+        return std::min_element(readSeq_, readSeq_ + PARALLEL_CONSUMER_COUNT)
+            - readSeq_;
     }
 
 public:

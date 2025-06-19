@@ -3,6 +3,10 @@
 
 #include "hmbdc/pattern/MemRingBuffer.hpp"
 
+#if defined(__GNUC__) && __GNUC__ >= 12
+  #pragma GCC optimize ("O0")  // Force no optimization for newer GCC
+#endif
+
 
 namespace hmbdc { namespace pattern {
 

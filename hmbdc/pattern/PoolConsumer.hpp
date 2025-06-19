@@ -114,7 +114,7 @@ handleRange(BufIt begin,
     if (hmbdc_unlikely(nextSeq_ == std::numeric_limits<typename BufIt::Sequence>::max()
         && reinterpret_cast<std::atomic<HMBDC_SEQ_TYPE>*>(&nextSeq_)
                 ->compare_exchange_strong(tmp
-                    , begin.seq(), std::memory_order_acq_rel, std::memory_order_acq_rel))) {
+                    , begin.seq(), std::memory_order_acq_rel))) {
         // && __sync_bool_compare_and_swap(&nextSeq_
         // , std::numeric_limits<typename BufIt::Sequence>::max(), begin.seq()))) {
         try {
@@ -142,8 +142,7 @@ handleRange(BufIt begin,
     } else if (hmbdc_likely(end.seq() > nextSeq)) {
         if (hmbdc_likely(reinterpret_cast<std::atomic<HMBDC_SEQ_TYPE>*>(&nextSeq_)
                 ->compare_exchange_strong(nextSeq
-                    , IGNORE, std::memory_order_acq_rel, std::memory_order_acq_rel))) {
-        // if (hmbdc_likely(__sync_bool_compare_and_swap(&nextSeq_, nextSeq, IGNORE))) {
+                    , IGNORE, std::memory_order_acq_rel))) {
             try {
                 size_t res = 0;
                 if (hmbdc_likely(interestedInMessages)) {
@@ -171,8 +170,7 @@ handleRange(BufIt begin,
         || (end.seq() == nextSeq && begin.seq() == nextSeq))) {
         if (hmbdc_unlikely(reinterpret_cast<std::atomic<HMBDC_SEQ_TYPE>*>(&nextSeq_)
                 ->compare_exchange_strong(nextSeq
-                    , IGNORE, std::memory_order_acq_rel, std::memory_order_acq_rel))) {
-        // if (hmbdc_unlikely(__sync_bool_compare_and_swap(&nextSeq_, nextSeq, IGNORE))) {
+                    , IGNORE, std::memory_order_acq_rel))) {
             try {
                 invoked(0);
             } catch (std::exception const& e) {

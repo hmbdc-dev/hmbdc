@@ -300,7 +300,7 @@ runOnce() HMBDC_RESTRICT {
             toSend_.push_back(iovec{ptr, item->wireSize()});
         } else {
             server_->queue(currentTypeTag
-                , move(toSend_)
+                , std::move(toSend_)
                 , toSendByteSize
                 , it);
             toSend_.clear();
@@ -320,7 +320,7 @@ runOnce() HMBDC_RESTRICT {
 
     if (toSend_.size()) {
         server_->queue(currentTypeTag
-            , move(toSend_)
+            , std::move(toSend_)
             , toSendByteSize
             , it);
         toSend_.clear();

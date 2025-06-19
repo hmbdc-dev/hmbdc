@@ -11,6 +11,9 @@
 
 #include <stdexcept>
 
+#include <unistd.h>
+#include <pthread.h>
+#include <string.h>
 
 namespace hmbdc { namespace os {
 
@@ -22,13 +25,11 @@ void
 configureCurrentThread(char const*threadName, unsigned long cpumask
     , char const* schepolicy = "SCHED_OTHER", int priority = 0);
 
-void
-setCurrrentThreadSched(char const* schepolicy, int priority);
-
 inline
 void 
 configureCurrentThread(char const*threadName, unsigned long cpumask
     , char const* schepolicy, int priority) {
+    if (!schepolicy || strlen(threadName) == 0) return;    // skip if not set
     int res0 = 0, res1 = 0;
 #ifndef _QNX_SOURCE            
     if (cpumask && cpumask != 0xfffffffffffffffful) {
@@ -58,9 +59,13 @@ configureCurrentThread(char const*threadName, unsigned long cpumask
 #else
         policy = SCHED_SPORADIC;
 #endif        
-    }
-    else {
+    } else if (std::string(schepolicy) == "SCHED_DEADLINE") {
+        policy = SCHED_DEADLINE;
+    } else {
         policy = SCHED_OTHER;
+        if (nice(priority) == -1) {
+            HMBDC_THROW(ThreadConfigException, "nice() failure errno=" << errno);
+        }
 #ifndef _QNX_SOURCE
         priority = 0;
 #endif
@@ -71,31 +76,6 @@ configureCurrentThread(char const*threadName, unsigned long cpumask
     if (res0 || res1 || res2)
         HMBDC_THROW(ThreadConfigException, "cpumask=" << cpumask << " pthread_setaffinity_np=" << res0 
             << " pthread_setschedparam=" << res1 << " pthread_setname_np=" << res2);
-}
-
-inline
-void
-setCurrrentThreadSched(char const* schepolicy, int priority) {
-#ifndef _QNX_SOURCE            
-    sched_param param = {0};
-    int policy = SCHED_RR;
-    if (std::string(schepolicy) == "SCHED_FIFO") {
-        policy = SCHED_FIFO;
-    }
-    else if (std::string(schepolicy) == "SCHED_RR") {
-        policy = SCHED_RR;
-    } else if (std::string(schepolicy) == "SCHED_IDLE") {
-        policy = SCHED_IDLE;
-    }
-    else {
-        policy = SCHED_OTHER;
-        priority = 0;
-    }
-    param.sched_priority = priority;
-    int res1 = pthread_setschedparam(pthread_self(), policy, &param);
-    if (res1)
-        HMBDC_THROW(ThreadConfigException, " sched_setscheduler=" << res1);
-#endif    
 }
 
 inline void yield(unsigned x) {

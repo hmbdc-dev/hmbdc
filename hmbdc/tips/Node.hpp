@@ -186,13 +186,18 @@ struct Node
             , "need to override this function since JustBytes is used");
         return max_size_in_tuple<typename CcNode::Interests>::value;
     }
-
+    
+    /**
+     * @brief an overrideable method.
+     * returns the schedule policy and priority, override if necessary
+     * priority OS priority when used with "SCHED_RR", or "SCHED_FIFO", for "SCHD_OTHER", it is the nice value
+     * the default is to use the current thread's policy and priority without changing it
+     * @details this is only used when the Client is running in direct mode
+     * supported policy are nullptr, "SCHED_OTHER", "SCHED_RR", "SCHED_FIFO"
+     * @return a tuple made of schedule policy and priority, default to be SCHED_OTHER
+     */
     std::tuple<char const*, int> schedSpec() const {
-#ifndef _QNX_SOURCE        
         return std::make_tuple<char const*, int>(nullptr, 0);
-#else
-        return std::make_tuple<char const*, int>(nullptr, 20);
-#endif        
     }
 
     /**

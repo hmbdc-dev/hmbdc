@@ -124,17 +124,13 @@ public:
     /**
      * @brief an overrideable method.
      * returns the schedule policy and priority, override if necessary
-     * priority is only used when policy is "SCHED_RR", or "SCHED_FIFO"
+     * priority OS priority when used with "SCHED_RR", or "SCHED_FIFO", for "SCHD_OTHER", it is the nice value
      * @details this is only used when the Client is running in direct mode
      * supported policy are "SCHED_OTHER"(=nullptr), "SCHED_RR", "SCHED_FIFO"
      * @return a tuple made of schedule policy and priority, default to be SCHED_OTHER
      */
     std::tuple<char const*, int> schedSpec() const {
-#ifndef _QNX_SOURCE        
         return std::make_tuple<char const*, int>(nullptr, 0);
-#else
-        return std::make_tuple<char const*, int>(nullptr, 20);
-#endif        
     }
 
    /**
