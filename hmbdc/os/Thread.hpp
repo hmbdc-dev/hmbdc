@@ -75,7 +75,7 @@ configureCurrentThread(char const*threadName, unsigned long cpumask
     int res2 = pthread_setname_np(pthread_self(), threadName);
     if (res0 || res1 || res2)
         HMBDC_THROW(ThreadConfigException, "cpumask=" << cpumask << " pthread_setaffinity_np=" << res0 
-            << " pthread_setschedparam=" << res1 << " pthread_setname_np=" << res2);
+            << " pthread_setschedparam=" << res1 << " pthread_setname_np=" << res2 << " errno=" << errno);
 }
 
 inline void yield(unsigned x) {

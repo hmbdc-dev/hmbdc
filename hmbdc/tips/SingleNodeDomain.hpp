@@ -30,6 +30,7 @@ struct ContextCallForwarder {
             node->handleJustBytesCb(tag, (uint8_t const*)bytes, att);
         }
     }
+
     void invokedCb(size_t n) {
         if constexpr (std::is_base_of<time::TimerManager, CcNode>::value) {
             node->checkTimers(hmbdc::time::SysTime::now());
@@ -38,6 +39,7 @@ struct ContextCallForwarder {
     }
     
     void messageDispatchingStartedCb(std::atomic<size_t> const*p) {node->messageDispatchingStartedCb(p);}
+    std::tuple<char const*, int> schedSpec() const { return node->schedSpec(); }
     void stoppedCb(std::exception const& e) {node->stoppedCb(e);}
     bool droppedCb() {return node->droppedCb();}
 

@@ -169,6 +169,7 @@ HMBDC_CLASS_HAS_DECLARE(droppedCb);
 HMBDC_CLASS_HAS_DECLARE(stoppedCb);
 HMBDC_CLASS_HAS_DECLARE(invokedCb);
 HMBDC_CLASS_HAS_DECLARE(messageDispatchingStartedCb);
+HMBDC_CLASS_HAS_DECLARE(schedSpec);
 
 template <app::MessageC Message, bool canSerialize = has_toHmbdcIpcable<Message>::value>
 struct matching_ipcable {
@@ -466,6 +467,7 @@ private:
     
     class PumpInThreadCtx 
     : public app::client_using_tuple<PumpInThreadCtx, std::tuple<>>::type {
+        using Base = typename app::client_using_tuple<PumpInThreadCtx, std::tuple<>>::type;
         std::optional<typename NetProtocol::SendTransportEngine> sendEng_;
         using RecvTransportEngine 
             = typename NetProtocol::template RecvTransportEngine<OneBuffer, AttachmentAllocator>;
@@ -473,6 +475,8 @@ private:
         ThreadCtx& outCtx_;
         OneBuffer netBuffer_;
         std::string hmbdcName_;
+        std::string schedPolicy_;
+        int schedPriority_;
         const uint16_t mod;
         const uint16_t res;
         public:
@@ -487,6 +491,8 @@ private:
                 : cfg.getExt<uint32_t>("netMaxMessageSizeRuntime")
         }
         , hmbdcName_(cfg.getExt<std::string>("pumpHmbdcName"))
+        , schedPolicy_(cfg.getExt<std::string>("pumpSchedPolicy"))
+        , schedPriority_(cfg.getExt<int>("pumpSchedPriority"))
         , mod(mod)
         , res(res) {
             if constexpr (has_net_send_eng) {
@@ -605,6 +611,13 @@ private:
             if constexpr (domain_detail::has_messageDispatchingStartedCb<ThreadCtx>::value) {
                 outCtx_.messageDispatchingStartedCb(p);
             }
+        }
+
+        std::tuple<char const*, int> schedSpec() const {
+            if constexpr (domain_detail::has_schedSpec<ThreadCtx>::value) {
+                return outCtx_.schedSpec();
+            }
+            return std::make_tuple(schedPolicy_.c_str(), schedPriority_);
         }
 
         void invokedCb(size_t previousBatch) override {
@@ -735,6 +748,8 @@ private:
         TypeTagSet* pOutboundSubscriptions_;
         TypeTagSet inboundSubscriptions_;
         std::string hmbdcName_;
+        std::string schedPolicy_;
+        int schedPriority_;
         uint32_t pumpMaxBlockingTimeUs_;
         const uint16_t mod;
         const uint16_t res;
@@ -756,6 +771,8 @@ private:
         }
         , pOutboundSubscriptions_(pOutboundSubscriptions)
         , hmbdcName_(cfg.getExt<std::string>("pumpHmbdcName"))
+        , schedPolicy_(cfg.getExt<std::string>("pumpSchedPolicy"))
+        , schedPriority_(cfg.getExt<int>("pumpSchedPriority"))
         , pumpMaxBlockingTimeUs_(cfg.getHex<double>("pumpMaxBlockingTimeSec") * 1000000)
         , mod(mod)
         , res(res) {
@@ -1067,6 +1084,10 @@ private:
 
         char const* hmbdcName() const {
             return hmbdcName_.c_str();
+        }
+
+        std::tuple<char const*, int> schedSpec() const {
+            return std::make_tuple(schedPolicy_.c_str(), schedPriority_);
         }
 
         void messageDispatchingStartedCb(std::atomic<size_t> const*p) override {
