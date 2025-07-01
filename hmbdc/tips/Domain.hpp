@@ -169,7 +169,6 @@ HMBDC_CLASS_HAS_DECLARE(droppedCb);
 HMBDC_CLASS_HAS_DECLARE(stoppedCb);
 HMBDC_CLASS_HAS_DECLARE(invokedCb);
 HMBDC_CLASS_HAS_DECLARE(messageDispatchingStartedCb);
-HMBDC_CLASS_HAS_DECLARE(schedSpec);
 
 template <app::MessageC Message, bool canSerialize = has_toHmbdcIpcable<Message>::value>
 struct matching_ipcable {
@@ -607,17 +606,14 @@ private:
             return hmbdcName_.c_str();
         }
 
+        std::tuple<char const*, int> schedSpec() const {
+            return std::make_tuple(schedPolicy_.c_str(), schedPriority_);
+        }
+
         void messageDispatchingStartedCb(std::atomic<size_t> const* p) override {
             if constexpr (domain_detail::has_messageDispatchingStartedCb<ThreadCtx>::value) {
                 outCtx_.messageDispatchingStartedCb(p);
             }
-        }
-
-        std::tuple<char const*, int> schedSpec() const {
-            if constexpr (domain_detail::has_schedSpec<ThreadCtx>::value) {
-                return outCtx_.schedSpec();
-            }
-            return std::make_tuple(schedPolicy_.c_str(), schedPriority_);
         }
 
         void invokedCb(size_t previousBatch) override {

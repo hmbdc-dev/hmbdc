@@ -3,8 +3,6 @@
 #include "hmbdc/os/Thread.hpp"
 #include "hmbdc/Exception.hpp"
 
-#include <boost/smart_ptr/detail/yield_k.hpp>
-
 #include <pthread.h>
 #include <string>
 #include <thread>
@@ -29,7 +27,6 @@ inline
 void 
 configureCurrentThread(char const*threadName, unsigned long cpumask
     , char const* schepolicy, int priority) {
-    if (!schepolicy || strlen(threadName) == 0) return;    // skip if not set
     int res0 = 0, res1 = 0;
 #ifndef _QNX_SOURCE            
     if (cpumask && cpumask != 0xfffffffffffffffful) {
@@ -47,8 +44,10 @@ configureCurrentThread(char const*threadName, unsigned long cpumask
     }
 #endif        
     sched_param param = {0};
-    int policy = SCHED_RR;
-    if (std::string(schepolicy) == "SCHED_FIFO") {
+    int policy = 0;
+    if (!schepolicy || strlen(schepolicy) == 0) {
+        // skip if not set
+    } else if (std::string(schepolicy) == "SCHED_FIFO") {
         policy = SCHED_FIFO;
     }
     else if (std::string(schepolicy) == "SCHED_RR") {
@@ -61,7 +60,7 @@ configureCurrentThread(char const*threadName, unsigned long cpumask
 #endif        
     } else if (std::string(schepolicy) == "SCHED_DEADLINE") {
         policy = SCHED_DEADLINE;
-    } else {
+    } else if (std::string(schepolicy) == "SCHED_OTHER") {
         policy = SCHED_OTHER;
         if (nice(priority) == -1) {
             HMBDC_THROW(ThreadConfigException, "nice() failure errno=" << errno);
@@ -69,9 +68,13 @@ configureCurrentThread(char const*threadName, unsigned long cpumask
 #ifndef _QNX_SOURCE
         priority = 0;
 #endif
+    } else {
+        HMBDC_THROW(ThreadConfigException, "Unknown scheduling policy: " << schepolicy);
     }
     param.sched_priority = priority;
-    res1 = pthread_setschedparam(pthread_self(), policy, &param);
+    if (policy) {
+        res1 = pthread_setschedparam(pthread_self(), policy, &param);
+    }
     int res2 = pthread_setname_np(pthread_self(), threadName);
     if (res0 || res1 || res2)
         HMBDC_THROW(ThreadConfigException, "cpumask=" << cpumask << " pthread_setaffinity_np=" << res0 
