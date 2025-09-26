@@ -3,11 +3,6 @@
 
 #include "hmbdc/pattern/MemRingBuffer.hpp"
 
-#if defined(__GNUC__) && __GNUC__ >= 12
-  #pragma GCC optimize ("O0")  // Force no optimization for newer GCC
-#endif
-
-
 namespace hmbdc { namespace pattern {
 
 namespace ringbuffer_detail {
@@ -90,7 +85,7 @@ public:
 
     void put(T const & item) {impl_.put(&item, sizeof(T));}
     bool tryPut(T const & item) {return impl_.tryPut(&item, sizeof(T));}
-    void killPut(T const & item) {impl_.killPut(&item, sizeof(T));}
+    void killPut(T const & item) {impl_.killPut(&item, sizeof(T));} // not safe to use in g++12 or later due to aggressive optimization
     template <typename ApplyToKilled>
     void screezeIn(T const & item, ApplyToKilled f) {impl_.screezeIn(&item, f, sizeof(T));}
 

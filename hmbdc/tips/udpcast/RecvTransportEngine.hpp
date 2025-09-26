@@ -59,7 +59,7 @@ struct RecvTransportImpl
         memset(&udpcastListenAddrPort, 0, sizeof(udpcastListenAddrPort));
         udpcastListenAddrPort.sin_family = AF_INET;
         auto ipStr = cfg.getExt<std::string>("udpcastListenAddr") == std::string("ifaceAddr")
-            ? comm::inet::getLocalIpMatchMask(cfg.getExt<std::string>("ifaceAddr"))
+            ? comm::inet::getLocalIpMatchMask(cfg.getExt<std::string>("ifaceAddr")).first
             :cfg.getExt<std::string>("udpcastListenAddr");
         udpcastListenAddrPort.sin_addr.s_addr = inet_addr(ipStr.c_str());
         udpcastListenAddrPort.sin_port = htons(udpcastListenPort);
@@ -80,7 +80,7 @@ struct RecvTransportImpl
             struct ip_mreq mreq;
             mreq.imr_multiaddr.s_addr = udpcastListenAddrPort.sin_addr.s_addr;
             auto iface = 
-                comm::inet::getLocalIpMatchMask(config_.getExt<std::string>("ifaceAddr")); 
+                comm::inet::getLocalIpMatchMask(config_.getExt<std::string>("ifaceAddr")).first; 
             mreq.imr_interface.s_addr=inet_addr(iface.c_str());
             if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
                 HMBDC_THROW(std::runtime_error, "failed to join " << ipStr << ":"

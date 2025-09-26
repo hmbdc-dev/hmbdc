@@ -153,8 +153,8 @@ struct UdpcastListenedAt
 
 /**
  * @class SessionStarted
- * @brief this message tipsears in the receiver's buffer indicating a new source is connected
- * @details only tipsears on the receiving side, and the receiver buffer is big enough to hold this messages
+ * @brief this message in the receiver's buffer indicating a new source is connected
+ * @details only appears on the receiving side, and the receiver buffer is big enough to hold this messages
  */
 struct SessionStarted 
 : app::hasTag<254> {
@@ -167,8 +167,8 @@ struct SessionStarted
 
 /**
  * @class SessionDropped
- * @brief this message tipsears in the receiver's buffer indicating a previously connected source is dropped
- * @details only tipsears on the receiving side, and the receiver buffer is big enough to hold this messages
+ * @brief this message in the receiver's buffer indicating a previously connected source is dropped
+ * @details only appears on the receiving side, and the receiver buffer is big enough to hold this messages
  */
 struct SessionDropped 
 : app::hasTag<255> {

@@ -64,7 +64,7 @@ struct McRecvTransport
         struct ip_mreq mreq;
         mreq.imr_multiaddr.s_addr=inet_addr(config_.getExt<std::string>("mcastAddr").c_str());
         auto iface = 
-            comm::inet::getLocalIpMatchMask(config_.getExt<std::string>("ifaceAddr")); 
+            comm::inet::getLocalIpMatchMask(config_.getExt<std::string>("ifaceAddr")).first;
         mreq.imr_interface.s_addr=inet_addr(iface.c_str());
         if (setsockopt(mcFd_.fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
             HMBDC_THROW(std::runtime_error, "failed to join " << config_.getExt<std::string>("mcastAddr") << ':'

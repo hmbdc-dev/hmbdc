@@ -37,6 +37,20 @@ struct ContextCallForwarder {
         }
         node->invokedCb(n);
     }
+
+    // a simplification to make it conform to BlockingContext
+    void* handleInCtx{nullptr};
+    template <typename ...Args>
+    bool runOnce(Args&&... args) {
+        ctxUsedWhenNoIpc_.runOnce(std::forward<Args>(args)...);
+        static auto messageDispatchingStartedCbCalled = false;
+        if (hmbdc_unlikely(!messageDispatchingStartedCbCalled)) {
+            node->messageDispatchingStartedCb(nullptr);
+            messageDispatchingStartedCbCalled = true;
+        }
+        invokedCb(0);
+        return true; // always return true to indicate the it is not stopped
+    }
     
     void messageDispatchingStartedCb(std::atomic<size_t> const*p) {node->messageDispatchingStartedCb(p);}
     std::tuple<char const*, int> schedSpec() const { return node->schedSpec(); }

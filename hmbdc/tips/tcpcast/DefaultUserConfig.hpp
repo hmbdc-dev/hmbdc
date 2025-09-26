@@ -11,6 +11,7 @@ constexpr char const*  const DefaultUserConfig = R"|(
     "tcpPort"                           : 0,                        "__tcpPort"                       :"tcp port number used when send/recv messages out - 0 means let the OS pick",
     "loopback"                          : false,                    "__loopback"                      :"set this to true if processes within the same host need to communicate using tcpcast",
     "mtu"                               : 1500,                     "__mtu"                           :"mtu, check ifconfig output for this value for each NIC in use",
+    "multicastBoundToIface"             : true,                     "__multicastBoundToIface"         :"when doing multicast, the outgoing and incoming traffic is bound to a specific interface(ifaceAddr)",
     "schedPolicy"                       : "SCHED_OTHER",            "__schedPolicy"                   :"engine thread schedule policy - check man page for allowed values",
     "schedPriority"                     : 0,                        "__schedPriority"                 :"engine thread schedule priority - check man page for allowed values",
     "tcpKeepAlive"                      : 0,                        "__tcpKeepAlive"                  :"drop TCP connection when host is down",

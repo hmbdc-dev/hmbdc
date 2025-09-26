@@ -39,7 +39,7 @@ struct TcpEpollFd : app::utils::EpollFd {
             hmbdc::comm::inet::getLocalIpMatchMask(
                 cfg.getExt<string>("tcpIfaceAddr") == string("ifaceAddr")
                 ?cfg.getExt<string>("ifaceAddr"):cfg.getExt<string>("tcpIfaceAddr")
-            ).c_str()
+            ).first.c_str()
         );
         localAddr.sin_port = htons(cfg.getExt<uint16_t>("tcpPort"));
         if (::bind(fd, (sockaddr*)&localAddr, sizeof(localAddr)) < 0) {

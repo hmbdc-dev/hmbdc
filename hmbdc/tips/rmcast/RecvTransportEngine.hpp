@@ -62,7 +62,7 @@ struct RecvTransportImpl
     , myBackupIp_(inet_addr(hmbdc::comm::inet::getLocalIpMatchMask(
         config_.getExt<std::string>("tcpIfaceAddr") == std::string("ifaceAddr")
             ?config_.getExt<std::string>("ifaceAddr"):config_.getExt<std::string>("tcpIfaceAddr")
-        ).c_str()))
+        ).first.c_str()))
     , mcRecvTransport_(config_ 
         , cmdBuffer_   //to store cmds
         , subscriptions_

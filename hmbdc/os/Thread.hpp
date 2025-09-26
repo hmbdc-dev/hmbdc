@@ -3,7 +3,6 @@
 #include "hmbdc/os/Thread.hpp"
 #include "hmbdc/Exception.hpp"
 
-#include <pthread.h>
 #include <string>
 #include <thread>
 

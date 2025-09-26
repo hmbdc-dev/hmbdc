@@ -1316,22 +1316,22 @@ public:
      * 
      * @tparam Args the arguments used for pump
      * @param pumpIndex which pump - see pumpCount configure
-     * @param args the arguments used for pump, if pump is default type:
+     * @param maxBlockingTime the arguments used for pump, if pump is default type:
      *  - if IPC is enabled:
      *      ignored
      *  - else
-     *      optional, time::Duration maxBlockingTime
+     *      the maximum time the pump can block if there is no messages
      * 
      * @return true if pump runs fine
      * @return false either Domain stopped or exception thrown
      */
     template <typename... Args>
-    bool pumpOnce(size_t pumpIndex = 0, Args&& ...args) {
+    bool pumpOnce(size_t pumpIndex = 0, time::Duration maxBlockingTime = time::Duration::seconds(0)) {
         auto& pump = pumps_[pumpIndex];
         if constexpr (run_pump_in_ipc_portal) {     
             return ipcTransport_->runOnce(pump);
         } else if constexpr (run_pump_in_thread_ctx) {
-            return threadCtx_.runOnce(pump.handle, pump, std::forward<Args>(args)...);
+            return threadCtx_.runOnce(pump.handleInCtx, pump, maxBlockingTime);
         }
     }
 

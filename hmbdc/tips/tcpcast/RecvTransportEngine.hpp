@@ -54,7 +54,7 @@ struct RecvTransportEngine
     , outputBuffer_(outputBuffer)
     , maxItemSize_(outputBuffer.maxItemSize())
     , myIp_(inet_addr(hmbdc::comm::inet::getLocalIpMatchMask(
-        config_.getExt<std::string>("ifaceAddr")).c_str())) {
+        config_.getExt<std::string>("ifaceAddr")).first.c_str())) {
         if (!config_.getExt<bool>("allowRecvWithinProcess")) {
             myPid_ = getpid();
         }

@@ -197,7 +197,7 @@ SendTransport(Config cfg
             | hmbdc::app::utils::EpollTask::EPOLLET, *this);
     auto minHead = sizeof(app::MessageHead) + sizeof(TransportMessageHeader);
     if (maxMessageSize_ +  minHead > mtu_) {
-        HMBDC_THROW(std::out_of_range, "maxMessageSize needs <= " << mtu_ - minHead);
+        HMBDC_THROW(std::out_of_range, "maxMessageSize=" << maxMessageSize_ << " needs <= " << mtu_ - minHead);
     }
     cfg(udpcastDests_, "udpcastDests");
     if (udpcastDests_.size() == 0) {

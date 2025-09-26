@@ -316,7 +316,7 @@ public:
     bool runOnce(ClientRegisterHandle& t, CcClient& c
         , time::Duration maxBlockingTime = time::Duration::seconds(1)) {
         std::atomic<bool> stopped = false;
-        return runOnceImpl(stopped, &t->buffer, c, maxBlockingTime);
+        return blocking_context_detail::runOnceImpl<CcClient>(stopped, &t->buffer, c, maxBlockingTime);
     }
 
     /**

@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <string.h>
+#include <utility>
 
 struct msghdr;
 namespace hmbdc { namespace comm { namespace inet {
@@ -27,15 +28,15 @@ namespace hmbdc { namespace comm { namespace inet {
  * @param mask in this format: "192.168.0.1/24" or "192.168.0.101" which is the same as "192.168.0.101/32"
  * when using 192.168.0.1/0
  * @param includeLoopback if it is false, the loopback address is excluded from the result
- * @return a local ip matches the mask if no exception is thrown
+ * @return a local ip matches the mask and its interface name if no exception is thrown
  */
-std::string getLocalIpMatchMask(std::string const& mask);
+std::pair<std::string, std::string> getLocalIpMatchMask(std::string const& mask);
 std::string getLocalIpThruName(std::string const& name);
 std::pair<std::string, uint16_t> getPeerIpPort(int fd);
 void extractRelicTo(msghdr& to, msghdr const& from, int sent);
 
 inline
-std::string 
+std::pair<std::string, std::string>
 getLocalIpMatchMask(std::string const& mask) {
     bool includeLoopback = mask != "0.0.0.0/0";
     auto offset = mask.find('/');
@@ -75,7 +76,7 @@ getLocalIpMatchMask(std::string const& mask) {
                     || (targetIp << (32u - maskLen)) == (addr.s_addr << (32u - maskLen)))
                 && (includeLoopback || !(ifa->ifa_flags & IFF_LOOPBACK))) {
                 freeifaddrs(ifaddr);
-                return std::string(host);
+                return std::make_pair(std::string(host), std::string(ifa->ifa_name));
             }
         }
     }
@@ -150,10 +151,12 @@ extractRelicTo(msghdr& to, msghdr const& from, int sent) {
     to.msg_iov[0].iov_len = msg.iov_len - l;
     auto to_msg_iovlen = from.msg_iovlen - i;
 
-    memmove(to.msg_iov + 1
+    if (to_msg_iovlen > 1) { // make g++-12 happy
+        memmove(to.msg_iov + 1
         , from.msg_iov + i + 1
         , (to_msg_iovlen - 1) * sizeof(iovec)
-    );
+        );
+    }
     to.msg_iovlen = to_msg_iovlen;
 }
 }}}

@@ -1,3 +1,7 @@
+* Sat Sep 27 2025 - 17.6
+Made SingleNodeDomain maunally pumpable just like Domain
+Renabled -O3 optimization for GCC12 and later
+
 * Sun Jun 29 2025 - 17.5
 - fixed SingleNodeDomain cannot set schedSpec bug
 
@@ -93,8 +97,4 @@
 
 * Sun Oct 31 2021 - 14.5
 - Added PCI dev pub/sub in Domain
-
-* Sun Oct 24 2021 - 14.4
-- Provided non-blocking publish interface
-- change toHmbdcSerialized to toHmbdcIpcable
 

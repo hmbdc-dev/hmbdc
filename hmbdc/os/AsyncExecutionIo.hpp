@@ -33,16 +33,10 @@ public:
     struct LaunchError : std::runtime_error { using std::runtime_error::runtime_error; };
 
     /**
-     * @brief exception for stdout reading error - could mean the process terminated or not started
+     * @brief exception for stdout or stderr reading error - could mean the process terminated or not started
      * 
      */
-    struct StdoutIoError : std::runtime_error { using std::runtime_error::runtime_error; };
-
-    /**
-     * @brief exception for stderr reading error - could mean the process terminated or not started
-     * 
-     */
-    struct StderrIoError : std::runtime_error { using std::runtime_error::runtime_error; };
+    struct IoError : std::runtime_error { using std::runtime_error::runtime_error; };
 
     AsyncExecutionIo(AsyncExecutionIo const&) = delete;
     AsyncExecutionIo& operator = (AsyncExecutionIo const&) = delete;
@@ -85,34 +79,45 @@ public:
 
         std::error_code ec;
         on_stdout_ = [this, stdoutCb, stdout_line_delimiter](const system::error_code & ec, size_t n) {
-            if (!ec) {
+            if (stdout_buf_.size() > 0) {
                 std::istream is(&stdout_buf_);
                 std::string line;
                 std::getline(is, line, stdout_line_delimiter);
                 if (is) {
-                    stdoutCb(line);
+                    stdoutCb(std::move(line));
                 } else {
-                    HMBDC_THROW(StdoutIoError, "internal error");
+                    HMBDC_THROW(IoError, "internal error");
                 }
+            }
+            if (!ec) {
                 asio::async_read_until(pipe_out_, stdout_buf_, stdout_line_delimiter, on_stdout_);
             } else {
-                HMBDC_THROW(StdoutIoError, ec);
+                stdoutEc_ = ec;
+                if (stdoutEc_ && stderrEc_) {
+                    HMBDC_THROW(IoError, ec);
+                }
             }
         };
 
-        on_stderr_ = [this, stderrCb, stderr_line_delimiter](const system::error_code & ec, std::size_t n) {
-            if (!ec) {
+        on_stderr_ = [this, stderrCb, stderr_line_delimiter](const system::error_code& ec,
+                                                         std::size_t n) {
+            if (stderr_buf_.size() > 0) {
                 std::istream is(&stderr_buf_);
                 std::string line;
                 std::getline(is, line, stderr_line_delimiter);
                 if (is) {
-                    stderrCb(line);
+                    stderrCb(std::move(line));
                 } else {
-                    HMBDC_THROW(StderrIoError, "internal error");
+                    HMBDC_THROW(IoError, "internal error");
                 }
+            }
+            if (!ec) {
                 asio::async_read_until(pipe_err_, stderr_buf_, stderr_line_delimiter, on_stderr_);
             } else {
-                HMBDC_THROW(StderrIoError, ec);
+                stderrEc_ = ec;
+                if (stdoutEc_ && stderrEc_) {
+                    HMBDC_THROW(IoError, ec);
+                }
             }
         };
         
@@ -156,12 +161,22 @@ public:
     /**
      * @brief call this to have the callbacks excercised, it returns when one callback
      * is called OR the max_blocking_time is reached
-     * user need to catch exceptions StdoutIoError and StderrIoError
+     * user need to catch exception IoError
      * @param max_blocking_time return if the max time is reached
      * @return return true if callback has been called
      */
     bool runOneFor(time::Duration max_blocking_time) {
         return ios_.run_one_for(
+            std::chrono::milliseconds(static_cast<uint32_t>(max_blocking_time.milliseconds())));
+    }
+
+    /**
+     * @brief call this to have the callbacks excercised, it returns when max_blocking_time is reached
+     * @param max_blocking_time return if the max time is reached
+     * @return return true if callback has been called
+     */
+    size_t runFor(time::Duration max_blocking_time) {
+        return ios_.run_for(
             std::chrono::milliseconds(static_cast<uint32_t>(max_blocking_time.milliseconds())));
     }
 
@@ -205,5 +220,7 @@ private:
     std::function<void(const boost::system::error_code & ec, std::size_t n)> on_stdout_;
     std::function<void(const boost::system::error_code & ec, std::size_t n)> on_stderr_;
     boost::process::child process_;
+    boost::system::error_code stdoutEc_;
+    boost::system::error_code stderrEc_;
 };
 }}

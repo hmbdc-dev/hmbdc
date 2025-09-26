@@ -24,13 +24,22 @@ struct EpollFd : app::utils::EpollFd {
         if(fd < 0) {
             HMBDC_THROW(std::runtime_error, "failed to create socket");
         }
-        auto iface = 
-            comm::inet::getLocalIpMatchMask(cfg.getExt<std::string>("ifaceAddr")); 
-        struct in_addr localInterface;
-        localInterface.s_addr = inet_addr(iface.c_str());
-        if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF
-            , (char *)&localInterface, sizeof(localInterface)) < 0) {
-            HMBDC_THROW(std::runtime_error, "failed to set ifaceAddr " << cfg.getExt<std::string>("ifaceAddr"));
+        if (cfg.getExt<bool>("multicastBoundToIface")) {
+            auto iface =
+                comm::inet::getLocalIpMatchMask(cfg.getExt<std::string>("ifaceAddr"));
+            struct in_addr localInterface;
+            localInterface.s_addr = inet_addr(iface.first.c_str());
+            if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF
+                , (char *)&localInterface, sizeof(localInterface)) < 0) {
+                HMBDC_THROW(std::runtime_error, "failed to set ifaceAddr " << cfg.getExt<std::string>("ifaceAddr"));
+            }
+
+            struct ifreq ifr = {{0}};
+            strcpy(ifr.ifr_name, iface.second.c_str());
+            if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr)) < 0) {
+                HMBDC_THROW(std::runtime_error, "failed to set SO_BINDTODEVICE " << iface.second
+                    << " for ifaceAddr " << cfg.getExt<std::string>("ifaceAddr"));
+            }
         }
     }
 };

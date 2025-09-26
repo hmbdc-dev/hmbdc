@@ -54,7 +54,11 @@ struct chunk_base_ptr {
         freer_();
     }
 
-    void* operator + (size_t index) const HMBDC_RESTRICT {
+    void*
+#ifndef __clang__    
+    volatile /// to avoid g++-12 or later agressively optimizing away the return value
+#endif
+    operator + (size_t index) const HMBDC_RESTRICT {
         return (((char* const)this) + space_) + (index << valueTypeSizePower2Num_) + sizeof(Seq);
     }
 

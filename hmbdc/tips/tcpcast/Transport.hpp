@@ -46,7 +46,7 @@ struct EpollFd : app::utils::EpollFd {
 
         localAddr.sin_family = AF_INET;
         localAddr.sin_addr.s_addr = inet_addr(hmbdc::comm::inet::getLocalIpMatchMask(
-            cfg.getExt<std::string>("ifaceAddr")).c_str());
+            cfg.getExt<std::string>("ifaceAddr")).first.c_str());
         localAddr.sin_port = htons(cfg.getExt<uint16_t>("tcpPort"));
         if (::bind(fd, (sockaddr*)&localAddr, sizeof(localAddr)) < 0) {
             HMBDC_THROW(std::runtime_error, "failed to bind, errno=" << errno);
